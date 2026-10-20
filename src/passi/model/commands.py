@@ -96,6 +96,7 @@ class RerollMotions:
 class RotatePhotos:
     photo_ids: frozenset[str]
     rotation: Rotation
+    """Clockwise turn added to each photo's current rotation (R90 = right, R270 = left)."""
 
 
 @dataclass(frozen=True, slots=True)
