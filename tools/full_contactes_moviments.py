@@ -35,13 +35,22 @@ from passi.model.types import (
     PhotoMotion,
     ResolvedFit,
 )
-from passi.motion import FitDecision, MotionRequest, draw_motions, resolve_fit, window_at, window_rect
+from passi.motion import (
+    INTENSITY_PRESETS,
+    FitDecision,
+    MotionAmounts,
+    MotionRequest,
+    draw_motions,
+    resolve_fit,
+    window_at,
+    window_rect,
+)
 
 EXTENSIONS = {".jpg", ".jpeg", ".png", ".heic", ".heif", ".bmp", ".tif", ".tiff", ".webp"}
 WORK_SIZE = 1600
 CELL_WIDTH = 440
 COLUMNS = 4
-CROSSFADE_S = 1.5
+CROSSFADE_S = 1.0
 FADE_IN_S, FADE_OUT_S = 1.0, 2.0
 FPS = 30
 
@@ -97,7 +106,7 @@ def visible_duration(index: int, count: int, duration: float) -> float:
 
 
 def assign_motions(
-    items: list[Item], output_format: OutputFormat, intensity: Intensity, seed: int, duration: float
+    items: list[Item], output_format: OutputFormat, amounts: MotionAmounts, seed: int, duration: float
 ) -> None:
     requests = [
         MotionRequest(
@@ -113,7 +122,7 @@ def assign_motions(
         )
         for i, item in enumerate(items)
     ]
-    motions = draw_motions(requests, seed, intensity)
+    motions = draw_motions(requests, seed, amounts)
     for request, item in zip(requests, items, strict=True):
         item.motion = motions[request.photo_id]
 
@@ -285,7 +294,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--vertical", action="store_true")
     parser.add_argument("--intensitat", choices=sorted(INTENSITIES), default="mitjana")
     parser.add_argument("--llavor", type=int, default=1)
-    parser.add_argument("--durada", type=float, default=5.0)
+    parser.add_argument("--durada", type=float, default=2.0, help="Segons per foto")
+    parser.add_argument(
+        "--zoom", type=float, default=None, help="Zoom per foto en %% (substitueix la intensitat)"
+    )
+    parser.add_argument("--desplacament", type=float, default=None, help="Desplaçament per foto en %%")
     args = parser.parse_args(argv)
 
     output_format = OutputFormat.VERTICAL if args.vertical else OutputFormat.HORIZONTAL
@@ -293,13 +306,19 @@ def main(argv: list[str] | None = None) -> int:
     if not items:
         print("No s'ha trobat cap foto", file=sys.stderr)
         return 1
-    assign_motions(items, output_format, INTENSITIES[args.intensitat], args.llavor, args.durada)
+    preset = INTENSITY_PRESETS[INTENSITIES[args.intensitat]]
+    amounts = MotionAmounts(
+        preset.zoom if args.zoom is None else args.zoom / 100,
+        preset.pan if args.desplacament is None else args.desplacament / 100,
+    )
+    assign_motions(items, output_format, amounts, args.llavor, args.durada)
     for item in items:
         item.canvas = build_canvas(item)
     format_name = "vertical" if args.vertical else "horitzontal"
     title = (
-        f"Moviments · {len(items)} fotos · format {format_name} · intensitat {args.intensitat} · "
-        f"llavor {args.llavor} · verd = inici, vermell = final"
+        f"Moviments · {len(items)} fotos de {args.durada:g} s · format {format_name} · "
+        f"zoom {amounts.zoom * 100:g} % · desplaçament {amounts.pan * 100:g} % · llavor {args.llavor} · "
+        "verd = inici, vermell = final"
     )
     contact_sheet(items, output_format, title).save(args.output)
     print(f"Full de contactes: {args.output}")

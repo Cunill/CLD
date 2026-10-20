@@ -10,17 +10,17 @@ import pytest
 
 from passi import cli
 from passi.model import defaults
-from passi.model.types import FitMode, Intensity, MotionType, OutputFormat, Photo, Project, Song
+from passi.model.types import FitMode, MotionType, OutputFormat, Photo, Project, Song
 
 
 def test_project_defaults_match_specification() -> None:
     project = Project()
     assert project.output_format is OutputFormat.HORIZONTAL
-    assert project.default_duration_s == 5.0
-    assert project.crossfade_s == 1.5
+    assert project.default_duration_s == 2.0
+    assert project.crossfade_s == 1.0
     assert project.fade_from_black_s == 1.0
     assert project.fade_to_black_s == 2.0
-    assert project.intensity is Intensity.MEDIUM
+    assert (project.zoom_amount, project.pan_amount) == (0.09, 0.09)
     assert project.motion_enabled
     assert project.music.normalize
     assert not project.music.keep_fitted
@@ -41,6 +41,8 @@ def test_every_default_is_inside_its_range() -> None:
         (defaults.CROSSFADE_S, defaults.CROSSFADE_RANGE),
         (defaults.FADE_FROM_BLACK_S, defaults.BLACK_FADE_RANGE),
         (defaults.FADE_TO_BLACK_S, defaults.BLACK_FADE_RANGE),
+        (defaults.ZOOM_AMOUNT, defaults.MOTION_AMOUNT_RANGE),
+        (defaults.PAN_AMOUNT, defaults.MOTION_AMOUNT_RANGE),
         (defaults.SONG_FADE_IN_S, defaults.SONG_FADE_RANGE),
         (defaults.SONG_FADE_OUT_S, defaults.SONG_FADE_RANGE),
         (defaults.MASTER_VOLUME, defaults.MASTER_VOLUME_RANGE),
@@ -49,7 +51,7 @@ def test_every_default_is_inside_its_range() -> None:
     for value, allowed in pairs:
         assert allowed.minimum <= value <= allowed.maximum
         assert allowed.clamp(value) == value
-    assert defaults.PHOTO_DURATION_RANGE.clamp(99) == 30.0
+    assert defaults.PHOTO_DURATION_RANGE.clamp(99) == 3.0
 
 
 def test_output_sizes_are_full_hd() -> None:
@@ -60,9 +62,9 @@ def test_output_sizes_are_full_hd() -> None:
 def test_photo_duration_falls_back_to_project_default() -> None:
     photo = Photo("p1", Path("a.jpg"), None, 4000, 3000)
     project = Project(photos=(photo,))
-    assert project.photo_duration(photo) == 5.0
-    custom = Photo("p2", Path("b.jpg"), None, 4000, 3000, duration_s=8.0)
-    assert project.photo_duration(custom) == 8.0
+    assert project.photo_duration(photo) == 2.0
+    custom = Photo("p2", Path("b.jpg"), None, 4000, 3000, duration_s=2.5)
+    assert project.photo_duration(custom) == 2.5
     assert photo.fit is FitMode.AUTO
     assert photo.motion.type is MotionType.NONE
 

@@ -47,12 +47,14 @@
 
 | Paràmetre | Per defecte | Rang |
 |---|---|---|
-| Durada per foto | 5,0 s | 1–30 s (en passos de 0,5 s) |
-| Fosa encadenada | 1,5 s | 0–3 s (0 = tall sec) |
+| Durada per foto | 2,0 s | 1–3 s (en passos de 0,1 s) |
+| Fosa encadenada | 1,0 s | 0,5–1,5 s |
 | Fosa des de negre a l'inici | 1,0 s | 0–5 s (Avançat) |
 | Fosa a negre al final | 2,0 s | 0–5 s (Avançat) |
 | Moviment de càmera | Activat, automàtic | — |
-| Intensitat | Mitjana | Suau / Mitjana / Marcada |
+| Intensitat del moviment | Mitjana | Suau / Mitjana / Marcada (preselecció dels dos valors següents) |
+| Zoom per foto | 9 % | 0–20 % (Avançat; suau 6 %, mitjana 9 %, marcada 12 %) |
+| Desplaçament per foto | 9 % | 0–20 % (Avançat; suau 6 %, mitjana 9 %, marcada 12 %) |
 | Encaix | Automàtic | Automàtic / Omplir / Fons difuminat / Fons negre |
 | Fosa d'entrada de cada cançó | Activada, 1,0 s | 0–10 s (en passos de 0,5 s) |
 | Fosa de sortida de cada cançó | Activada, 3,0 s | 0–10 s |
@@ -99,7 +101,7 @@
 ### 1.2 Storyboard
 
 **Comportament**
-- Les miniatures formen una graella que s'adapta a l'amplada (com al Movie Maker 2012), en l'ordre del passi. Sota cada miniatura hi ha el número d'ordre i la durada ("5,0 s"). Unes icones petites indiquen el tipus de moviment, si té una durada personalitzada, si és de baixa resolució o si no es troba el fitxer.
+- Les miniatures formen una graella que s'adapta a l'amplada (com al Movie Maker 2012), en l'ordre del passi. Sota cada miniatura hi ha el número d'ordre i la durada ("2,0 s"). Unes icones petites indiquen el tipus de moviment, si té una durada personalitzada, si és de baixa resolució o si no es troba el fitxer.
 - Selecció simple, múltiple (Ctrl, Maj) i de totes (Ctrl+A).
 - Per reordenar, s'arrosseguen una o diverses fotos. Una línia vertical indica on aniran. Amb el teclat: Ctrl+← i Ctrl+→.
 - Per eliminar: tecla Supr, botó o menú contextual. Només es demana confirmació si se n'eliminen 5 o més, perquè no hi ha "desfer" (vegeu la proposta P1).
@@ -115,7 +117,7 @@
 
 ### 1.3 Durada per foto
 
-- La durada general és de 5,0 s (de 1 a 30 s, en passos de 0,5 s). Si es canvia, afecta totes les fotos que no tenen una durada personalitzada.
+- La durada general és de 2,0 s (de 1 a 3 s, en passos de 0,1 s). Si es canvia, afecta totes les fotos que no tenen una durada personalitzada.
 - Per a una foto, o per a les fotos seleccionades, hi ha el camp "Durada" al panell de propietats. Si es modifica, la foto queda marcada com a personalitzada (amb una icona) i apareix el botó [Restablir a la general].
 - La durada és l'espai que ocupa la foto a la línia de temps, des de la meitat de la fosa anterior fins a la meitat de la següent. Així, la durada total del passi és exactament la suma de les durades de totes les fotos.
 - La barra d'estat mostra sempre el total ("124 fotos · 10:20").
@@ -123,9 +125,9 @@
 
 ### 1.4 Transició de fosa
 
-- Hi ha una fosa encadenada entre cada parella de fotos consecutives, amb una durada global d'1,5 s (de 0 a 3 s; 0 = tall sec). No hi ha cap altre tipus de transició.
+- Hi ha una fosa encadenada entre cada parella de fotos consecutives, amb una durada global d'1,0 s (de 0,5 a 1,5 s). No hi ha cap altre tipus de transició.
 - A l'inici hi ha una fosa des de negre (1,0 s) i al final una fosa cap a negre (2,0 s). Totes dues es poden ajustar a "Avançat" (de 0 a 5 s).
-- La fosa queda centrada en el canvi de foto: comença 0,75 s abans i acaba 0,75 s després. Durant la fosa, les dues fotos continuen movent-se; el moviment no s'atura mai.
+- La fosa queda centrada en el canvi de foto: comença 0,5 s abans i acaba 0,5 s després. Durant la fosa, les dues fotos continuen movent-se; el moviment no s'atura mai.
 - Regla de seguretat: la fosa entre dues fotos no pot durar més de la meitat de la més curta. Així, cada foto té un moment en què es veu sencera.
 - Casos límit:
   - 1 sola foto: només hi ha la fosa d'entrada i la de sortida.
@@ -143,23 +145,22 @@
 | Combinat | Zoom (endavant o enrere) amb un desplaçament suau en diagonal |
 | Cap | Foto estàtica |
 
-**Intensitat global** (valors ajustats a la fita F1, 20/10/2026: un 50 % més ràpids que la proposta inicial, a petició de l'usuari)
+**Quantitat de moviment** (decisió 0005, 20/10/2026: ajustable per l'usuari)
 
-El moviment dura tot el temps que la foto és visible: amb els valors per defecte (5 s per foto i
-fosa d'1,5 s), uns **6,5 s** (la primera i l'última foto, 5,75 s).
+Cada foto fa tot el seu moviment durant el temps que és visible. Amb els valors per defecte (2 s per
+foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 
-| | Suau | Mitjana (per defecte) | Marcada |
-|---|---|---|---|
-| Zoom durant els 6,5 s | 9 % | 18 % | 28 % |
-| → velocitat del zoom | 1,4 %/s | 2,8 %/s | 4,3 %/s |
-| Desplaçament durant els 6,5 s (en % del costat visible) | 6 % | 12 % | 18 % |
-| → velocitat del desplaçament | 0,9 %/s | 1,8 %/s | 2,8 %/s |
-| Velocitat màxima del zoom (fotos curtes) | 3 %/s | 5 %/s | 7,5 %/s |
-| Velocitat màxima del desplaçament (fotos curtes) | 2,5 %/s | 4 %/s | 6 %/s |
+| | Suau | Mitjana (per defecte) | Marcada | Ajust manual (Avançat) |
+|---|---|---|---|---|
+| Zoom per foto | 6 % | 9 % | 12 % | 0–20 % |
+| Desplaçament per foto (en % del costat visible) | 6 % | 9 % | 12 % | 0–20 % |
+| → velocitat amb fotos de 2 s (3 s visibles) | 2 %/s | 3 %/s | 4 %/s | |
 
-Exemple (intensitat mitjana): en una foto amb zoom, la imatge creix un 18 % en 6,5 s, és a dir, un
-2,8 % cada segon. En un desplaçament, la càmera recorre un 12 % de l'amplada visible en 6,5 s; per
-travessar la imatge sencera a aquesta velocitat calrien uns 54 s.
+- El selector "Intensitat" (Suau / Mitjana / Marcada) posa els dos valors alhora. A "Avançat" es poden
+  ajustar per separat; si no coincideixen amb cap preselecció, el selector mostra "Personalitzada".
+- Amb 0 % en tots dos valors, les fotos queden quietes (equivalent a desactivar el moviment).
+- Exemple (mitjana): en una foto de 2 s amb zoom, la imatge creix un 9 % en 3 s, és a dir, un 3 % cada segon.
+- Una foto visible menys d'1 s (cas límit) fa només la part proporcional del moviment.
 
 - El moviment és lineal i continu durant tot el temps que la foto és visible, foses incloses, sense acceleracions ni aturades. El zoom es calcula perquè la velocitat aparent sigui constant.
 - Si una foto és molt curta, el moviment es redueix perquè no sigui brusc. Si és molt llarga, simplement va més lent.
@@ -189,7 +190,7 @@ travessar la imatge sencera a aquesta velocitat calrien uns 54 s.
 
 **Proposta: encaix automàtic mixt**
 - **Omplir** si la proporció de la foto s'acosta a la del vídeo (relació entre 0,70 i 1,43, que inclou 4:3, 3:2, 16:9 i 16:10). Es retalla el mínim possible i la part retallada serveix de marge per al moviment.
-- **Encaixar amb fons difuminat** si la proporció és molt diferent: fotos verticals en un vídeo horitzontal, horitzontals en un vídeo vertical, quadrades i panoràmiques. La foto es veu sencera i el fons és la mateixa foto ampliada, molt desenfocada i enfosquida un 30 %. El moviment s'aplica al conjunt (foto i fons), només de tipus zoom i amb el 60 % de la intensitat.
+- **Encaixar amb fons difuminat** si la proporció és molt diferent: fotos verticals en un vídeo horitzontal, horitzontals en un vídeo vertical, quadrades i panoràmiques. La foto es veu sencera i el fons és la mateixa foto ampliada, molt desenfocada i enfosquida un 30 %. El moviment s'aplica al conjunt (foto i fons), només de tipus zoom.
 - **Per què:**
   - Retallar una foto vertical per a un vídeo horitzontal en fa perdre més del 60 % (per exemple, caps tallats).
   - Les franges negres semblen justament les zones buides que volem evitar.
@@ -219,7 +220,7 @@ travessar la imatge sencera a aquesta velocitat calrien uns 54 s.
 
 **Ajustar a la música**
 - El botó [Ajustar a la música] torna a calcular les durades perquè el passi duri exactament el mateix que la música (la suma de les cançons, ja retallades). Es mantenen les proporcions: una foto de 10 s continua durant el doble que una de 5 s.
-- Cada foto ha de durar entre 1 i 30 s. Si cada foto hagués de durar menys de 2 s, surt l'avís "Hi ha massa fotos per a aquesta música: cada foto duraria 0,8 s. Afegeix música o treu fotos.", amb [Aplicar igualment] i [Cancel·lar].
+- Cada foto ha de durar entre 1 i 3 s. Si caldria menys d'1 s per foto, surt l'avís "Hi ha massa fotos per a aquesta música: cada foto duraria 0,6 s. Afegeix música o treu fotos."; si en caldria més de 3 s, "La música és massa llarga per a aquestes fotos: afegeix-ne o retalla la música." En tots dos casos, [Aplicar igualment] (amb el límit d'1 o 3 s) i [Cancel·lar].
 - Casella "Mantenir ajustat" (desactivada per defecte): si s'activa, el passi es torna a ajustar sol cada vegada que s'afegeixen fotos o cançons.
 
 **Quan la música i les fotos no duren el mateix**

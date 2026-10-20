@@ -25,6 +25,8 @@ class OutputFormat(Enum):
 
 
 class Intensity(Enum):
+    """Presets for the motion amounts (passi.motion.INTENSITY_PRESETS); the project stores the amounts."""
+
     SOFT = "soft"
     MEDIUM = "medium"
     STRONG = "strong"
@@ -155,7 +157,8 @@ class Project:
     fade_from_black_s: float = defaults.FADE_FROM_BLACK_S
     fade_to_black_s: float = defaults.FADE_TO_BLACK_S
     motion_enabled: bool = True
-    intensity: Intensity = Intensity.MEDIUM
+    zoom_amount: float = defaults.ZOOM_AMOUNT
+    pan_amount: float = defaults.PAN_AMOUNT
     photos: tuple[Photo, ...] = ()
     music: Music = field(default_factory=Music)
 

@@ -35,7 +35,6 @@ from passi.motion.params import (
     COMBINED_ZOOM_FACTOR,
     FOCAL_JITTER,
     FOCAL_POINT,
-    INTENSITY_PARAMS,
     MAX_FAMILY_RUN,
     MAX_UPSCALE,
     MAX_ZOOM_IMBALANCE,
@@ -45,6 +44,8 @@ from passi.motion.params import (
     PREFERRED_PAN_AXIS_SHARE,
     RULE_COMPENSATION,
     IntensityParams,
+    MotionAmounts,
+    intensity_params,
 )
 
 MIN_VISIBLE_DURATION_S = 0.5
@@ -466,7 +467,7 @@ def _preset_first_and_last(
 def draw_motions(
     requests: Sequence[MotionRequest],
     seed: int,
-    intensity: Intensity,
+    amounts: MotionAmounts | Intensity,
     which: frozenset[str] | None = None,
 ) -> dict[str, PhotoMotion]:
     """Draws motions applying the balance rules of §1.5. Deterministic for a given seed.
@@ -479,7 +480,7 @@ def draw_motions(
 
     Returns the motion of every request, keyed by photo id.
     """
-    params = INTENSITY_PARAMS[intensity]
+    params = intensity_params(amounts)
     known: list[Option | None] = [
         None if (which is None or r.photo_id in which or r.current is None) else option_of(r.current)
         for r in requests
@@ -500,12 +501,12 @@ def draw_motions(
 
 
 def rebuild_motions(
-    requests: Sequence[MotionRequest], seed: int, intensity: Intensity
+    requests: Sequence[MotionRequest], seed: int, amounts: MotionAmounts | Intensity
 ) -> dict[str, PhotoMotion]:
     """Recomputes the windows keeping each photo's motion type (after a change of output
-    format, fit, rotation, duration or intensity). Photos whose type is no longer feasible,
+    format, fit, rotation, duration or motion amounts). Photos whose type is no longer feasible,
     or that have no motion yet, are drawn with the automatic rules."""
-    params = INTENSITY_PARAMS[intensity]
+    params = intensity_params(amounts)
     known: list[Option | None] = [None if r.current is None else option_of(r.current) for r in requests]
     rules = _Rules(known)
     result: dict[str, PhotoMotion] = {}

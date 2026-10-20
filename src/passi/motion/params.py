@@ -43,6 +43,28 @@ close to BASE_PROBABILITIES (measured in tests/unit/motion/test_rules.py)."""
 
 
 @dataclass(frozen=True, slots=True)
+class MotionAmounts:
+    """Motion per photo, adjustable by the user (Project.zoom_amount / pan_amount)."""
+
+    zoom: float
+    """Scale change while the photo is visible (0.09 = 9 %)."""
+    pan: float
+    """Displacement while the photo is visible, as a fraction of the visible window side."""
+
+
+INTENSITY_PRESETS: Mapping[Intensity, MotionAmounts] = {
+    Intensity.SOFT: MotionAmounts(0.06, 0.06),
+    Intensity.MEDIUM: MotionAmounts(0.09, 0.09),
+    Intensity.STRONG: MotionAmounts(0.12, 0.12),
+}
+"""Decision 0005: every photo moves 6-12 % (soft-strong) during the time it is visible."""
+
+FULL_MOTION_MIN_S = 1.0
+"""Photos visible less than this do only part of their motion: the speed never exceeds the
+amount per FULL_MOTION_MIN_S seconds."""
+
+
+@dataclass(frozen=True, slots=True)
 class IntensityParams:
     zoom_amount: float
     """Scale change over one photo (0.12 = the image ends 12 % larger or smaller)."""
@@ -54,13 +76,7 @@ class IntensityParams:
     """Maximum displacement per second, as a fraction of the visible window side."""
 
 
-INTENSITY_PARAMS: Mapping[Intensity, IntensityParams] = {
-    Intensity.SOFT: IntensityParams(0.09, 0.06, 0.030, 0.025),
-    Intensity.MEDIUM: IntensityParams(0.18, 0.12, 0.050, 0.040),
-    Intensity.STRONG: IntensityParams(0.28, 0.18, 0.075, 0.060),
-}
-
-BLUR_INTENSITY_FACTOR = 0.6
+BLUR_INTENSITY_FACTOR = 1.0
 """Zoom amount multiplier for photos fitted on a blurred (or black) background."""
 
 COMBINED_ZOOM_FACTOR = 0.6
@@ -85,3 +101,15 @@ FOCAL_JITTER = (0.08, 0.05)
 BALANCE_WINDOW = 6
 MAX_ZOOM_IMBALANCE = 2
 MAX_FAMILY_RUN = 2
+
+
+def intensity_params(amounts: MotionAmounts | Intensity) -> IntensityParams:
+    """Amounts and speed limits used by the draw, from user amounts or a preset."""
+    if isinstance(amounts, Intensity):
+        amounts = INTENSITY_PRESETS[amounts]
+    return IntensityParams(
+        zoom_amount=amounts.zoom,
+        pan_amount=amounts.pan,
+        max_zoom_speed=amounts.zoom / FULL_MOTION_MIN_S,
+        max_pan_speed=amounts.pan / FULL_MOTION_MIN_S,
+    )

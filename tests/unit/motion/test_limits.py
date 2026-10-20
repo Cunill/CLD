@@ -6,7 +6,15 @@ import numpy as np
 import pytest
 
 from passi.model.types import FitMode, Intensity, MotionMode, MotionType, OutputFormat
-from passi.motion import BLUR_INTENSITY_FACTOR, INTENSITY_PARAMS, MAX_UPSCALE, draw_motions, motion_speeds
+from passi.motion import (
+    BLUR_INTENSITY_FACTOR,
+    INTENSITY_PRESETS,
+    MAX_UPSCALE,
+    MotionAmounts,
+    draw_motions,
+    intensity_params,
+    motion_speeds,
+)
 from tests.unit.motion.helpers import base_of, request
 
 EPS = 1e-9
@@ -18,7 +26,7 @@ EPS = 1e-9
 def test_speed_never_exceeds_the_limits(
     intensity: Intensity, motion_type: MotionType, duration: float
 ) -> None:
-    params = INTENSITY_PARAMS[intensity]
+    params = intensity_params(intensity)
     req = request("s", 4000, 3000, duration=duration, mode=MotionMode.MANUAL, manual_type=motion_type)
     motion = draw_motions([req], 1, intensity)["s"]
     zoom_speed, pan_speed = motion_speeds(motion, base_of(req), duration)
@@ -28,7 +36,7 @@ def test_speed_never_exceeds_the_limits(
 
 @pytest.mark.parametrize("intensity", list(Intensity))
 def test_amounts_match_the_intensity_for_normal_durations(intensity: Intensity) -> None:
-    params = INTENSITY_PARAMS[intensity]
+    params = intensity_params(intensity)
     zoom = draw_motions([request("z", mode=MotionMode.MANUAL, manual_type=MotionType.ZOOM_IN)], 1, intensity)[
         "z"
     ]
@@ -53,7 +61,7 @@ def test_stronger_intensity_moves_more() -> None:
     assert amounts == sorted(amounts) and len(set(amounts)) == 3
 
 
-def test_blurred_photos_zoom_less() -> None:
+def test_blurred_photos_zoom_by_the_blur_factor() -> None:
     fill = draw_motions(
         [request("a", 4000, 3000, mode=MotionMode.MANUAL, manual_type=MotionType.ZOOM_IN)],
         1,
@@ -112,3 +120,28 @@ def test_forced_black_background_only_zooms() -> None:
     reqs = [request(f"k{i}", 4000, 3000, fit=FitMode.BLACK) for i in range(20)]
     motions = draw_motions(reqs, 1, Intensity.MEDIUM)
     assert {m.type for m in motions.values()} <= {MotionType.ZOOM_IN, MotionType.ZOOM_OUT}
+
+
+@pytest.mark.parametrize("intensity", list(Intensity))
+def test_presets_move_6_to_12_percent_per_photo(intensity: Intensity) -> None:
+    amounts = INTENSITY_PRESETS[intensity]
+    assert 0.06 <= amounts.zoom <= 0.12 and 0.06 <= amounts.pan <= 0.12
+    for duration in (1.5, 2.0, 3.0, 4.0):  # visible time of 1-3 s photos with 0.5-1.5 s fades
+        req = request("z", duration=duration, mode=MotionMode.MANUAL, manual_type=MotionType.ZOOM_IN)
+        m = draw_motions([req], 1, intensity)["z"]
+        assert m.end.scale / m.start.scale - 1 == pytest.approx(amounts.zoom)
+
+
+@pytest.mark.parametrize(("zoom", "pan"), [(0.03, 0.15), (0.20, 0.05), (0.10, 0.10)])
+def test_custom_amounts_are_applied(zoom: float, pan: float) -> None:
+    amounts = MotionAmounts(zoom, pan)
+    z = draw_motions([request("z", mode=MotionMode.MANUAL, manual_type=MotionType.ZOOM_OUT)], 1, amounts)["z"]
+    assert z.start.scale / z.end.scale - 1 == pytest.approx(zoom)
+    p = draw_motions([request("p", mode=MotionMode.MANUAL, manual_type=MotionType.PAN_DOWN)], 1, amounts)["p"]
+    window_height = base_of(request("p"))[1] / p.start.scale
+    assert (p.end.centre_y - p.start.centre_y) / window_height == pytest.approx(pan, rel=1e-6)
+
+
+def test_zero_amounts_mean_still_photos() -> None:
+    motions = draw_motions([request(f"s{i}") for i in range(10)], 1, MotionAmounts(0.0, 0.0))
+    assert {m.type for m in motions.values()} == {MotionType.NONE}

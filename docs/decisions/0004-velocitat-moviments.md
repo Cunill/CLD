@@ -1,6 +1,6 @@
 # 0004 · Moviments més ràpids (fita F1)
 
-- **Data:** 20/10/2026 · **Estat:** acceptada (petició de l'usuari després de veure el vídeo de mostra: "augmenta la velocitat")
+- **Data:** 20/10/2026 · **Estat:** substituïda per la 0005 (petició de l'usuari després de veure el vídeo de mostra: "augmenta la velocitat")
 - **Decisió:** totes les intensitats, un 50 % més d'amplitud i de velocitat màxima.
 
 Valors per a una foto amb la durada per defecte (visible 6,5 s):
