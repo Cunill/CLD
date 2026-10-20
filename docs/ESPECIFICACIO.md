@@ -145,12 +145,21 @@
 
 **Intensitat global** (valors ajustats a la fita F1, 20/10/2026: un 50 % més ràpids que la proposta inicial, a petició de l'usuari)
 
+El moviment dura tot el temps que la foto és visible: amb els valors per defecte (5 s per foto i
+fosa d'1,5 s), uns **6,5 s** (la primera i l'última foto, 5,75 s).
+
 | | Suau | Mitjana (per defecte) | Marcada |
 |---|---|---|---|
-| Variació del zoom en una foto | 9 % | 18 % | 28 % |
-| Desplaçament (en % del costat visible) | 6 % | 12 % | 18 % |
-| Velocitat màxima del zoom | 3 %/s | 5 %/s | 7,5 %/s |
-| Velocitat màxima del desplaçament | 2,5 %/s | 4 %/s | 6 %/s |
+| Zoom durant els 6,5 s | 9 % | 18 % | 28 % |
+| → velocitat del zoom | 1,4 %/s | 2,8 %/s | 4,3 %/s |
+| Desplaçament durant els 6,5 s (en % del costat visible) | 6 % | 12 % | 18 % |
+| → velocitat del desplaçament | 0,9 %/s | 1,8 %/s | 2,8 %/s |
+| Velocitat màxima del zoom (fotos curtes) | 3 %/s | 5 %/s | 7,5 %/s |
+| Velocitat màxima del desplaçament (fotos curtes) | 2,5 %/s | 4 %/s | 6 %/s |
+
+Exemple (intensitat mitjana): en una foto amb zoom, la imatge creix un 18 % en 6,5 s, és a dir, un
+2,8 % cada segon. En un desplaçament, la càmera recorre un 12 % de l'amplada visible en 6,5 s; per
+travessar la imatge sencera a aquesta velocitat calrien uns 54 s.
 
 - El moviment és lineal i continu durant tot el temps que la foto és visible, foses incloses, sense acceleracions ni aturades. El zoom es calcula perquè la velocitat aparent sigui constant.
 - Si una foto és molt curta, el moviment es redueix perquè no sigui brusc. Si és molt llarga, simplement va més lent.
