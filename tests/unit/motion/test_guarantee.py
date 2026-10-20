@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from passi.model.types import FitMode, Intensity, MotionMode, MotionType, OutputFormat
-from passi.motion import draw_motions, is_inside, window_at
+from passimaker.model.types import FitMode, Intensity, MotionMode, MotionType, OutputFormat
+from passimaker.motion import draw_motions, is_inside, window_at
 from tests.unit.motion.helpers import base_of, request
 
 CASES = 10_000

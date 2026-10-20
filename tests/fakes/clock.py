@@ -4,7 +4,7 @@ from __future__ import annotations
 
 
 class SimulatedClock:
-    """Implements passi.preview.Clock."""
+    """Implements passimaker.preview.Clock."""
 
     def __init__(self, start_s: float = 0.0) -> None:
         self._now = start_s

@@ -6,8 +6,8 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from passi.model.types import Project
-from passi.timeline import Timeline, compute_timeline, query
+from passimaker.model.types import Project
+from passimaker.timeline import Timeline, compute_timeline, query
 from tests.unit.timeline.helpers import make_project, projects
 
 

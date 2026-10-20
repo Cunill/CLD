@@ -1,4 +1,4 @@
-# Passi: context per a Claude Code
+# PassiMaker: context per a Claude Code
 
 ## Què és
 Programa d'escriptori per a Windows per fer passis de fotos (moviment Ken Burns, fosa encadenada, música)
@@ -25,23 +25,23 @@ Proves: pytest, pytest-qt, Hypothesis. Estil: ruff. Tipus: pyright (estricte a s
 - Rendiment: `uv run pytest -m perf`
 - Estil i tipus: `uv run ruff check .` · `uv run ruff format --check .` · `uv run pyright`
 - Dades de prova per inspeccionar-les: `uv run python -m tests.fixtures.generate tests/_generated`
-- Executar el programa: `uv run passi`
-- Crear un projecte des d'una carpeta: `uv run passi-nou <carpeta_fotos> [música...] -o <projecte.passi>`
-- Exportar sense finestra: `uv run passi-render <projecte.passi> <sortida.mp4>`
+- Executar el programa: `uv run passimaker`
+- Crear un projecte des d'una carpeta: `uv run passimaker-nou <carpeta_fotos> [música...] -o <projecte.passimaker>`
+- Exportar sense finestra: `uv run passimaker-render <projecte.passimaker> <sortida.mp4>`
 - Construir el ZIP portable (Windows): `pwsh tools/construir_zip.ps1`
 
 ## Regles d'arquitectura
-1. Qt només a src/passi/ui i src/passi/preview. La resta del nucli no importa PySide6 (hi ha una prova).
-2. El projecte només es modifica a través del controlador (src/passi/model). Les dades són immutables.
-3. Un sol compositor (src/passi/render) per a previsualització i exportació.
+1. Qt només a src/passimaker/ui i src/passimaker/preview. La resta del nucli no importa PySide6 (hi ha una prova).
+2. El projecte només es modifica a través del controlador (src/passimaker/model). Les dades són immutables.
+3. Un sol compositor (src/passimaker/render) per a previsualització i exportació.
 4. Unitats: temps en segons (float) al model; fotogrames enters a l'exportació; imatges NumPy RGB uint8 H×W×3;
    finestres de moviment normalitzades (0–1).
 5. Determinisme: cap aleatorietat fora de la llavor del projecte.
 6. Tot el que trigui més de 50 ms, fora del fil de la interfície.
-7. FFmpeg sempre a través de src/passi/ffmpeg: sense shell, sense finestres de consola, amb rutes Unicode.
+7. FFmpeg sempre a través de src/passimaker/ffmpeg: sense shell, sense finestres de consola, amb rutes Unicode.
    És l'únic mòdul que pot fer servir subprocess (hi ha una prova).
 8. Textos visibles sempre traduïbles (tr) i en català. Codi, noms i comentaris en anglès.
-9. Valors per defecte i rangs, només a src/passi/model/defaults.py; paràmetres de moviment, a src/passi/motion.
+9. Valors per defecte i rangs, només a src/passimaker/model/defaults.py; paràmetres de moviment, a src/passimaker/motion.
 10. Cap dependència nova sense proposar-la abans.
 
 ## Protocol de sessió (un bloc per sessió)
@@ -65,5 +65,6 @@ Proves: pytest, pytest-qt, Hypothesis. Estil: ruff. Tipus: pyright (estricte a s
 ## Estat
 Blocs integrats a main: B0 (PR #1, commit `bd4cde4`) · B3 (PR #2, commit `1c49679`) ·
 B2 (PR #6, commit `d24243a`) · B1 (PR #5, commit `defb833`).
+Manteniment: M01 canvi de nom a PassiMaker (decisió 0006, pendent de fusionar).
 Fita F1 aprovada (decisions 0004 i 0005). Pendents: B4, B5, B6, B7–B16.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.

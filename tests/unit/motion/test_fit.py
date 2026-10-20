@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from passi.model.types import FitMode, OutputFormat, ResolvedFit
-from passi.motion import FILL_RATIO_RANGE, base_window, output_aspect, resolve_fit
+from passimaker.model.types import FitMode, OutputFormat, ResolvedFit
+from passimaker.motion import FILL_RATIO_RANGE, base_window, output_aspect, resolve_fit
 
 H, V = OutputFormat.HORIZONTAL, OutputFormat.VERTICAL
 

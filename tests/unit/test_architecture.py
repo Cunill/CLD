@@ -6,23 +6,23 @@ import subprocess
 import sys
 from pathlib import Path
 
-SRC = Path(__file__).resolve().parents[2] / "src" / "passi"
+SRC = Path(__file__).resolve().parents[2] / "src" / "passimaker"
 QT_ALLOWED = {"ui", "preview"}
 CORE_MODULES = [
-    "passi.common",
-    "passi.model",
-    "passi.importer",
-    "passi.images",
-    "passi.thumbs",
-    "passi.timeline",
-    "passi.motion",
-    "passi.render",
-    "passi.ffmpeg",
-    "passi.audio",
-    "passi.export",
-    "passi.projectio",
-    "passi.i18n",
-    "passi.cli",
+    "passimaker.common",
+    "passimaker.model",
+    "passimaker.importer",
+    "passimaker.images",
+    "passimaker.thumbs",
+    "passimaker.timeline",
+    "passimaker.motion",
+    "passimaker.render",
+    "passimaker.ffmpeg",
+    "passimaker.audio",
+    "passimaker.export",
+    "passimaker.projectio",
+    "passimaker.i18n",
+    "passimaker.cli",
 ]
 
 
@@ -56,8 +56,8 @@ def test_only_ffmpeg_module_runs_subprocesses() -> None:
 
 
 def test_qt_modules_import() -> None:
-    import passi.preview
-    import passi.ui.app
+    import passimaker.preview
+    import passimaker.ui.app
 
-    assert passi.preview.PREVIEW_MAX_SIZE == (960, 540)
-    assert callable(passi.ui.app.main)
+    assert passimaker.preview.PREVIEW_MAX_SIZE == (960, 540)
+    assert callable(passimaker.ui.app.main)

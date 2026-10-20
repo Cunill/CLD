@@ -6,9 +6,9 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from passi.model import defaults
-from passi.model.types import Fade, Song
-from passi.timeline import Timeline, compute_timeline
+from passimaker.model import defaults
+from passimaker.model.types import Fade, Song
+from passimaker.timeline import Timeline, compute_timeline
 from tests.unit.timeline.helpers import make_project, make_song
 
 MICRO = defaults.CUT_MICRO_FADE_S

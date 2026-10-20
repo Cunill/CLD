@@ -1,4 +1,4 @@
-"""B1: .passi files (save/open round trip, relative paths, relinking, safe writing, recovery)."""
+"""B1: .passimaker files (save/open round trip, relative paths, relinking, safe writing, recovery)."""
 
 from __future__ import annotations
 
@@ -14,9 +14,9 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from passi import projectio
-from passi.model import defaults
-from passi.model.types import (
+from passimaker import projectio
+from passimaker.model import defaults
+from passimaker.model.types import (
     Fade,
     FitMode,
     MotionMode,
@@ -31,7 +31,7 @@ from passi.model.types import (
     Song,
     Window,
 )
-from passi.projectio import (
+from passimaker.projectio import (
     ERROR_CORRUPT,
     ERROR_NEWER_VERSION,
     ProjectFileError,
@@ -150,13 +150,13 @@ def projects(draw: st.DrawFn, base: Path) -> Project:
     )
 
 
-ROUND_TRIP_BASE = Path(tempfile.gettempdir()).resolve() / "passi-proves" / "Projectes d'estiu àèç"
+ROUND_TRIP_BASE = Path(tempfile.gettempdir()).resolve() / "passimaker-proves" / "Projectes d'estiu àèç"
 
 
 @settings(max_examples=200, deadline=None)
 @given(projects(ROUND_TRIP_BASE))
 def test_save_and_open_give_an_identical_project(project: Project) -> None:
-    path = ROUND_TRIP_BASE / "Viatge a Girona·ñ.passi"
+    path = ROUND_TRIP_BASE / "Viatge a Girona·ñ.passimaker"
     save_project(project, path)
     result = open_project(path)
     assert result.project == project
@@ -192,12 +192,12 @@ def simple_project(photo_paths: list[Path], song_paths: list[Path] = ()) -> Proj
 
 
 def test_file_is_readable_indented_json_with_a_version(tmp_path: Path) -> None:
-    path = tmp_path / "p.passi"
+    path = tmp_path / "p.passimaker"
     save_project(simple_project([tmp_path / "fotos" / "Càmping.jpg"]), path)
     text = path.read_text(encoding="utf-8")
     assert "\n  " in text and "Càmping.jpg" in text  # indented, accents kept as text
     document = json.loads(text)
-    assert document["format"] == "passi" and document["format_version"] == defaults.FORMAT_VERSION
+    assert document["format"] == "passimaker" and document["format_version"] == defaults.FORMAT_VERSION
     photo_data = document["project"]["photos"][0]
     assert photo_data["relative_path"] == "fotos/Càmping.jpg"
     assert Path(photo_data["path"]).is_absolute()
@@ -207,12 +207,12 @@ def test_moving_the_whole_folder_keeps_everything(tmp_path: Path) -> None:
     original = tmp_path / "Disc E" / "Passi d'estiu"
     photo_paths = make_files(original, ["fotos/IMG_1.jpg", "fotos/sub/àvia.jpg"])
     song_paths = make_files(original, ["música/cançó.mp3"])
-    save_project(simple_project(photo_paths, song_paths), original / "estiu.passi")
+    save_project(simple_project(photo_paths, song_paths), original / "estiu.passimaker")
 
     moved = tmp_path / "Disc F" / "còpia"
     moved.parent.mkdir()
     shutil.move(original, moved)
-    result = open_project(moved / "estiu.passi")
+    result = open_project(moved / "estiu.passimaker")
     assert result.missing_files == ()
     assert [p.path for p in result.project.photos] == [
         moved / "fotos/IMG_1.jpg",
@@ -223,9 +223,9 @@ def test_moving_the_whole_folder_keeps_everything(tmp_path: Path) -> None:
 
 def test_absolute_path_is_used_when_only_the_project_file_moves(tmp_path: Path) -> None:
     photo_paths = make_files(tmp_path / "fotos", ["a.jpg"])
-    save_project(simple_project(photo_paths), tmp_path / "projectes" / "p.passi")
-    (tmp_path / "projectes" / "p.passi").rename(tmp_path / "p.passi")
-    result = open_project(tmp_path / "p.passi")
+    save_project(simple_project(photo_paths), tmp_path / "projectes" / "p.passimaker")
+    (tmp_path / "projectes" / "p.passimaker").rename(tmp_path / "p.passimaker")
+    result = open_project(tmp_path / "p.passimaker")
     assert result.missing_files == ()
     assert result.project.photos[0].path == photo_paths[0]
 
@@ -233,11 +233,11 @@ def test_absolute_path_is_used_when_only_the_project_file_moves(tmp_path: Path) 
 def test_missing_files_are_listed_and_relinked_by_name(tmp_path: Path) -> None:
     photo_paths = make_files(tmp_path / "vell", ["a.jpg", "B.JPG", "c.jpg"])
     song_paths = make_files(tmp_path / "vell", ["tema.mp3"])
-    save_project(simple_project(photo_paths, song_paths), tmp_path / "projecte" / "p.passi")
+    save_project(simple_project(photo_paths, song_paths), tmp_path / "projecte" / "p.passimaker")
     shutil.rmtree(tmp_path / "vell")
     make_files(tmp_path / "nou", ["sub/a.jpg", "b.jpg", "tema.mp3"])  # c.jpg is lost
 
-    result = open_project(tmp_path / "projecte" / "p.passi")
+    result = open_project(tmp_path / "projecte" / "p.passimaker")
     assert set(result.missing_files) == {*photo_paths, *song_paths}
     project, count = relink(result.project, tmp_path / "nou")
     assert count == 3
@@ -246,8 +246,8 @@ def test_missing_files_are_listed_and_relinked_by_name(tmp_path: Path) -> None:
     assert project.music.songs[0].path == tmp_path / "nou/tema.mp3"
     assert project.photos[0].relative_path is None
 
-    save_project(project, tmp_path / "projecte" / "p.passi")
-    reopened = open_project(tmp_path / "projecte" / "p.passi")
+    save_project(project, tmp_path / "projecte" / "p.passimaker")
+    reopened = open_project(tmp_path / "projecte" / "p.passimaker")
     assert reopened.missing_files == (photo_paths[2],)
 
 
@@ -263,7 +263,7 @@ def test_relink_with_nothing_missing_returns_the_same_project(tmp_path: Path) ->
 def test_a_failure_while_saving_leaves_the_previous_file_intact(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, failing: str
 ) -> None:
-    path = tmp_path / "p.passi"
+    path = tmp_path / "p.passimaker"
     save_project(Project(name="primer"), path)
     before = path.read_bytes()
 
@@ -277,12 +277,12 @@ def test_a_failure_while_saving_leaves_the_previous_file_intact(
     with pytest.raises(ProjectFileError):
         save_project(Project(name="segon"), path)
     assert path.read_bytes() == before
-    assert sorted(p.name for p in tmp_path.iterdir()) == ["p.passi"]  # no temporary files left
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["p.passimaker"]  # no temporary files left
     assert open_project(path).project.name == "primer"
 
 
 def test_an_interrupted_save_does_not_reach_the_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    path = tmp_path / "p.passi"
+    path = tmp_path / "p.passimaker"
     save_project(Project(name="primer"), path)
     monkeypatch.setattr(projectio.os, "fsync", lambda _fd: (_ for _ in ()).throw(KeyboardInterrupt()))
     with pytest.raises(KeyboardInterrupt):
@@ -292,7 +292,7 @@ def test_an_interrupted_save_does_not_reach_the_file(tmp_path: Path, monkeypatch
 
 
 def test_save_creates_the_folder(tmp_path: Path) -> None:
-    path = tmp_path / "nova carpeta" / "p.passi"
+    path = tmp_path / "nova carpeta" / "p.passimaker"
     save_project(Project(), path)
     assert open_project(path).project == Project()
 
@@ -301,7 +301,7 @@ def test_save_creates_the_folder(tmp_path: Path) -> None:
 
 
 def write(tmp_path: Path, content: str | bytes) -> Path:
-    path = tmp_path / "p.passi"
+    path = tmp_path / "p.passimaker"
     if isinstance(content, bytes):
         path.write_bytes(content)
     else:
@@ -310,7 +310,7 @@ def write(tmp_path: Path, content: str | bytes) -> Path:
 
 
 def valid_document(tmp_path: Path) -> dict[str, object]:
-    path = tmp_path / "valid.passi"
+    path = tmp_path / "valid.passimaker"
     save_project(simple_project([tmp_path / "a.jpg"], [tmp_path / "s.mp3"]), path)
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -331,11 +331,11 @@ def test_a_newer_version_gives_a_clear_error(tmp_path: Path) -> None:
         "[]",
         "null",
         '{"format": "altre", "format_version": 1}',
-        '{"format": "passi"}',
-        '{"format": "passi", "format_version": "1", "project": {}}',
-        '{"format": "passi", "format_version": 0, "project": {}}',
-        '{"format": "passi", "format_version": 1, "project": {}}',
-        '{"format": "passi", "format_version": 1, "project": NaN}',
+        '{"format": "passimaker"}',
+        '{"format": "passimaker", "format_version": "1", "project": {}}',
+        '{"format": "passimaker", "format_version": 0, "project": {}}',
+        '{"format": "passimaker", "format_version": 1, "project": {}}',
+        '{"format": "passimaker", "format_version": 1, "project": NaN}',
         "[" * 100_000,
         b"\xff\xfe\x00garbage",
     ],
@@ -407,14 +407,14 @@ def test_out_of_range_values_are_clamped_on_open(tmp_path: Path) -> None:
 
 def test_unreadable_or_missing_file_gives_a_controlled_error(tmp_path: Path) -> None:
     with pytest.raises(ProjectFileError):
-        open_project(tmp_path / "no existeix.passi")
+        open_project(tmp_path / "no existeix.passimaker")
     with pytest.raises(ProjectFileError):
         open_project(tmp_path)  # a folder
 
 
 def test_values_that_json_cannot_store_give_a_controlled_error(tmp_path: Path) -> None:
     with pytest.raises(ProjectFileError):
-        save_project(Project(zoom_amount=float("nan")), tmp_path / "p.passi")
+        save_project(Project(zoom_amount=float("nan")), tmp_path / "p.passimaker")
     assert not list(tmp_path.iterdir())
 
 
@@ -442,7 +442,7 @@ def test_recovery_copy_is_saved_found_and_cleared(tmp_path: Path) -> None:
 def test_a_project_of_1000_photos_saves_and_opens_in_less_than_a_second(tmp_path: Path) -> None:
     photo_paths = [tmp_path / "fotos" / f"IMG_{i:04d}.jpg" for i in range(1000)]
     project = simple_project(photo_paths, [tmp_path / "música.mp3"])
-    path = tmp_path / "gran.passi"
+    path = tmp_path / "gran.passimaker"
     start = time.perf_counter()
     save_project(project, path)
     result = open_project(path)

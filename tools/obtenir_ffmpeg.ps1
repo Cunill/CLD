@@ -21,7 +21,7 @@ if ((Test-Path $VersionFile) -and ((Get-Content $VersionFile -Raw).Trim() -eq $V
     exit 0
 }
 
-$Temp = Join-Path ([System.IO.Path]::GetTempPath()) ("passi-ffmpeg-" + [guid]::NewGuid())
+$Temp = Join-Path ([System.IO.Path]::GetTempPath()) ("passimaker-ffmpeg-" + [guid]::NewGuid())
 New-Item -ItemType Directory -Path $Temp | Out-Null
 try {
     $Zip = Join-Path $Temp 'ffmpeg.zip'

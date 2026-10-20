@@ -14,5 +14,5 @@ Valors per a una foto amb la durada per defecte (visible 6,5 s):
 | Velocitat màxima del zoom | 2 → 3 %/s | 3,5 → 5 %/s | 5 → 7,5 %/s |
 | Velocitat màxima del desplaçament | 1,5 → 2,5 %/s | 2,5 → 4 %/s | 4 → 6 %/s |
 
-- **On:** `src/passi/motion/params.py` (`INTENSITY_PARAMS`) i ESPECIFICACIO §1.5.
+- **On:** `src/passimaker/motion/params.py` (`INTENSITY_PARAMS`) i ESPECIFICACIO §1.5.
 - **Nota:** en fotos de menys de ~3.000 px d'amplada el zoom continua limitat per `MAX_UPSCALE` (no ampliar més d'1,5×).

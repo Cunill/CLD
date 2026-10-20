@@ -5,8 +5,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from passi.model.types import FitMode, Intensity, MotionMode, MotionType, OutputFormat
-from passi.motion import (
+from passimaker.model.types import FitMode, Intensity, MotionMode, MotionType, OutputFormat
+from passimaker.motion import (
     BLUR_INTENSITY_FACTOR,
     INTENSITY_PRESETS,
     MAX_UPSCALE,

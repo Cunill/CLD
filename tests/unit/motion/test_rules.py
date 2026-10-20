@@ -8,7 +8,7 @@ from collections import Counter
 
 import pytest
 
-from passi.model.types import (
+from passimaker.model.types import (
     FitMode,
     Intensity,
     MotionMode,
@@ -17,8 +17,8 @@ from passi.model.types import (
     PhotoMotion,
     ResolvedFit,
 )
-from passi.motion import BASE_PROBABILITIES, draw_motions, option_of, rebuild_motions
-from passi.motion.draw import Family
+from passimaker.motion import BASE_PROBABILITIES, draw_motions, option_of, rebuild_motions
+from passimaker.motion.draw import Family
 from tests.unit.motion.helpers import draw_sequence, request
 
 FILL_SIZES = [(4000, 3000), (3000, 2000), (1920, 1080), (4032, 3024), (5000, 4000), (6000, 3376)]

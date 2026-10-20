@@ -1,5 +1,5 @@
 [project]
-name = "passi"
+name = "passimaker"
 version = "0.0.1"
 description = "Passis de fotos amb moviment de càmera, fosa encadenada i música (equivalent al Windows Movie Maker)"
 readme = "README.md"
@@ -14,9 +14,9 @@ dependencies = [
 ]
 
 [project.scripts]
-passi = "passi.ui.app:main"
-passi-nou = "passi.cli:main_new"
-passi-render = "passi.cli:main_render"
+passimaker = "passimaker.ui.app:main"
+passimaker-nou = "passimaker.cli:main_new"
+passimaker-render = "passimaker.cli:main_render"
 
 [dependency-groups]
 dev = [
@@ -35,7 +35,7 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/passi"]
+packages = ["src/passimaker"]
 
 [tool.uv]
 default-groups = ["dev"]
@@ -49,7 +49,7 @@ markers = [
     "perf: proves de rendiment; només en local al PC de referència o a les fites",
 ]
 qt_api = "pyside6"
-filterwarnings = ["error::DeprecationWarning:passi.*"]
+filterwarnings = ["error::DeprecationWarning:passimaker.*"]
 
 [tool.ruff]
 line-length = 110

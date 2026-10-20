@@ -8,8 +8,8 @@ import math
 import pytest
 from hypothesis import given
 
-from passi.model.types import Project
-from passi.timeline import compute_timeline
+from passimaker.model.types import Project
+from passimaker.timeline import compute_timeline
 from tests.unit.timeline.helpers import make_project, projects
 
 

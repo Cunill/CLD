@@ -7,7 +7,7 @@ from fractions import Fraction
 from hypothesis import given
 from hypothesis import strategies as st
 
-from passi.timeline import frame_to_time, time_to_frame
+from passimaker.timeline import frame_to_time, time_to_frame
 
 TWO_HOURS_FRAMES = 2 * 3600 * 30
 

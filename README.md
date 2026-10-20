@@ -1,4 +1,4 @@
-# Passi
+# PassiMaker
 
 Programa d'escriptori per a Windows per fer passis de fotos amb moviment de càmera (Ken Burns),
 fosa encadenada i música, i exportar-los a MP4 Full HD. És l'equivalent de la funció de passi de

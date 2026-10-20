@@ -6,10 +6,10 @@ from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
 
-from passi import timeline
-from passi.model import ProjectController
-from passi.model.commands import AddPhotos, AddSongs
-from passi.model.types import Photo, Project, Song
+from passimaker import timeline
+from passimaker.model import ProjectController
+from passimaker.model.commands import AddPhotos, AddSongs
+from passimaker.model.types import Photo, Project, Song
 
 FOLDER = Path("/fotos")
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from passi.model.types import MotionMode, MotionType, PhotoMotion, ResolvedFit, Window
+from passimaker.model.types import MotionMode, MotionType, PhotoMotion, ResolvedFit, Window
 
 FIXED_WINDOWS: dict[MotionType, tuple[Window, Window]] = {
     MotionType.NONE: (Window(), Window()),

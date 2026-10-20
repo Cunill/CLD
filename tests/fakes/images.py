@@ -5,13 +5,13 @@ from __future__ import annotations
 import zlib
 from collections.abc import Sequence
 
-from passi.common import RGBImage
-from passi.model.types import Photo
+from passimaker.common import RGBImage
+from passimaker.model.types import Photo
 from tests.fixtures.generate import synthetic_rgb
 
 
 class SyntheticImageSource:
-    """Implements passi.images.ImageSource. Records every request in `requests`."""
+    """Implements passimaker.images.ImageSource. Records every request in `requests`."""
 
     def __init__(self) -> None:
         self.requests: list[tuple[str, int]] = []

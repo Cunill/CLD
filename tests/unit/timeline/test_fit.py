@@ -10,7 +10,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from passi.timeline import DEFAULT_DURATION_LIMITS, DurationLimits, fit_to_music
+from passimaker.timeline import DEFAULT_DURATION_LIMITS, DurationLimits, fit_to_music
 
 FRAME = 1 / 30
 
@@ -100,7 +100,7 @@ def test_a_thousand_photos_fit_quickly() -> None:
 
 @given(st.lists(st.floats(1.0, 3.0), min_size=1, max_size=60), st.floats(0.0, 1.0))
 def test_fitted_show_lasts_as_long_as_the_music_to_the_frame(durations: list[float], position: float) -> None:
-    from passi.timeline import compute_timeline
+    from passimaker.timeline import compute_timeline
     from tests.unit.timeline.helpers import make_project, make_song
 
     music_s = len(durations) * (1.0 + 2.0 * position)
