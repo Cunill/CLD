@@ -129,7 +129,12 @@ def test_missing_files_have_their_own_key(tmp_path: Path) -> None:
         assert caught.value.message_key == ffmpeg.ERROR_FILE_NOT_FOUND
 
 
-@pytest.mark.parametrize("content", [b"", b"no soc una can\xc3\xa7o" * 100, bytes(range(256)) * 64])
+# Short ids: pytest puts the test id in an environment variable, limited to 32767 characters on Windows.
+@pytest.mark.parametrize(
+    "content",
+    [b"", b"no soc una can\xc3\xa7o" * 100, bytes(range(256)) * 64],
+    ids=["buit", "text", "binari"],
+)
 def test_corrupt_files_are_unreadable(tmp_path: Path, content: bytes) -> None:
     path = tmp_path / "trencada.mp3"
     path.write_bytes(content)
