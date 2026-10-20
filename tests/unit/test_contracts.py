@@ -83,7 +83,6 @@ def _stubs() -> list[tuple[str, Callable[[], Any]]]:
     return [
         ("B1 controller", lambda: ProjectController()),
         ("B1 open", lambda: projectio.open_project(p)),
-        ("B2 timeline", lambda: timeline.compute_timeline(Project())),
         ("B4 import", lambda: importer.import_paths([p])),
         ("B7 probe", lambda: ffmpeg.probe(p)),
         ("B8 audio", lambda: audio.prepare(Project(), timeline.AudioPlan((), None), p)),
