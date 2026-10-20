@@ -63,4 +63,6 @@ Proves: pytest, pytest-qt, Hypothesis. Estil: ruff. Tipus: pyright (estricte a s
      i aturar-se.
 
 ## Estat
-Blocs integrats a main: B0 · B3 en revisió
+Blocs integrats a main: B0 (PR #1, etiqueta `bloc-B00`) · B3 (PR #2, etiqueta `bloc-B03`).
+Fita F1 aprovada (decisions 0004 i 0005). Pendents: B1, B2, B4, B5, B6, B7–B16.
+Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
