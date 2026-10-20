@@ -65,6 +65,6 @@ Proves: pytest, pytest-qt, Hypothesis. Estil: ruff. Tipus: pyright (estricte a s
 ## Estat
 Blocs integrats a main: B0 (PR #1, commit `bd4cde4`) · B3 (PR #2, commit `1c49679`) ·
 B2 (PR #6, commit `d24243a`) · B1 (PR #5, commit `defb833`).
-Manteniment: M01 canvi de nom a PassiMaker (decisió 0006, pendent de fusionar).
+Manteniment: M01 canvi de nom a PassiMaker (PR #9, commit `72341ff`, decisió 0006).
 Fita F1 aprovada (decisions 0004 i 0005). Pendents: B4, B5, B6, B7–B16.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
