@@ -80,7 +80,6 @@ def _stubs() -> list[tuple[str, Callable[[], Any]]]:
 
     p = Path("x")
     return [
-        ("B2 timeline", lambda: timeline.compute_timeline(Project())),
         ("B4 import", lambda: importer.import_paths([p])),
         ("B7 probe", lambda: ffmpeg.probe(p)),
         ("B8 audio", lambda: audio.prepare(Project(), timeline.AudioPlan((), None), p)),
