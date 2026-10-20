@@ -175,8 +175,8 @@ def _write_atomic(path: Path, text: str) -> None:
 
 
 def _save(project: Project, path: Path, base: Path) -> None:
-    text = json.dumps(project_to_json(project, base), ensure_ascii=False, indent=2, allow_nan=False)
     try:
+        text = json.dumps(project_to_json(project, base), ensure_ascii=False, indent=2, allow_nan=False)
         _write_atomic(path, text + "\n")
     except (OSError, ValueError) as error:
         raise ProjectFileError(ERROR_WRITE, f"{path}: {error}") from error
