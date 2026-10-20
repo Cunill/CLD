@@ -22,15 +22,21 @@ class Range:
 FORMAT_VERSION = 1
 FPS = 30
 
-PHOTO_DURATION_S = 5.0
-PHOTO_DURATION_RANGE = Range(1.0, 30.0, 0.5)
+PHOTO_DURATION_S = 2.0
+PHOTO_DURATION_RANGE = Range(1.0, 3.0, 0.1)
 
-CROSSFADE_S = 1.5
-CROSSFADE_RANGE = Range(0.0, 3.0, 0.1)
+CROSSFADE_S = 1.0
+CROSSFADE_RANGE = Range(0.5, 1.5, 0.1)
 
 FADE_FROM_BLACK_S = 1.0
 FADE_TO_BLACK_S = 2.0
 BLACK_FADE_RANGE = Range(0.0, 5.0, 0.1)
+
+ZOOM_AMOUNT = 0.09
+"""Zoom per photo (0.09 = the image grows or shrinks 9 % while it is visible). Decision 0005."""
+PAN_AMOUNT = 0.09
+"""Displacement per photo, as a fraction of the visible window side. Decision 0005."""
+MOTION_AMOUNT_RANGE = Range(0.0, 0.20, 0.01)
 
 SONG_FADE_IN_S = 1.0
 SONG_FADE_OUT_S = 3.0
@@ -45,7 +51,7 @@ SONG_VOLUME_RANGE = Range(0.0, 1.5, 0.01)
 LOUDNESS_TARGET_LUFS = -16.0
 LIMITER_CEILING_DBFS = -1.0
 
-FIT_TO_MUSIC_MIN_DURATION_WARNING_S = 2.0
+FIT_TO_MUSIC_MIN_DURATION_WARNING_S = 1.0
 
 MAX_PHOTOS_WITHOUT_WARNING = 1000
 MIN_PHOTO_SIDE_PX = 64

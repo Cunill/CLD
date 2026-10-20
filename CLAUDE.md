@@ -63,4 +63,4 @@ Proves: pytest, pytest-qt, Hypothesis. Estil: ruff. Tipus: pyright (estricte a s
      i aturar-se.
 
 ## Estat
-Blocs integrats a main: B0 (pendent de fusionar)
+Blocs integrats a main: B0 · B3 en revisió

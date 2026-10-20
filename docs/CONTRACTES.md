@@ -25,7 +25,7 @@ controlador crea versions noves del projecte.
 
 | Pla | Codi | Camps (codi) |
 |---|---|---|
-| Projecte | `Project` | `name`, `format_version`, `output_format`, `seed`, `default_duration_s`, `crossfade_s`, `fade_from_black_s`, `fade_to_black_s`, `motion_enabled`, `intensity`, `photos: tuple[Photo]`, `music: Music` · mètode `photo_duration(photo)` |
+| Projecte | `Project` | `name`, `format_version`, `output_format`, `seed`, `default_duration_s`, `crossfade_s`, `fade_from_black_s`, `fade_to_black_s`, `motion_enabled`, `zoom_amount`, `pan_amount`, `photos: tuple[Photo]`, `music: Music` · mètode `photo_duration(photo)` |
 | Foto | `Photo` | `id`, `path`, `relative_path`, `width`, `height` (ja orientades i girades), `exif_orientation`, `capture_time`, `duration_s` (`None` = durada general), `fit: FitMode`, `motion: PhotoMotion`, `rotation: Rotation` (P2), `low_resolution` |
 | MovimentFoto | `PhotoMotion` | `mode: MotionMode`, `type: MotionType`, `draw_count`, `start: Window`, `end: Window`, `resolved_fit: ResolvedFit` |
 | Finestra | `Window` | `centre_x`, `centre_y` (0–1 sobre el llenç), `scale` (1 = la finestra més gran de la proporció del vídeo que hi cap; >1 = més a prop) |
@@ -34,7 +34,7 @@ controlador crea versions noves del projecte.
 | Fosa | `Fade` | `enabled`, `seconds` |
 
 Enumeracions: `OutputFormat` (HORIZONTAL 1920×1080, VERTICAL 1080×1920; propietat `size`),
-`Intensity` (SOFT, MEDIUM, STRONG), `FitMode` (AUTO, FILL, BLUR, BLACK), `ResolvedFit` (FILL, BLUR,
+`Intensity` (SOFT, MEDIUM, STRONG; preseleccions de `zoom_amount` i `pan_amount`, vegeu `passi.motion.INTENSITY_PRESETS`), `FitMode` (AUTO, FILL, BLUR, BLACK), `ResolvedFit` (FILL, BLUR,
 BLACK), `MotionMode` (AUTO, MANUAL), `MotionType` (ZOOM_IN, ZOOM_OUT, PAN_LEFT, PAN_RIGHT, PAN_UP,
 PAN_DOWN, COMBINED, NONE), `Rotation` (R0, R90, R180, R270).
 
@@ -112,11 +112,30 @@ motion_progress)` i `black_level` (0–1).
 | Operació | Rep | Retorna |
 |---|---|---|
 | `resolve_fit(amplada, alçada, format, preferència)` | — | `FitDecision(fit, canvas_width, canvas_height)` |
-| `draw_motions(peticions, llavor, intensitat, which)` | `MotionRequest` per foto | `dict[photo_id, PhotoMotion]` |
+| `draw_motions(peticions, llavor, quantitats, which)` | `MotionRequest` per foto | `dict[photo_id, PhotoMotion]` de **totes** les peticions |
+| `rebuild_motions(peticions, llavor, quantitats)` | `MotionRequest` amb `current` | Recalcula les finestres mantenint el tipus (canvi de format, encaix, gir, durada o intensitat) |
 | `window_at(moviment, progrés)` | progrés 0–1 | `Window` (sempre dins el llenç) |
+| `window_rect(finestra, fit, format)` | — | `(esquerra, dalt, dreta, baix)` en píxels del llenç (per al compositor) |
+| `base_window(amplada_llenç, alçada_llenç, format)` | — | mida normalitzada de la finestra d'escala 1 |
+| `is_inside(finestra, base)` | — | la finestra és dins el llenç |
 
-Paràmetres (un sol lloc): `FILL_RATIO_RANGE`, `BASE_PROBABILITIES`, `INTENSITY_PARAMS`,
-`BLUR_INTENSITY_FACTOR`, `MAX_UPSCALE`.
+`MotionRequest`: `photo_id`, `width`, `height` (orientades i girades), `visible_duration_s`, `fit:
+FitDecision`, `output_format`, `mode`, `manual_type`, `draw_count`, `current: PhotoMotion | None`.
+
+`which`: `None` = primer sorteig de totes les fotos; un conjunt d'ids = tornar a sortejar aquestes
+(el moviment nou és diferent de l'actual); les altres es mantenen i compten com a veïnes.
+El controlador incrementa `draw_count` abans de tornar a sortejar.
+
+Geometria: el centre de la finestra s'interpola linealment i l'escala geomètricament; si els
+dos extrems són dins el llenç, tots els instants intermedis també ho són. `PAN_LEFT` vol dir que
+la finestra (la càmera) es mou cap a l'esquerra.
+
+`quantitats`: `MotionAmounts(zoom, pan)` amb els valors del projecte (`Project.zoom_amount`, `pan_amount`),
+o bé una `Intensity` (preselecció).
+
+Paràmetres (un sol lloc, `passi.motion.params`): `FILL_RATIO_RANGE`, `BASE_PROBABILITIES`,
+`RULE_COMPENSATION`, `INTENSITY_PRESETS`, `FULL_MOTION_MIN_S`, `BLUR_INTENSITY_FACTOR`, `MAX_UPSCALE`, `NO_MOTION_BELOW`,
+`FOCAL_POINT`, etc.
 
 ## 7. Compositor (`passi.render`) · B6
 

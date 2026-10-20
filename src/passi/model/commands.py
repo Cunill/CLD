@@ -25,7 +25,7 @@ class Change(Enum):
 
     PHOTOS = "photos"  # list of photos (added, removed, reordered, duplicated)
     TIMING = "timing"  # durations, fades
-    MOTION = "motion"  # motions, fits, intensity, output format
+    MOTION = "motion"  # motions, fits, motion amounts, output format
     MUSIC = "music"  # songs and audio settings
     SETTINGS = "settings"  # other project settings (name...)
     SAVED_STATE = "saved_state"  # "unsaved changes" flag
@@ -109,6 +109,9 @@ class SetProjectSettings:
     fade_to_black_s: float | None = None
     motion_enabled: bool | None = None
     intensity: Intensity | None = None
+    """Preset: sets zoom_amount and pan_amount (passi.motion.INTENSITY_PRESETS)."""
+    zoom_amount: float | None = None
+    pan_amount: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
