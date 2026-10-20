@@ -7,9 +7,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from passi.audio import AudioSource
-from passi.images import ImageSource
-from passi.model.types import MotionType, Photo
+from passimaker.audio import AudioSource
+from passimaker.images import ImageSource
+from passimaker.model.types import MotionType, Photo
 from tests.fakes.audio import ToneAudioSource
 from tests.fakes.clock import SimulatedClock
 from tests.fakes.images import SyntheticImageSource

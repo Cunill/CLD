@@ -9,8 +9,8 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from passi.model.types import FitMode, MotionType, OutputFormat, PhotoMotion, ResolvedFit, Window
-from passi.motion import is_inside, resolve_fit, window_at, window_rect
+from passimaker.model.types import FitMode, MotionType, OutputFormat, PhotoMotion, ResolvedFit, Window
+from passimaker.motion import is_inside, resolve_fit, window_at, window_rect
 
 H = OutputFormat.HORIZONTAL
 

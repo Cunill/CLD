@@ -15,3 +15,5 @@
 | D9 | PC de referència: un portàtil d'oficina de l'estudi (pendent: quin) |
 | D10 | Fotos i música reals de prova aportades per l'usuari, fora del repositori |
 | D11 | Proves d'usuari: 1 persona a F3 i 2 a F5 |
+
+> **Actualització (M01, 20/10/2026):** D1 ha canviat. El programa es diu **PassiMaker** i els projectes fan servir l'extensió `.passimaker`. Vegeu la decisió 0006.

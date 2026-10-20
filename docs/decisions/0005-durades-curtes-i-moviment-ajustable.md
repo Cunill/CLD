@@ -16,5 +16,5 @@
 - Les fotos amb fons difuminat fan el mateix zoom que les altres (abans, el 60 %), perquè el moviment quedi dins el 6–12 %.
 - Velocitat màxima: el moviment sencer en 1 s com a mínim (només afecta fotos visibles menys d'1 s).
 - L'ajust a la música queda limitat a 1–3 s per foto.
-- On: `passi.model.defaults` (valors i rangs), `passi.model.types.Project`, `passi.motion.params`
+- On: `passimaker.model.defaults` (valors i rangs), `passimaker.model.types.Project`, `passimaker.motion.params`
   (`INTENSITY_PRESETS`, `MotionAmounts`), ESPECIFICACIO §1.3–1.7.

@@ -7,9 +7,9 @@ from pathlib import Path
 
 import pytest
 
-from passi import timeline
-from passi.model import Change, ProjectController
-from passi.model.commands import (
+from passimaker import timeline
+from passimaker.model import Change, ProjectController
+from passimaker.model.commands import (
     AddPhotos,
     AddSongs,
     DuplicatePhotos,
@@ -29,8 +29,8 @@ from passi.model.commands import (
     SortPhotos,
     UpdateSong,
 )
-from passi.model.editing import music_duration, natural_key, visible_durations
-from passi.model.types import (
+from passimaker.model.editing import music_duration, natural_key, visible_durations
+from passimaker.model.types import (
     Fade,
     FitMode,
     Intensity,
@@ -42,7 +42,7 @@ from passi.model.types import (
     ResolvedFit,
     Rotation,
 )
-from passi.motion import INTENSITY_PRESETS
+from passimaker.motion import INTENSITY_PRESETS
 from tests.unit.model.helpers import controller_with, ids, photo, photos, song
 
 # --- Photos ---------------------------------------------------------------------------------------

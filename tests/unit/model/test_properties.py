@@ -5,9 +5,9 @@ from __future__ import annotations
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from passi.model import Change, ProjectController
-from passi.model import defaults as d
-from passi.model.commands import (
+from passimaker.model import Change, ProjectController
+from passimaker.model import defaults as d
+from passimaker.model.commands import (
     AddPhotos,
     AddSongs,
     Command,
@@ -25,9 +25,9 @@ from passi.model.commands import (
     SetProjectSettings,
     SortPhotos,
 )
-from passi.model.editing import changes_between
-from passi.model.types import FitMode, MotionType, OutputFormat, Project, Rotation
-from passi.motion import base_window, is_inside, resolve_fit
+from passimaker.model.editing import changes_between
+from passimaker.model.types import FitMode, MotionType, OutputFormat, Project, Rotation
+from passimaker.motion import base_window, is_inside, resolve_fit
 from tests.unit.model.helpers import photo, song
 
 POOL = [f"p{i}" for i in range(8)]

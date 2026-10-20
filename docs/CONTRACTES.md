@@ -1,11 +1,11 @@
-# Passi: contractes entre mòduls
+# PassiMaker: contractes entre mòduls
 
 > Font de veritat de les interfícies entre blocs. Desenvolupa el §2.3 de `docs/PLA.md`.
 > El codi fa servir noms en anglès; aquí es dona la correspondència amb els noms del pla.
 > Qualsevol canvi en aquest document s'ha de proposar i aprovar abans (vegeu CLAUDE.md).
-> Les definicions en codi (tipus i signatures) són a `src/passi/**` i en són l'expressió exacta.
+> Les definicions en codi (tipus i signatures) són a `src/passimaker/**` i en són l'expressió exacta.
 
-## 0. Convencions comunes (`passi.common`)
+## 0. Convencions comunes (`passimaker.common`)
 
 | Nom al codi | Significat |
 |---|---|
@@ -13,12 +13,12 @@
 | `AudioBlock` | Mostres NumPy de forma (fotogrames, 2), `float32` entre −1 i 1, 48 kHz estèreo |
 | `ProgressCallback` | `progrés(fet, total)`; pot cridar-se des d'un fil de treball |
 | `CancelToken` | Senyal de cancel·lació compartit (`cancel()`, `cancelled`) |
-| `PassiError(message_key, detail)` | Error base. `message_key` és la clau del missatge en català (`passi.i18n`) |
+| `PassiMakerError(message_key, detail)` | Error base. `message_key` és la clau del missatge en català (`passimaker.i18n`) |
 
 Unitats: temps en segons (`float`); a l'exportació, fotogrames enters a 30 fps. Finestres de moviment
 normalitzades (0–1) respecte del llenç.
 
-## 1. Model (`passi.model`) · blocs B1 (implementació) i tots (ús)
+## 1. Model (`passimaker.model`) · blocs B1 (implementació) i tots (ús)
 
 Totes les estructures són **immutables** (`frozen dataclass`, llistes com a `tuple`). Només el
 controlador crea versions noves del projecte.
@@ -34,17 +34,17 @@ controlador crea versions noves del projecte.
 | Fosa | `Fade` | `enabled`, `seconds` |
 
 Enumeracions: `OutputFormat` (HORIZONTAL 1920×1080, VERTICAL 1080×1920; propietat `size`),
-`Intensity` (SOFT, MEDIUM, STRONG; preseleccions de `zoom_amount` i `pan_amount`, vegeu `passi.motion.INTENSITY_PRESETS`), `FitMode` (AUTO, FILL, BLUR, BLACK), `ResolvedFit` (FILL, BLUR,
+`Intensity` (SOFT, MEDIUM, STRONG; preseleccions de `zoom_amount` i `pan_amount`, vegeu `passimaker.motion.INTENSITY_PRESETS`), `FitMode` (AUTO, FILL, BLUR, BLACK), `ResolvedFit` (FILL, BLUR,
 BLACK), `MotionMode` (AUTO, MANUAL), `MotionType` (ZOOM_IN, ZOOM_OUT, PAN_LEFT, PAN_RIGHT, PAN_UP,
 PAN_DOWN, COMBINED, NONE), `Rotation` (R0, R90, R180, R270).
 
-Valors per defecte i rangs: **només** a `passi.model.defaults` (per ajustar-los després de les fites).
+Valors per defecte i rangs: **només** a `passimaker.model.defaults` (per ajustar-los després de les fites).
 
 ### Controlador (`ProjectController`)
 
 | Operació | Rep | Retorna / efecte |
 |---|---|---|
-| `execute(ordre)` | una ordre de `passi.model.commands` | Aplica l'ordre, limita els valors als rangs, desa l'estat anterior per desfer, avisa els observadors. Retorna el conjunt de `Change`. |
+| `execute(ordre)` | una ordre de `passimaker.model.commands` | Aplica l'ordre, limita els valors als rangs, desa l'estat anterior per desfer, avisa els observadors. Retorna el conjunt de `Change`. |
 | `undo()` / `redo()` | — | Restaura l'estat anterior / següent (P1). Retorna `Change`. |
 | `subscribe(observador)` | funció `(changes) -> None` | Funció per donar-se de baixa |
 | `replace_project(projecte)` | projecte obert o recuperat | Buida l'historial i la marca de canvis |
@@ -53,14 +53,14 @@ Valors per defecte i rangs: **només** a `passi.model.defaults` (per ajustar-los
 
 `Change`: PHOTOS, TIMING, MOTION, MUSIC, SETTINGS, SAVED_STATE.
 
-Ordres (`passi.model.commands`): `AddPhotos`, `RemovePhotos`, `MovePhotos`, `DuplicatePhotos`,
+Ordres (`passimaker.model.commands`): `AddPhotos`, `RemovePhotos`, `MovePhotos`, `DuplicatePhotos`,
 `SortPhotos`, `SetDefaultDuration`, `SetPhotoDuration`, `SetPhotoFit`, `SetPhotoMotion`,
 `RerollMotions`, `RotatePhotos`, `SetProjectSettings`, `AddSongs`, `RemoveSongs`, `MoveSongs`,
 `UpdateSong`, `SetMusicSettings`, `FitToMusic`. Són dades; la lògica és al controlador (B1). Les
 ordres que afecten el moviment (afegir, duplicar, girar, canviar format o encaix, tornar a sortejar)
-fan servir `passi.motion` per resoldre l'encaix i sortejar.
+fan servir `passimaker.motion` per resoldre l'encaix i sortejar.
 
-## 2. Importació (`passi.importer`) · B4
+## 2. Importació (`passimaker.importer`) · B4
 
 | Operació | Rep | Retorna |
 |---|---|---|
@@ -71,7 +71,7 @@ fan servir `passi.motion` per resoldre l'encaix i sortejar.
 `file_time`, `color_profile`. `FailedFile(path, reason)` amb `ImportFailure` (UNSUPPORTED, RAW,
 CORRUPT, TOO_SMALL, NOT_FOUND).
 
-## 3. Imatges (`passi.images`) · B4
+## 3. Imatges (`passimaker.images`) · B4
 
 `ImageSource` (protocol):
 
@@ -82,14 +82,14 @@ CORRUPT, TOO_SMALL, NOT_FOUND).
 
 Implementació: `CachedImageSource(memory_budget_bytes=768 MB, workers=2)`.
 
-## 4. Miniatures i intermedis (`passi.thumbs`) · B5
+## 4. Miniatures i intermedis (`passimaker.thumbs`) · B5
 
 `ThumbnailService(cache_dir, image_source, disk_limit_bytes=2 GB)`:
 `request_thumbnail(foto, Priority, callback)` (resposta `callback(photo_id, imatge|None)` des d'un fil),
 `get_intermediate(foto) -> RGBImage` (1.600 px, bloquejant), `cancel_pending()`, `close()`.
 Mides: `THUMBNAIL_SIZE = 256`, `INTERMEDIATE_SIZE = 1600`.
 
-## 5. Línia de temps (`passi.timeline`) · B2
+## 5. Línia de temps (`passimaker.timeline`) · B2
 
 | Operació | Rep | Retorna |
 |---|---|---|
@@ -107,7 +107,7 @@ Mides: `THUMBNAIL_SIZE = 256`, `INTERMEDIATE_SIZE = 1600`.
 `Visibles`: `layers` (com a màxim 2, de baix a dalt) de `VisibleLayer(photo_id, opacity,
 motion_progress)` i `black_level` (0–1).
 
-## 6. Moviments i encaix (`passi.motion`) · B3
+## 6. Moviments i encaix (`passimaker.motion`) · B3
 
 | Operació | Rep | Retorna |
 |---|---|---|
@@ -133,11 +133,11 @@ la finestra (la càmera) es mou cap a l'esquerra.
 `quantitats`: `MotionAmounts(zoom, pan)` amb els valors del projecte (`Project.zoom_amount`, `pan_amount`),
 o bé una `Intensity` (preselecció).
 
-Paràmetres (un sol lloc, `passi.motion.params`): `FILL_RATIO_RANGE`, `BASE_PROBABILITIES`,
+Paràmetres (un sol lloc, `passimaker.motion.params`): `FILL_RATIO_RANGE`, `BASE_PROBABILITIES`,
 `RULE_COMPENSATION`, `INTENSITY_PRESETS`, `FULL_MOTION_MIN_S`, `BLUR_INTENSITY_FACTOR`, `MAX_UPSCALE`, `NO_MOTION_BELOW`,
 `FOCAL_POINT`, etc.
 
-## 7. Compositor (`passi.render`) · B6
+## 7. Compositor (`passimaker.render`) · B6
 
 `Compositor(projecte, línia, image_source, intermediate=None)`:
 `frame_at(t, amplada, alçada, sentinel=False) -> RGBImage`, `invalidate(photo_ids|None)`.
@@ -145,11 +145,11 @@ Paràmetres (un sol lloc, `passi.motion.params`): `FILL_RATIO_RANGE`, `BASE_PROB
 d'aquest color. Les dades de prova no contenen mai píxels semblants al magenta
 (`tests/fixtures/generate.py`, `MAX_MAGENTA_EXCESS`).
 
-## 8. Pont FFmpeg (`passi.ffmpeg`) · B7
+## 8. Pont FFmpeg (`passimaker.ffmpeg`) · B7
 
 | Operació | Retorna |
 |---|---|
-| `locate()` | `FfmpegPaths(ffmpeg, ffprobe)`. Ordre de cerca: variable `PASSI_FFMPEG`, carpeta del programa, `vendor/ffmpeg/bin`, `PATH`. |
+| `locate()` | `FfmpegPaths(ffmpeg, ffprobe)`. Ordre de cerca: variable `PASSIMAKER_FFMPEG`, carpeta del programa, `vendor/ffmpeg/bin`, `PATH`. |
 | `probe(fitxer)` | `MediaInfo(duration_s, has_audio, sample_rate, channels, has_video, width, height)` |
 | `decode_audio(fitxer, destí, inici, final)` | `PcmFile(path, frames)`: float32 estèreo 48 kHz |
 | `measure_loudness(fitxer)` | `Loudness(integrated_lufs, true_peak_dbfs)` |
@@ -159,40 +159,40 @@ d'aquest color. Les dades de prova no contenen mai píxels semblants al magenta
 
 `EncoderSettings`: 30 fps, CRF 18, preset `medium`, perfil `high`, AAC 192 kbps. Errors: `FfmpegError`.
 
-## 9. Àudio (`passi.audio`) · B8
+## 9. Àudio (`passimaker.audio`) · B8
 
 `prepare(projecte, pla_àudio, cache_dir) -> AudioSource`.
 `AudioSource` (protocol): `duration_s`, `read(t_s, frames) -> AudioBlock` (zeros fora de rang; prou
 ràpid per al temps real), `render_wav(destí, progress, cancel)` (WAV PCM 16 bits, per trossos).
 
-## 10. Previsualització (`passi.preview`) · B13 (Qt permès)
+## 10. Previsualització (`passimaker.preview`) · B13 (Qt permès)
 
 `Player(compositor, línia, àudio, output=None)`: `play()`, `pause()`, `seek(t)`, `seek_photo(i)`,
 `refresh()`; senyals `frame_ready(QImage, t)` i `state_changed(reproduint, t, índex_foto)`.
 `Clock.now()` i `AudioOutput.start(source, from_s) -> Clock` / `stop()` permeten simular el temps.
 Mida màxima: `PREVIEW_MAX_SIZE = (960, 540)`.
 
-## 11. Exportació (`passi.export`) · B9
+## 11. Exportació (`passimaker.export`) · B9
 
 `export_project(projecte, destí, progress, cancel, sentinel=False) -> ExportResult(status,
 reason_key, duration_s, size_bytes)`. `ExportStatus`: DONE, CANCELLED, ERROR.
 `progress(fracció 0–1, segons_restants | None)`.
 
-Ordres de línia (`passi.cli`): `passi-nou <carpeta> [música…] -o <projecte.passi> [--vertical]
-[--ajustar] [--llavor N]` i `passi-render <projecte.passi> <sortida.mp4> [--sentinella]`.
+Ordres de línia (`passimaker.cli`): `passimaker-nou <carpeta> [música…] -o <projecte.passimaker> [--vertical]
+[--ajustar] [--llavor N]` i `passimaker-render <projecte.passimaker> <sortida.mp4> [--sentinella]`.
 Codis de sortida: 0 correcte, 1 error, 2 no implementat.
 
-## 12. Desar i obrir (`passi.projectio`) · B1
+## 12. Desar i obrir (`passimaker.projectio`) · B1
 
 `save_project(projecte, ruta)` (escriptura segura), `open_project(ruta) -> OpenResult(project,
 missing_files)`, `relink(projecte, carpeta) -> (projecte, nombre)`, `save_recovery`, `find_recovery`,
-`clear_recovery`. Errors: `ProjectFileError`. Extensió: `.passi`.
+`clear_recovery`. Errors: `ProjectFileError`. Extensió: `.passimaker`.
 
-## 13. Interfície (`passi.ui`) · B10, B11, B14, B16
+## 13. Interfície (`passimaker.ui`) · B10, B11, B14, B16
 
-Punt d'entrada `passi = passi.ui.app:main(argv) -> int`. Només parla amb el controlador, la
+Punt d'entrada `passimaker = passimaker.ui.app:main(argv) -> int`. Només parla amb el controlador, la
 importació, les miniatures, el compositor, el reproductor, l'exportació i `projectio`. Textos amb
-`tr()`; els missatges dels errors del nucli es tradueixen amb `passi.i18n.message(clau)`.
+`tr()`; els missatges dels errors del nucli es tradueixen amb `passimaker.i18n.message(clau)`.
 
 ## 14. Substituts per a les proves (`tests/fakes`)
 

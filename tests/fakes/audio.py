@@ -8,13 +8,13 @@ from pathlib import Path
 
 import numpy as np
 
-from passi.common import AudioBlock, CancelToken, ProgressCallback
+from passimaker.common import AudioBlock, CancelToken, ProgressCallback
 
 SAMPLE_RATE = 48000
 
 
 class ToneAudioSource:
-    """Implements passi.audio.AudioSource."""
+    """Implements passimaker.audio.AudioSource."""
 
     def __init__(self, duration_s: float, frequency: float = 440.0, amplitude: float = 0.25) -> None:
         self._duration_s = duration_s

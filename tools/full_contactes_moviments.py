@@ -26,7 +26,7 @@ import pillow_heif
 from numpy.typing import NDArray
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
-from passi.model.types import (
+from passimaker.model.types import (
     FitMode,
     Intensity,
     MotionMode,
@@ -35,7 +35,7 @@ from passi.model.types import (
     PhotoMotion,
     ResolvedFit,
 )
-from passi.motion import (
+from passimaker.motion import (
     INTENSITY_PRESETS,
     FitDecision,
     MotionAmounts,

@@ -219,9 +219,9 @@ _ENCODER_ARGS: dict[str, list[str]] = {
 
 
 def find_ffmpeg() -> str:
-    """Test-only locator (production code uses passi.ffmpeg.locate)."""
+    """Test-only locator (production code uses passimaker.ffmpeg.locate)."""
     exe = "ffmpeg.exe" if sys.platform == "win32" else "ffmpeg"
-    env = os.environ.get("PASSI_FFMPEG")
+    env = os.environ.get("PASSIMAKER_FFMPEG")
     candidates = [Path(env) / exe] if env else []
     root = Path(__file__).resolve().parents[2]
     candidates.append(root / "vendor" / "ffmpeg" / "bin" / exe)

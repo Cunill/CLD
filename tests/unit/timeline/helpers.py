@@ -7,7 +7,7 @@ from pathlib import Path
 
 from hypothesis import strategies as st
 
-from passi.model.types import Fade, Music, Photo, Project, Song
+from passimaker.model.types import Fade, Music, Photo, Project, Song
 
 
 def make_project(

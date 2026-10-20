@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from passi.model.types import FitMode, Intensity, MotionMode, MotionType, OutputFormat, PhotoMotion
-from passi.motion import MotionRequest, base_window, draw_motions, resolve_fit
+from passimaker.model.types import FitMode, Intensity, MotionMode, MotionType, OutputFormat, PhotoMotion
+from passimaker.motion import MotionRequest, base_window, draw_motions, resolve_fit
 
 DEFAULT_VISIBLE_S = 3.0  # 2 s photo + half of a 1 s crossfade on each side
 

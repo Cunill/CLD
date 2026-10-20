@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from passi import timeline
+from passimaker import timeline
 from tests.unit.model.helpers import proportional_fit
 
 

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from passi.timeline import AudioPlan, Interval, PhotoSlot, Timeline, VisibleLayer, Visibles
+from passimaker.timeline import AudioPlan, Interval, PhotoSlot, Timeline, VisibleLayer, Visibles
 
 
 def fixed_timeline(

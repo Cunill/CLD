@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from passi.model import Change, ProjectController
-from passi.model.commands import AddPhotos, RemovePhotos, SetDefaultDuration, SetProjectSettings
-from passi.model.defaults import UNDO_HISTORY_STEPS
-from passi.model.types import Project
+from passimaker.model import Change, ProjectController
+from passimaker.model.commands import AddPhotos, RemovePhotos, SetDefaultDuration, SetProjectSettings
+from passimaker.model.defaults import UNDO_HISTORY_STEPS
+from passimaker.model.types import Project
 from tests.unit.model.helpers import controller_with, ids, photos
 
 

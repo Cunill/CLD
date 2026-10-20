@@ -8,9 +8,9 @@ from typing import Any
 
 import pytest
 
-from passi import cli
-from passi.model import defaults
-from passi.model.types import FitMode, MotionType, OutputFormat, Photo, Project, Song
+from passimaker import cli
+from passimaker.model import defaults
+from passimaker.model.types import FitMode, MotionType, OutputFormat, Photo, Project, Song
 
 
 def test_project_defaults_match_specification() -> None:
@@ -70,13 +70,13 @@ def test_photo_duration_falls_back_to_project_default() -> None:
 
 
 def test_motion_probabilities_sum_to_one() -> None:
-    from passi.motion import BASE_PROBABILITIES
+    from passimaker.motion import BASE_PROBABILITIES
 
     assert abs(sum(BASE_PROBABILITIES.values()) - 1.0) < 1e-9
 
 
 def _stubs() -> list[tuple[str, Callable[[], Any]]]:
-    from passi import audio, ffmpeg, importer, timeline
+    from passimaker import audio, ffmpeg, importer, timeline
 
     p = Path("x")
     return [
@@ -93,10 +93,10 @@ def test_stubs_are_not_implemented_yet(label: str, call: Callable[[], Any]) -> N
 
 
 def test_cli_parsers_define_the_documented_arguments() -> None:
-    args = cli.build_new_parser().parse_args(["fotos", "a.mp3", "b.mp3", "-o", "p.passi", "--vertical"])
+    args = cli.build_new_parser().parse_args(["fotos", "a.mp3", "b.mp3", "-o", "p.passimaker", "--vertical"])
     assert args.photos_dir == Path("fotos")
     assert args.music == [Path("a.mp3"), Path("b.mp3")]
     assert args.vertical
-    args = cli.build_render_parser().parse_args(["p.passi", "v.mp4"])
+    args = cli.build_render_parser().parse_args(["p.passimaker", "v.mp4"])
     assert args.output == Path("v.mp4")
-    assert cli.main_render(["p.passi", "v.mp4"]) == cli.EXIT_NOT_IMPLEMENTED
+    assert cli.main_render(["p.passimaker", "v.mp4"]) == cli.EXIT_NOT_IMPLEMENTED

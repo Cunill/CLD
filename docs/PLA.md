@@ -1,8 +1,8 @@
-# Passi: full de ruta i pla de desenvolupament
+# PassiMaker: full de ruta i pla de desenvolupament
 
 > Programa d'escriptori per a Windows per fer passis de fotos amb moviment de càmera, fosa encadenada i música. És l'equivalent de la funció de passi de fotos del Windows Movie Maker.
 > Versió del pla: 1.0 · Data: 19/10/2026 · Estat: **pendent d'aprovació**
-> Nom provisional: **Passi** · Fitxer de projecte: `.passi`
+> Nom: **PassiMaker** (abans "Passi", canviat al M01, decisió 0006) · Fitxer de projecte: `.passimaker`
 
 ## Decisions preses al Pas 0
 
@@ -21,7 +21,7 @@
 | Idioma | Català, amb els textos en fitxers a part per poder-los traduir. |
 | Lliurament | Xat i aquest fitxer, que serà el futur `docs/PLA.md`. |
 
-**Com he interpretat "el més simple i de menor cost":** un ZIP portable, sense instal·lador ni certificat de signatura. Té dues conseqüències. (1) La primera vegada, Windows SmartScreen pot mostrar un avís ("Més informació → Executa igualment"). (2) Fer doble clic sobre un fitxer `.passi` no l'obrirà automàticament. Es pot obrir des del programa, arrossegant-lo a la finestra o sobre `Passi.exe`, o amb "Obre amb…" de Windows.
+**Com he interpretat "el més simple i de menor cost":** un ZIP portable, sense instal·lador ni certificat de signatura. Té dues conseqüències. (1) La primera vegada, Windows SmartScreen pot mostrar un avís ("Més informació → Executa igualment"). (2) Fer doble clic sobre un fitxer `.passimaker` no l'obrirà automàticament. Es pot obrir des del programa, arrossegant-lo a la finestra o sobre `PassiMaker.exe`, o amb "Obre amb…" de Windows.
 
 ---
 
@@ -38,7 +38,7 @@
 
 | # | Acció de l'usuari | Què passa |
 |---|---|---|
-| 1 | Obre `Passi.exe` | Pantalla buida amb el missatge "Arrossega aquí les fotos o la carpeta" i el botó [Tria fotos…] |
+| 1 | Obre `PassiMaker.exe` | Pantalla buida amb el missatge "Arrossega aquí les fotos o la carpeta" i el botó [Tria fotos…] |
 | 2 | Arrossega una carpeta amb 60 fotos | Les miniatures apareixen a poc a poc, ordenades per data. Cada foto ja té durada, encaix i moviment. |
 | 3 | [+ Música] i tria 2 cançons | Les cançons surten a la franja de música. La barra d'estat avisa si la música i les fotos no duren el mateix. |
 | 4 | [Ajustar a la música] (opcional) | Les durades de les fotos canvien perquè el passi acabi alhora que la música. |
@@ -280,7 +280,7 @@
 
 ### 1.10 Desar i obrir projectes
 
-- El projecte es desa en un fitxer `.passi` (text estructurat i llegible) amb tots els ajustos i les rutes de les fotos i les cançons. Els fitxers originals no es copien.
+- El projecte es desa en un fitxer `.passimaker` (text estructurat i llegible) amb tots els ajustos i les rutes de les fotos i les cançons. Els fitxers originals no es copien.
 - Desar (Ctrl+S), Desar com a…, Obrir (Ctrl+O) i llista de projectes recents a la pantalla inicial. El títol de la finestra mostra el nom del projecte, amb un asterisc si hi ha canvis sense desar. En tancar, el programa pregunta si es volen desar.
 - Cada 2 minuts es fa una còpia de recuperació, fora de la carpeta del projecte. Si el programa es tanca de cop, en tornar-lo a obrir ofereix recuperar el projecte.
 - Les rutes es desen de dues maneres: relatives al fitxer del projecte i absolutes. Si es mou tota la carpeta (projecte i fotos), el projecte continua funcionant.
@@ -304,7 +304,7 @@
 | P3 | Títol inicial i crèdits finals senzills | El Movie Maker en tenia i s'usaven molt en els passis | +2 o 3 sessions | Per a la v1.1 |
 | P4 | Punt d'interès o detecció de cares per orientar el zoom | Millora la qualitat del moviment automàtic | +2 sessions | Per a la v1.1 |
 | P5 | "Desar el projecte amb les fotos" en una carpeta | Per portar el projecte a un altre ordinador | +1 sessió | Opcional |
-| P6 | Instal·lador amb associació de fitxers `.passi` | Doble clic per obrir projectes | +1 sessió (i un certificat opcional de 200–400 €/any) | No, de moment |
+| P6 | Instal·lador amb associació de fitxers `.passimaker` | Doble clic per obrir projectes | +1 sessió (i un certificat opcional de 200–400 €/any) | No, de moment |
 
 ---
 
@@ -356,7 +356,7 @@
 | M9 | Motor d'àudio | Mescla, foses, volums i anivellament | M5, M8 |
 | M10 | Previsualització | Reproducció en temps real sincronitzada | M4, M5, M7, M9 |
 | M11 | Exportació | MP4 amb progrés i cancel·lació; ordres de línia | M5, M7, M8, M9 |
-| M12 | Desar i obrir | Format `.passi`, recuperació, reenllaç de fitxers | M1 |
+| M12 | Desar i obrir | Format `.passimaker`, recuperació, reenllaç de fitxers | M1 |
 | M13 | Interfície | Finestres, panells, diàlegs i traduccions | M1, M2, M4, M10, M11, M12 |
 | M14 | Empaquetat | ZIP portable i autoprova (eina de construcció) | tots |
 
@@ -504,12 +504,12 @@
   - cancel·lació;
   - nom provisional i canvi de nom en acabar;
   - impedir que l'ordinador entri en repòs;
-  - **ordres de línia:** crear un projecte a partir d'una carpeta (`passi-nou`) i exportar-lo (`passi-render`).
+  - **ordres de línia:** crear un projecte a partir d'una carpeta (`passimaker-nou`) i exportar-lo (`passimaker-render`).
 - *Depèn de:* M5, M7, M8, M9.
 - *Riscos:* memòria i velocitat amb 1.000 fotos; que la cancel·lació deixi restes.
 
 **M12 · Desar i obrir**
-- *Entrades → sortides:* un projecte → un fitxer `.passi`, i a l'inrevés, amb la llista de fitxers que no es troben.
+- *Entrades → sortides:* un projecte → un fitxer `.passimaker`, i a l'inrevés, amb la llista de fitxers que no es troben.
 - *Funcions internes:*
   - escriptura segura: es desa en un fitxer provisional i després es reanomena;
   - versió del format i conversió de versions antigues;
@@ -539,7 +539,7 @@
   - crear la carpeta portable amb PyInstaller;
   - afegir FFmpeg, la icona i la versió;
   - crear el ZIP;
-  - autoprova (`Passi.exe --autoprova`): exporta un vídeo curt sense obrir la finestra.
+  - autoprova (`PassiMaker.exe --autoprova`): exporta un vídeo curt sense obrir la finestra.
 - *Riscos:* falsos positius dels antivirus; mida del ZIP.
 
 ### 2.3 Contractes de dades (pseudollenguatge)
@@ -643,14 +643,14 @@ flowchart LR
 
 **Preparació de l'entorn (una sola vegada, ~2 h teves)**
 1. Instal·lar Git, GitHub CLI (`gh auth login`), uv, PowerShell 7 i Claude Code al teu PC. Python no cal instal·lar-lo: uv ho fa sol.
-2. Crear un repositori privat `passi` a GitHub i clonar-lo.
+2. Crear un repositori privat `passimaker` a GitHub i clonar-lo.
 3. Copiar aquest fitxer com a `docs/PLA.md`.
 4. Configurar els permisos de Claude Code perquè les sessions puguin treballar soles: deixar permeses les ordres `uv run`, `git`, `gh pr` i `pwsh tools/*`. Ho pot fer el mateix Claude Code a la sessió B0.
 
 **Estructura del repositori**
 
 ```
-passi/
+passimaker/
   CLAUDE.md                 context i regles per a cada sessió
   README.md
   pyproject.toml, uv.lock   dependències fixades
@@ -661,14 +661,14 @@ passi/
     decisions/              una pàgina per decisió presa
     sessions/               una nota per bloc: estat, desviacions, pendents
     proves_usuari.md        protocol i resultats de les proves amb usuaris
-  src/passi/
+  src/passimaker/
     model/        M1         timeline/   M5        audio/       M9
     importer/     M2         motion/     M6        preview/     M10
     images/       M3         render/     M7        export/      M11
     thumbs/       M4         ffmpeg/     M8        projectio/   M12
     ui/           M13 (l'únic lloc amb Qt, juntament amb preview/)
     i18n/         traduccions
-    cli.py        ordres passi-nou, passi-render i --autoprova
+    cli.py        ordres passimaker-nou, passimaker-render i --autoprova
   tests/
     unit/  integration/  visual/  audio/  ui/  perf/
     fakes/        mòduls substituts (imatges sintètiques, àudio de to, rellotge simulat)
@@ -705,7 +705,7 @@ passi/
 **Contingut del CLAUDE.md**
 
 ```markdown
-# Passi: context per a Claude Code
+# PassiMaker: context per a Claude Code
 
 ## Què és
 Programa d'escriptori per a Windows per fer passis de fotos (moviment Ken Burns, fosa encadenada, música)
@@ -723,20 +723,20 @@ Proves: pytest, pytest-qt, Hypothesis. Estil: ruff. Tipus: pyright (estricte a s
 - Totes excepte rendiment: `uv run pytest -m "not perf"`
 - Rendiment: `uv run pytest -m perf`
 - Estil i tipus: `uv run ruff check .` · `uv run ruff format --check .` · `uv run pyright`
-- Executar el programa: `uv run passi`
-- Crear un projecte des d'una carpeta: `uv run passi-nou <carpeta_fotos> [música...] -o <projecte.passi>`
-- Exportar sense finestra: `uv run passi-render <projecte.passi> <sortida.mp4>`
+- Executar el programa: `uv run passimaker`
+- Crear un projecte des d'una carpeta: `uv run passimaker-nou <carpeta_fotos> [música...] -o <projecte.passimaker>`
+- Exportar sense finestra: `uv run passimaker-render <projecte.passimaker> <sortida.mp4>`
 - Construir el ZIP portable: `pwsh tools/construir_zip.ps1`
 
 ## Regles d'arquitectura
-1. Qt només a src/passi/ui i src/passi/preview. La resta del nucli no importa PySide6.
-2. El projecte només es modifica a través del controlador (src/passi/model).
-3. Un sol compositor (src/passi/render) per a previsualització i exportació.
+1. Qt només a src/passimaker/ui i src/passimaker/preview. La resta del nucli no importa PySide6.
+2. El projecte només es modifica a través del controlador (src/passimaker/model).
+3. Un sol compositor (src/passimaker/render) per a previsualització i exportació.
 4. Unitats: temps en segons (float) al model; fotogrames enters a l'exportació; imatges NumPy RGB uint8 H×W×3;
    finestres de moviment normalitzades (0–1).
 5. Determinisme: cap aleatorietat fora de la llavor del projecte.
 6. Tot el que trigui més de 50 ms, fora del fil de la interfície.
-7. FFmpeg sempre a través de src/passi/ffmpeg: sense shell, sense finestres de consola, amb rutes Unicode.
+7. FFmpeg sempre a través de src/passimaker/ffmpeg: sense shell, sense finestres de consola, amb rutes Unicode.
 8. Textos visibles sempre traduïbles (tr) i en català. Codi, noms i comentaris en anglès.
 9. Cap dependència nova sense proposar-la abans.
 
@@ -845,14 +845,14 @@ Cada fitxa té l'objectiu, el contracte, què cal simular, els criteris d'accept
 
 ```text
 Bloc B0: Fonaments i contractes. Model: Opus.
-Context: repositori nou del programa Passi. Llegeix docs/PLA.md (sobretot el Pas 1, el Pas 2 i el §3.0).
+Context: repositori nou del programa PassiMaker. Llegeix docs/PLA.md (sobretot el Pas 1, el Pas 2 i el §3.0).
 Branca: bloc/B00-fonaments.
 Objectiu: deixar el repositori preparat perquè cada bloc posterior es pugui fer en una sessió aïllada.
 Fes:
 1. L'estructura de carpetes del §3.0; pyproject amb uv i les dependències de la pila (versions fixades);
    configuració de pytest (marques lent, ui i perf; per defecte s'exclouen lent i perf), ruff i pyright.
 2. El CLAUDE.md, amb el contingut del §3.0 (adapta només les ordres si cal).
-3. docs/ESPECIFICACIO.md (el Pas 1) i docs/CONTRACTES.md (el §2.3). A src/passi/, els tipus de dades i les
+3. docs/ESPECIFICACIO.md (el Pas 1) i docs/CONTRACTES.md (el §2.3). A src/passimaker/, els tipus de dades i les
    interfícies de cada mòdul SENSE implementació.
 4. tests/fakes: font d'imatges sintètiques, font d'àudio de to, rellotge simulat, línia de temps i moviments fixos.
 5. tests/fixtures: un generador determinista de fotos (4:3, 3:2, 16:9, 9:16, 3:4, 1:1, panoràmica 3:1, 320×240,
@@ -872,7 +872,7 @@ Condició d'aturada: la del CLAUDE.md. A docs/sessions/B00.md, anota les decisio
 ---
 
 #### B1 · Model, controlador i desar/obrir
-- **Objectiu:** implementar el model del projecte, el controlador d'edició amb ordres i el format `.passi`.
+- **Objectiu:** implementar el model del projecte, el controlador d'edició amb ordres i el format `.passimaker`.
 - **Mòduls:** M1, M12.
 - **Contracte:**
 
@@ -892,10 +892,10 @@ Condició d'aturada: la del CLAUDE.md. A docs/sessions/B00.md, anota les decisio
 Bloc B1: Model, controlador i desar/obrir. Model: Sonnet.
 Branca: bloc/B01-model.
 Llegeix: CLAUDE.md, docs/CONTRACTES.md (Projecte, Foto, Cançó, controlador, desar/obrir), docs/ESPECIFICACIO.md
-§1.3 i §1.10, i l'esquelet de src/passi/model i src/passi/projectio.
+§1.3 i §1.10, i l'esquelet de src/passimaker/model i src/passimaker/projectio.
 Objectiu: implementar el model, el controlador d'edició amb ordres que es poden desfer (encara que la
-interfície no ho ofereixi) i el format .passi.
-Fitxers permesos: src/passi/model/**, src/passi/projectio/**, tests/unit/model/**, tests/unit/projectio/**.
+interfície no ho ofereixi) i el format .passimaker.
+Fitxers permesos: src/passimaker/model/**, src/passimaker/projectio/**, tests/unit/model/**, tests/unit/projectio/**.
 Contracte: el de docs/CONTRACTES.md, sense canvis.
 Criteris d'acceptació:
 - Els valors fora de rang es limiten segons l'especificació (durades, foses, volums).
@@ -932,10 +932,10 @@ Condició d'aturada: la del CLAUDE.md. Si cal canviar el contracte, atura't i pr
 Bloc B2: Línia de temps. Model: Sonnet.
 Branca: bloc/B02-linia-temps.
 Llegeix: CLAUDE.md, docs/CONTRACTES.md (LíniaDeTemps, Visibles, PlaÀudio, ajustar_a_música), docs/ESPECIFICACIO.md
-§1.3, §1.4 i §1.7, i src/passi/timeline.
+§1.3, §1.4 i §1.7, i src/passimaker/timeline.
 Objectiu: calcular l'espai de cada foto, les foses, les foses de negre, el pla d'àudio i l'ajust a la música, i
 respondre "què es veu a l'instant t". Treballa amb llistes de durades i cançons; no calen imatges ni àudio.
-Fitxers permesos: src/passi/timeline/**, tests/unit/timeline/**.
+Fitxers permesos: src/passimaker/timeline/**, tests/unit/timeline/**.
 Criteris d'acceptació (amb proves de propietats d'Hypothesis):
 - Durada total = suma de les durades. La fosa entre dues fotos no supera la meitat de la més curta.
   0 fotos → línia buida. 1 foto → només foses de negre. Foses de negre més llargues que el passi → reduïdes
@@ -970,10 +970,10 @@ Condició d'aturada: la del CLAUDE.md.
 Bloc B3: Moviments i encaix. Model: Opus.
 Branca: bloc/B03-moviments.
 Llegeix: CLAUDE.md, docs/CONTRACTES.md (encaix, MovimentFoto, Finestra, sortejar, finestra_a),
-docs/ESPECIFICACIO.md §1.5 i §1.6, i src/passi/motion.
+docs/ESPECIFICACIO.md §1.5 i §1.6, i src/passimaker/motion.
 Objectiu: decidir l'encaix de cada foto i generar moviments variats, equilibrats, reproduïbles i que no mostrin
 mai cap vora.
-Fitxers permesos: src/passi/motion/**, tests/unit/motion/**, tools/full_contactes_moviments.*
+Fitxers permesos: src/passimaker/motion/**, tests/unit/motion/**, tools/full_contactes_moviments.*
 Criteris d'acceptació:
 - Encaix automàtic: relació de proporcions entre 0,70 i 1,43 → Omplir; si no → Difuminat. En horitzontal i en vertical.
 - Garantia de vores: en 10.000 casos aleatoris (proporcions, durades de 1 a 30 s, intensitats, tipus, formats), la
@@ -1009,10 +1009,10 @@ per a la meva revisió (fita F1).
 Bloc B4: Importació i imatges. Model: Sonnet.
 Branca: bloc/B04-importacio.
 Llegeix: CLAUDE.md, docs/CONTRACTES.md (importar, obtenir_imatge, precarregar), docs/ESPECIFICACIO.md §1.1, i
-src/passi/importer i src/passi/images.
+src/passimaker/importer i src/passimaker/images.
 Objectiu: trobar i ordenar fotos, llegir-ne les metadades i servir imatges orientades, en sRGB i a la mida
 necessària, amb una memòria cau limitada.
-Fitxers permesos: src/passi/importer/**, src/passi/images/**, tests/unit/importer/**, tests/unit/images/**.
+Fitxers permesos: src/passimaker/importer/**, src/passimaker/images/**, tests/unit/importer/**, tests/unit/images/**.
 Criteris d'acceptació:
 - Formats JPG, PNG, HEIC, BMP, TIFF, WebP i GIF. Els RAW i els corruptes donen un error amb motiu, mai una
   excepció sense gestionar.
@@ -1038,11 +1038,11 @@ Condició d'aturada: la del CLAUDE.md.
 ```text
 Bloc B5: Miniatures i intermedis. Model: Sonnet.
 Branca: bloc/B05-miniatures.
-Llegeix: CLAUDE.md, docs/CONTRACTES.md (miniatures), docs/ESPECIFICACIO.md §1.2, src/passi/thumbs i la
-interfície pública de src/passi/images.
+Llegeix: CLAUDE.md, docs/CONTRACTES.md (miniatures), docs/ESPECIFICACIO.md §1.2, src/passimaker/thumbs i la
+interfície pública de src/passimaker/images.
 Objectiu: generar i desar a disc miniatures (256 px) i intermedis (1.600 px) en segon pla, amb prioritat i
 cancel·lació.
-Fitxers permesos: src/passi/thumbs/**, tests/unit/thumbs/**.
+Fitxers permesos: src/passimaker/thumbs/**, tests/unit/thumbs/**.
 Criteris d'acceptació:
 - Cada fitxer s'identifica per ruta, data de modificació i mida. Si el fitxer canvia, es regenera.
 - Aprofita la miniatura EXIF incrustada quan fa 160 px o més (amb l'orientació aplicada).
@@ -1071,7 +1071,7 @@ images i thumbs.
 Objectiu: generar la imatge RGB de qualsevol instant a qualsevol mida, amb encaix (omplir, fons difuminat,
 fons negre), moviment amb precisió per sota del píxel, fosa encadenada i foses de negre, i un mode sentinella
 (magenta fora de la imatge). És el mateix motor per a la previsualització i l'exportació.
-Fitxers permesos: src/passi/render/**, tests/visual/**, tests/golden/**, tests/perf/test_render*, tools/full_imatges.*
+Fitxers permesos: src/passimaker/render/**, tests/visual/**, tests/golden/**, tests/perf/test_render*, tools/full_imatges.*
 Criteris d'acceptació:
 - Sentinella: 0 píxels magenta en totes les imatges a 480p i en 100 imatges a 1080p de 3 projectes sintètics
   (totes les proporcions, tots els moviments, horitzontal i vertical).
@@ -1099,12 +1099,12 @@ Condició d'aturada: la del CLAUDE.md. La PR ha d'indicar quines imatges golden 
 ```text
 Bloc B7: Pont FFmpeg. Model: Sonnet.
 Branca: bloc/B07-ffmpeg.
-Llegeix: CLAUDE.md, docs/CONTRACTES.md (Pont FFmpeg) i src/passi/ffmpeg.
+Llegeix: CLAUDE.md, docs/CONTRACTES.md (Pont FFmpeg) i src/passimaker/ffmpeg.
 Objectiu: un únic mòdul robust per llegir les característiques dels fitxers, descodificar àudio, mesurar la
 sonoritat, codificar vídeo per canonada, extreure imatges i calcular la forma d'ona.
-Fitxers permesos: src/passi/ffmpeg/**, tests/unit/ffmpeg/**, tests/integration/ffmpeg/**.
+Fitxers permesos: src/passimaker/ffmpeg/**, tests/unit/ffmpeg/**, tests/integration/ffmpeg/**.
 Criteris d'acceptació:
-- Troba ffmpeg i ffprobe a la carpeta del programa, a vendor/ffmpeg o a la variable d'entorn PASSI_FFMPEG.
+- Troba ffmpeg i ffprobe a la carpeta del programa, a vendor/ffmpeg o a la variable d'entorn PASSIMAKER_FFMPEG.
   Si no hi són, error clar.
 - sondejar retorna la durada (±10 ms), la freqüència i els canals de les dades de prova en WAV, MP3, M4A, FLAC i OGG.
 - Descodifica a PCM de 48 kHz estèreo amb retall precís (±1 ms).
@@ -1128,11 +1128,11 @@ Condició d'aturada: la del CLAUDE.md.
 Bloc B8: Motor d'àudio. Model: opusplan (comença en mode pla i espera que aprovi el pla).
 Branca: bloc/B08-audio.
 Llegeix: CLAUDE.md, docs/CONTRACTES.md (FontÀudio, PlaÀudio, Pont FFmpeg), docs/ESPECIFICACIO.md §1.7, i les
-interfícies públiques de src/passi/ffmpeg i src/passi/timeline.
+interfícies públiques de src/passimaker/ffmpeg i src/passimaker/timeline.
 Objectiu: mescla seguida de les cançons, amb retalls, foses logarítmiques, foses de 10 ms als talls, volums,
 anivellament a −16 LUFS, fosa final i limitador. Ha de servir trossos (per a la previsualització) i un WAV
 complet (per a l'exportació), sense tenir mai tota la mescla a la memòria.
-Fitxers permesos: src/passi/audio/**, tests/audio/**, tests/unit/audio/**.
+Fitxers permesos: src/passimaker/audio/**, tests/audio/**, tests/unit/audio/**.
 Criteris d'acceptació (amb els tons de prova de 440, 660 i 880 Hz):
 - Fosa d'entrada: ≤ −60 dB a l'inici, nominal ±0,5 dB al final, sempre creixent. El mateix, a l'inrevés, per a
   la de sortida.
@@ -1148,9 +1148,9 @@ Condició d'aturada: la del CLAUDE.md.
 ---
 
 #### B9 · Exportació i ordres de línia
-- **Objectiu:** exportar un projecte a MP4 amb progrés i cancel·lació, i les ordres `passi-nou` i `passi-render`. Amb aquest bloc ja es pot fer el **primer vídeo complet**.
+- **Objectiu:** exportar un projecte a MP4 amb progrés i cancel·lació, i les ordres `passimaker-nou` i `passimaker-render`. Amb aquest bloc ja es pot fer el **primer vídeo complet**.
 - **Mòduls:** M11.
-- **Contracte:** exportar(projecte, destí, progrés(fracció, segons_restants), cancel·lació) → Resultat · `passi-nou <carpeta> [música…] -o <projecte>` · `passi-render <projecte> <mp4>`.
+- **Contracte:** exportar(projecte, destí, progrés(fracció, segons_restants), cancel·lació) → Resultat · `passimaker-nou <carpeta> [música…] -o <projecte>` · `passimaker-render <projecte> <mp4>`.
 - **Què cal simular:** res. Integra els blocs reals.
 - **Mida i dependències:** Mitjà · B1, B6, B8.
 
@@ -1159,9 +1159,9 @@ Bloc B9: Exportació i ordres de línia. Model: opusplan (comença en mode pla).
 Branca: bloc/B09-exportacio.
 Llegeix: CLAUDE.md, docs/CONTRACTES.md (exportar, Resultat, ordres de línia), docs/ESPECIFICACIO.md §1.9, i les
 interfícies públiques de render, audio, ffmpeg, timeline, model i projectio.
-Objectiu: exportar un projecte a MP4 amb progrés, temps restant i cancel·lació, i les ordres passi-nou (projecte
-a partir d'una carpeta, amb els valors per defecte) i passi-render.
-Fitxers permesos: src/passi/export/**, src/passi/cli.py, tests/integration/export/**, tools/mostra.*,
+Objectiu: exportar un projecte a MP4 amb progrés, temps restant i cancel·lació, i les ordres passimaker-nou (projecte
+a partir d'una carpeta, amb els valors per defecte) i passimaker-render.
+Fitxers permesos: src/passimaker/export/**, src/passimaker/cli.py, tests/integration/export/**, tools/mostra.*,
 .github/workflows/ci.yml (només per afegir-hi el fitxer mostra.mp4).
 Criteris d'acceptació:
 - 20 fotos de prova + 2 cançons → MP4 amb la durada esperada ±1 fotograma. ffprobe: H.264 High, 1920×1080
@@ -1173,7 +1173,7 @@ Criteris d'acceptació:
   sense restes. Destí amb accents.
 - El progrés sempre avança i hi ha temps restant. L'ordinador no entra en repòs mentre s'exporta.
 - Indica els fotogrames per segon al CI.
-- passi-nou + passi-render generen un vídeo amb tots els valors per defecte. La CI publica mostra.mp4 (20 s).
+- passimaker-nou + passimaker-render generen un vídeo amb tots els valors per defecte. La CI publica mostra.mp4 (20 s).
 Condició d'aturada: la del CLAUDE.md. A la nota, posa l'ordre exacta perquè jo generi el vídeo de la fita F2 amb
 les meves fotos.
 ```
@@ -1196,7 +1196,7 @@ Objectiu: la finestra principal amb la disposició del §1.0, l'estat buit, la i
 arrossegar), el storyboard (només dibuixa les miniatures visibles), la selecció, reordenar arrossegant, eliminar,
 duplicar, la mida de les miniatures, el panell del projecte (durada general, fosa, moviment activat, intensitat,
 format) i una vista fixa de la foto seleccionada. També la base de les traduccions (català).
-Fitxers permesos: src/passi/ui/**, src/passi/i18n/**, tests/ui/**, el punt d'entrada "passi" a pyproject.
+Fitxers permesos: src/passimaker/ui/**, src/passimaker/i18n/**, tests/ui/**, el punt d'entrada "passimaker" a pyproject.
 Criteris d'acceptació (pytest-qt, sense pantalla):
 - En deixar anar 20 fitxers i una carpeta, apareixen en l'ordre del §1.1, amb progrés i cancel·lació.
 - Reordenar arrossegant una o diverses fotos; Supr (amb confirmació si són 5 o més); Ctrl+D; Ctrl+A; Ctrl+←/→.
@@ -1222,13 +1222,13 @@ Condició d'aturada: la del CLAUDE.md. La PR ha d'incloure les captures.
 Bloc B11: Interfície II (música, exportació i projectes). Model: Sonnet.
 Branca: bloc/B11-ui-musica-export.
 Llegeix: CLAUDE.md, docs/CONTRACTES.md, docs/ESPECIFICACIO.md §1.7 (part bàsica), §1.9 i §1.10, l'estructura
-actual de src/passi/ui i les interfícies públiques d'export, projectio i timeline.
+actual de src/passimaker/ui i les interfícies públiques d'export, projectio i timeline.
 Objectiu: la franja de música (afegir, eliminar, reordenar, arrossegar fitxers d'àudio), la barra d'estat amb
 durades i avisos, el botó "Ajustar a la música", el diàleg d'exportació (progrés, temps restant, cancel·lar,
 obrir el vídeo o la carpeta), Desar / Desar com a / Obrir / Recents, l'asterisc i l'avís de canvis sense desar,
-la recuperació després d'una fallada, el diàleg de reenllaç, i obrir un .passi passat com a argument o deixat
+la recuperació després d'una fallada, el diàleg de reenllaç, i obrir un .passimaker passat com a argument o deixat
 anar a la finestra.
-Fitxers permesos: src/passi/ui/**, src/passi/i18n/**, tests/ui/**.
+Fitxers permesos: src/passimaker/ui/**, src/passimaker/i18n/**, tests/ui/**.
 Criteris d'acceptació (pytest-qt):
 - Flux complet sense pantalla: importar fotos, afegir 2 cançons, ajustar, desar, tancar, obrir i exportar 10 s →
   MP4 vàlid (ffprobe).
@@ -1242,25 +1242,25 @@ Condició d'aturada: la del CLAUDE.md.
 ---
 
 #### B12 · Empaquetat portable
-- **Objectiu:** `Passi-<versió>-win64.zip`, que funciona sense instal·lar res, amb una autoprova.
+- **Objectiu:** `PassiMaker-<versió>-win64.zip`, que funciona sense instal·lar res, amb una autoprova.
 - **Mòduls:** M14.
-- **Contracte:** `Passi.exe [projecte.passi]` · `Passi.exe --autoprova` → codi de sortida 0 si tot va bé.
+- **Contracte:** `PassiMaker.exe [projecte.passimaker]` · `PassiMaker.exe --autoprova` → codi de sortida 0 si tot va bé.
 - **Què cal simular:** res.
 - **Mida i dependències:** Petit · B11.
 
 ```text
 Bloc B12: Empaquetat portable. Model: Sonnet.
 Branca: bloc/B12-empaquetat.
-Llegeix: CLAUDE.md, docs/PLA.md (decisions del Pas 0), src/passi/cli.py i pyproject.
-Objectiu: generar Passi-<versió>-win64.zip (carpeta amb Passi.exe, FFmpeg a bin/, icona i informació de versió)
+Llegeix: CLAUDE.md, docs/PLA.md (decisions del Pas 0), src/passimaker/cli.py i pyproject.
+Objectiu: generar PassiMaker-<versió>-win64.zip (carpeta amb PassiMaker.exe, FFmpeg a bin/, icona i informació de versió)
 i una autoprova.
-Fitxers permesos: tools/construir_zip.ps1, packaging/**, src/passi/cli.py (només l'opció --autoprova),
+Fitxers permesos: tools/construir_zip.ps1, packaging/**, src/passimaker/cli.py (només l'opció --autoprova),
 .github/workflows/**, els recursos de la icona.
 Criteris d'acceptació:
 - pwsh tools/construir_zip.ps1 genera el ZIP, de 250 MB com a màxim (sense els mòduls de Qt que no es fan servir).
-- En un Windows net sense Python (runner de la CI), Passi.exe --autoprova exporta un vídeo de 5 s i acaba amb el
+- En un Windows net sense Python (runner de la CI), PassiMaker.exe --autoprova exporta un vídeo de 5 s i acaba amb el
   codi 0. La finestra s'obre en menys de 4 s.
-- La configuració es desa a %APPDATA%\Passi i les memòries cau a %LOCALAPPDATA%\Passi, mai a la carpeta del programa.
+- La configuració es desa a %APPDATA%\PassiMaker i les memòries cau a %LOCALAPPDATA%\PassiMaker, mai a la carpeta del programa.
 - La CI genera el ZIP a cada fusió a main i a cada etiqueta, com a fitxer descarregable.
 Condició d'aturada: la del CLAUDE.md. A la nota, explica com descarregar el ZIP de la CI.
 ```
@@ -1283,7 +1283,7 @@ Objectiu: un reproductor que fa servir l'àudio com a rellotge mestre i un fil q
 salta imatges si va tard. Ha de poder anar a un instant o a una foto, tornar a dibuixar en pausa quan hi ha
 canvis i fer servir un rellotge intern si no hi ha música. A la interfície: ▶/❚❚, anterior/següent, barra de
 temps, barra espaiadora, ←/→ i clic sobre una miniatura.
-Fitxers permesos: src/passi/preview/**, src/passi/ui/** (només per integrar el panell i els controls),
+Fitxers permesos: src/passimaker/preview/**, src/passimaker/ui/** (només per integrar el panell i els controls),
 tests/unit/preview/**, tests/ui/**, tests/perf/test_preview*.
 Criteris d'acceptació:
 - Amb el rellotge i el dispositiu d'àudio simulats, la desincronització és de com a màxim 1 imatge de mitjana i 3
@@ -1309,14 +1309,14 @@ Condició d'aturada: la del CLAUDE.md.
 Bloc B14: Controls de foto i de música. Model: Sonnet.
 Branca: bloc/B14-controls.
 Llegeix: CLAUDE.md, docs/CONTRACTES.md, docs/ESPECIFICACIO.md §1.3, §1.5, §1.6 i §1.7, l'estructura actual de
-src/passi/ui i les interfícies públiques de motion, audio i ffmpeg (forma d'ona).
+src/passimaker/ui i les interfícies públiques de motion, audio i ffmpeg (forma d'ona).
 Objectiu:
 - Panell de foto, també per a diverses fotos seleccionades: durada personalitzada i restablir, selector de
   moviment, tornar a sortejar, encaix.
 - Accions globals: tornar a sortejar totes i restablir a automàtic.
 - Panell de cançó: foses (casella i durada), retall amb forma d'ona i dues nanses, escoltar el tros, volum.
 - Volum general, anivellament i foses de negre a "Avançat".
-Fitxers permesos: src/passi/ui/**, src/passi/i18n/**, tests/ui/**.
+Fitxers permesos: src/passimaker/ui/**, src/passimaker/i18n/**, tests/ui/**.
 Criteris d'acceptació (pytest-qt):
 - Cada control modifica el model a través del controlador i la imatge de la previsualització canvia.
 - No es poden introduir valors fora de rang. Els números fan servir la coma decimal.
@@ -1351,7 +1351,7 @@ Criteris d'acceptació:
   sense avisar, mostra missatges en català i ho anota al log.
 - 1.000 fotos sintètiques de 24 MP: importació amb miniatures en menys de 2 min; memòria màxima en exportar per
   sota d'1,5 GB (mesurada).
-- Logs a %LOCALAPPDATA%\Passi\logs, renovats automàticament (5 fitxers de 5 MB).
+- Logs a %LOCALAPPDATA%\PassiMaker\logs, renovats automàticament (5 fitxers de 5 MB).
 - docs/RENDIMENT.md amb les mesures d'abans i de després.
 Condició d'aturada: la del CLAUDE.md.
 ```
@@ -1368,12 +1368,12 @@ Condició d'aturada: la del CLAUDE.md.
 Bloc B16: Poliment i versió 1.0. Model: Sonnet (Haiku per als textos).
 Branca: bloc/B16-poliment.
 Llegeix: CLAUDE.md, docs/ESPECIFICACIO.md §1.0, docs/proves_usuari.md (notes de les proves amb usuaris) i
-src/passi/ui.
+src/passimaker/ui.
 Objectiu: aplicar les millores de les proves amb usuaris i els valors per defecte que jo hagi aprovat, i afegir
 les indicacions de l'estat buit, consells emergents, dreceres, "Quant a", una guia d'usuari d'una pàgina en català
 (menú Ajuda), el CHANGELOG i l'etiqueta v1.0.
-Fitxers permesos: src/passi/ui/**, src/passi/i18n/**, docs/**, tests/ui/**, i els valors per defecte de
-src/passi/model (només els aprovats).
+Fitxers permesos: src/passimaker/ui/**, src/passimaker/i18n/**, docs/**, tests/ui/**, i els valors per defecte de
+src/passimaker/model (només els aprovats).
 Criteris d'acceptació: la llista de docs/proves_usuari.md queda tancada; tots els textos estan revisats; la CI
 genera el ZIP de la v1.0; tota la suite de proves en verd.
 Condició d'aturada: la del CLAUDE.md.
@@ -1389,7 +1389,7 @@ Condició d'aturada: la del CLAUDE.md.
 |---|---|---|---|
 | 0. Preparació | Entorn + B0 | Repositori amb la CI en verd i contractes aprovats | S1 |
 | 1. Nucli | B1, B2, B3, B4, B7 | **F1:** proves del nucli en verd i full de contactes de moviments aprovat (`v0.1-nucli`) | S2–S3 |
-| 2. Primer vídeo | B5, B6, B8, B9 | **F2:** `passi-render` genera un MP4 complet (fotos, moviment, fosa i música) amb els valors per defecte. Tu el mires i l'escoltes (`v0.2-primer-video`). | S4–S5 |
+| 2. Primer vídeo | B5, B6, B8, B9 | **F2:** `passimaker-render` genera un MP4 complet (fotos, moviment, fosa i música) amb els valors per defecte. Tu el mires i l'escoltes (`v0.2-primer-video`). | S4–S5 |
 | 3. MVP | B10, B11, B12 | **F3 = MVP:** ZIP portable. Un usuari fa un passi complet des de la interfície (`v0.5-mvp`). | S6–S7 |
 | 4. Beta | B13, B14 | **F4:** previsualització en temps real i tots els controls de l'abast (`v0.8-beta`) | S8–S9 |
 | 5. Versió 1.0 | B15, B16 | **F5:** comprovat amb 1.000 fotos, prova d'usuari de menys de 5 min, `v1.0` | S10 |
@@ -1475,14 +1475,14 @@ flowchart LR
 
 | # | Decisió | Proposta |
 |---|---|---|
-| D1 | Nom del programa i extensió | **Passi** / `.passi` |
+| D1 | Nom del programa i extensió | **PassiMaker** / `.passimaker` (abans Passi / `.passi`; canviat al M01, decisió 0006) |
 | D2 | Incloure P1 (desfer) i P2 (girar foto) al pla | Sí, totes dues (+1,5 sessions) |
 | D3 | Valors per defecte (5 s, fosa d'1,5 s, intensitat mitjana, foses de cançó d'1 s i 3 s) | Aprovar-los ara i revisar-los a F2 |
 | D4 | Regla d'encaix (0,70–1,43) i fons difuminat | Aprovar |
 | D5 | Anivellament de volum activat per defecte | Sí |
 | D6 | Ajustar a la música: un botó, i la casella "Mantenir ajustat" desactivada | Aprovar |
 | D7 | Reordenar no torna a sortejar els moviments | Aprovar |
-| D8 | Compte de GitHub i nom del repositori | Privat, `passi` |
+| D8 | Compte de GitHub i nom del repositori | Privat, `passimaker` |
 | D9 | PC de referència per al rendiment | Un portàtil d'oficina concret de l'estudi |
 | D10 | Fotos i música reals de prova | Carpeta amb 30–50 fotos variades (incloses HEIC d'iPhone, verticals i panoràmiques) i 3 cançons. No es pujaran al repositori. |
 | D11 | Persones per a les proves d'usuari | 1 a F3 i 2 a F5, sense experiència en edició |
