@@ -9,9 +9,6 @@ from passi.model import defaults
 from passi.model.types import Song
 from passi.timeline.types import AudioPlan, AudioSegment, Interval
 
-SHORT_SONG_FADE_FRACTION = 0.4
-"""§1.7: a song shorter than its two fades gets each fade reduced to 40 % of its length."""
-
 
 def song_span(song: Song) -> tuple[float, float]:
     """(start, end) of the part of the file that is played, after the trim."""
@@ -62,6 +59,6 @@ def _song_fades(song: Song, length: float) -> tuple[float, float]:
     fade_in = max(micro, song.fade_in.seconds) if song.fade_in.enabled else micro
     fade_out = max(micro, song.fade_out.seconds) if song.fade_out.enabled else micro
     if fade_in + fade_out > length:
-        limit = SHORT_SONG_FADE_FRACTION * length
+        limit = defaults.SHORT_SONG_FADE_FRACTION * length
         fade_in, fade_out = min(fade_in, limit), min(fade_out, limit)
     return fade_in, fade_out
