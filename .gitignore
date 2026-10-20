@@ -1,0 +1,22 @@
+# Entorn i memòries cau
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+
+# Binaris descarregats (tools/obtenir_ffmpeg.*)
+vendor/ffmpeg/
+
+# Sortides de proves i eines
+tests/_generated/
+tests/_artefactes/
+
+# Empaquetat
+build/
+dist/
+
+# Fitxers temporals del programa
+*.passi.tmp
+*.mp4.part
