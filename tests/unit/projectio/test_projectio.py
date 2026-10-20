@@ -339,6 +339,8 @@ def test_a_newer_version_gives_a_clear_error(tmp_path: Path) -> None:
         "[" * 100_000,
         b"\xff\xfe\x00garbage",
     ],
+    # Short ids: pytest copies the test id to PYTEST_CURRENT_TEST, limited to 32,767 characters on Windows.
+    ids=lambda content: f"len{len(content)}",
 )
 def test_corrupt_files_give_a_controlled_error(tmp_path: Path, content: str | bytes) -> None:
     with pytest.raises(ProjectFileError):
