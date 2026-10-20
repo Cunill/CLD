@@ -398,9 +398,8 @@ def test_keep_fitted_refits_when_photos_or_songs_change() -> None:
     assert controller.project.default_duration_s == pytest.approx(3.0)  # 15 s / 4 = 3.75, limited
 
 
-@pytest.mark.xfail(raises=NotImplementedError, reason="timeline.fit_to_music arriba amb el B2", strict=False)
 def test_fit_to_music_with_the_real_timeline() -> None:
-    """Integration with block B2: passes by itself once B2 is merged."""
+    """Integration with block B2 (timeline.fit_to_music)."""
     controller = controller_with(10, songs=[song("a", 25.0)])
     controller.execute(FitToMusic())
     project = controller.project
@@ -409,9 +408,6 @@ def test_fit_to_music_with_the_real_timeline() -> None:
     assert timeline.compute_timeline(project).total_duration_s == pytest.approx(total, abs=1 / 30)
 
 
-@pytest.mark.xfail(
-    raises=NotImplementedError, reason="timeline.compute_timeline arriba amb el B2", strict=False
-)
 def test_visible_durations_match_the_timeline() -> None:
     """The motion draw uses the same visible spans as the timeline (block B2)."""
     durations = [1.0, 3.0, 1.4, 2.2, 2.0, 1.0]
