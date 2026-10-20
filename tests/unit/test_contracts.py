@@ -76,13 +76,10 @@ def test_motion_probabilities_sum_to_one() -> None:
 
 
 def _stubs() -> list[tuple[str, Callable[[], Any]]]:
-    from passi import audio, ffmpeg, importer, projectio, timeline
-    from passi.model.controller import ProjectController
+    from passi import audio, ffmpeg, importer, timeline
 
     p = Path("x")
     return [
-        ("B1 controller", lambda: ProjectController()),
-        ("B1 open", lambda: projectio.open_project(p)),
         ("B2 timeline", lambda: timeline.compute_timeline(Project())),
         ("B4 import", lambda: importer.import_paths([p])),
         ("B7 probe", lambda: ffmpeg.probe(p)),
