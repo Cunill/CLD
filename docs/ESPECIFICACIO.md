@@ -143,14 +143,14 @@
 | Combinat | Zoom (endavant o enrere) amb un desplaçament suau en diagonal |
 | Cap | Foto estàtica |
 
-**Intensitat global** (són valors proposats, per validar a la fita F1)
+**Intensitat global** (valors ajustats a la fita F1, 20/10/2026: un 50 % més ràpids que la proposta inicial, a petició de l'usuari)
 
 | | Suau | Mitjana (per defecte) | Marcada |
 |---|---|---|---|
-| Variació del zoom en una foto | 6 % | 12 % | 20 % |
-| Desplaçament (en % del costat) | 4 % | 8 % | 13 % |
-| Velocitat màxima del zoom | 2 %/s | 3,5 %/s | 5 %/s |
-| Velocitat màxima del desplaçament | 1,5 %/s | 2,5 %/s | 4 %/s |
+| Variació del zoom en una foto | 9 % | 18 % | 28 % |
+| Desplaçament (en % del costat visible) | 6 % | 12 % | 18 % |
+| Velocitat màxima del zoom | 3 %/s | 5 %/s | 7,5 %/s |
+| Velocitat màxima del desplaçament | 2,5 %/s | 4 %/s | 6 %/s |
 
 - El moviment és lineal i continu durant tot el temps que la foto és visible, foses incloses, sense acceleracions ni aturades. El zoom es calcula perquè la velocitat aparent sigui constant.
 - Si una foto és molt curta, el moviment es redueix perquè no sigui brusc. Si és molt llarga, simplement va més lent.

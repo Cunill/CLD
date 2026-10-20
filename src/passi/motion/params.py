@@ -55,9 +55,9 @@ class IntensityParams:
 
 
 INTENSITY_PARAMS: Mapping[Intensity, IntensityParams] = {
-    Intensity.SOFT: IntensityParams(0.06, 0.04, 0.020, 0.015),
-    Intensity.MEDIUM: IntensityParams(0.12, 0.08, 0.035, 0.025),
-    Intensity.STRONG: IntensityParams(0.20, 0.13, 0.050, 0.040),
+    Intensity.SOFT: IntensityParams(0.09, 0.06, 0.030, 0.025),
+    Intensity.MEDIUM: IntensityParams(0.18, 0.12, 0.050, 0.040),
+    Intensity.STRONG: IntensityParams(0.28, 0.18, 0.075, 0.060),
 }
 
 BLUR_INTENSITY_FACTOR = 0.6
