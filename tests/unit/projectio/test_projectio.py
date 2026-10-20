@@ -110,7 +110,7 @@ def songs_strategy(draw: st.DrawFn, base: Path, sid: str) -> Song:
     path, relative = draw(located_paths(base, ".mp3"))
     length = draw(st.floats(0.0, 7200.0))
     start = draw(st.floats(0.0, 1.0)) * length
-    end = draw(st.none() | st.floats(0.0, 1.0).map(lambda f: start + f * (length - start)))
+    end = draw(st.none() | st.floats(0.0, 1.0).map(lambda f: min(length, start + f * (length - start))))
     return Song(
         id=sid,
         path=path,
