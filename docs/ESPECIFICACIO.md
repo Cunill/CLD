@@ -104,7 +104,7 @@
 - Les miniatures formen una graella que s'adapta a l'amplada (com al Movie Maker 2012), en l'ordre del passi. Sota cada miniatura hi ha el número d'ordre i la durada ("2,0 s"). Unes icones petites indiquen el tipus de moviment, si té una durada personalitzada, si és de baixa resolució o si no es troba el fitxer.
 - Selecció simple, múltiple (Ctrl, Maj) i de totes (Ctrl+A).
 - Per reordenar, s'arrosseguen una o diverses fotos. Una línia vertical indica on aniran. Amb el teclat: Ctrl+← i Ctrl+→.
-- Per eliminar: tecla Supr, botó o menú contextual. Només es demana confirmació si se n'eliminen 5 o més, perquè no hi ha "desfer" (vegeu la proposta P1).
+- Per eliminar: tecla Supr, botó o menú contextual. Només es demana confirmació si se n'eliminen 5 o més. Es manté encara que hi hagi "desfer" (P1, decisió 0007).
 - Per duplicar: Ctrl+D o menú contextual. La còpia va just després de l'original, amb la mateixa durada i el mateix encaix però amb un moviment nou i diferent.
 - Mida de les miniatures: petita, mitjana o gran.
 - En fer clic sobre una miniatura, la previsualització salta a l'inici d'aquella foto i el panell de propietats en mostra els ajustos.
@@ -233,8 +233,7 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 
 **Casos límit:**
 - Cançó corrupta o protegida (DRM): es marca en vermell, amb un missatge, i no entra a la mescla.
-  Pendent de decidir (D12, `docs/PLA.md` §5.2): si les cançons següents s'avancen o el seu lloc queda en silenci
-  (comportament actual del B8; vegeu docs/sessions/B08.md).
+  El seu lloc queda en silenci i les cançons següents no s'avancen (D12, decisió 0007).
 - Cançó més curta que les seves dues foses: cada fosa es redueix al 40 % de la durada de la cançó.
 - Retall amb l'inici després del final: no es permet.
 - Àudio mono, 5.1 o amb freqüències de mostreig diferents: es converteix a estèreo de 48 kHz.
@@ -302,7 +301,7 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 - Ctrl+Z desfà i Ctrl+Y (o Ctrl+Maj+Z) refà. També al menú Edita i amb dos botons a la barra d'eines.
 - Cobreix totes les edicions del projecte: afegir, eliminar, moure i duplicar fotos; durades; moviments; encaix; girar; música i ajustos. No cobreix desar, obrir ni exportar.
 - Historial de 100 passos. Obrir o recuperar un projecte buida l'historial.
-- Es manté la confirmació en eliminar 5 fotos o més (§1.2). Pendent de decidir: amb el desfer, es podria treure o pujar el llindar (vegeu docs/sessions/B00.md).
+- Es manté la confirmació en eliminar 5 fotos o més (§1.2), també amb el desfer (decisió 0007).
 - Implementació: el controlador (B1) desa instantànies del projecte, que és immutable; la interfície (B10, B11) hi afegeix els menús i les dreceres.
 
 **P2 · Girar una foto 90°**
