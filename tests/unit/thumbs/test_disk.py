@@ -174,3 +174,20 @@ def test_leftover_temporary_files_are_removed(tmp_path: Path) -> None:
     os.utime(stale, (old, old))
     assert DiskCache(folder, 10**6).total_bytes == 0
     assert not stale.exists() and recent.exists()
+
+
+def test_duplicated_photo_with_two_rotations_keeps_both_entries(
+    tmp_path: Path, make_service: ServiceFactory, source: RecordingSource
+) -> None:
+    """A duplicated photo rotated in only one copy: neither copy may push the other out of the cache."""
+    path = write_jpeg(tmp_path / "foto.jpg", pseudo_photo(1200, 800))
+    service = make_service(source)
+    upright, rotated = photo_for(path, photo_id="a"), photo_for(path, Rotation.R90, photo_id="b")
+    for _ in range(3):
+        for photo in (upright, rotated):
+            collector = Collector()
+            service.request_thumbnail(photo, Priority.VISIBLE, collector)
+            assert collector.wait(1)
+            service.get_intermediate(photo)
+    assert len(source.calls) == 4  # one thumbnail and one intermediate per rotation
+    assert len(_cache_files(tmp_path / "cache")) == 4

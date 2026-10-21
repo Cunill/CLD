@@ -75,15 +75,15 @@ class CacheKey:
 
     @property
     def slot(self) -> str:
-        """The same for every version of the file: a new version replaces the old one."""
-        return f"{_hex(self.file.path, 16)}.{self.kind.value}"
+        """The same for every version of the file: a new version replaces the old one. The manual
+        rotation is part of it, so a duplicated photo rotated in one copy keeps both entries."""
+        return _slot_of(self.filename)
 
     @property
     def filename(self) -> str:
-        state = _hex(
-            f"{CACHE_FORMAT_VERSION}|{self.file.mtime_ns}|{self.file.size}|{self.rotation.value}", 12
-        )
-        return f"{_hex(self.file.path, 16)}-{state}.{self.kind.value}.jpg"
+        photo = _hex(f"{self.file.path}|{self.rotation.value}", 16)
+        state = _hex(f"{CACHE_FORMAT_VERSION}|{self.file.mtime_ns}|{self.file.size}", 12)
+        return f"{photo}-{state}.{self.kind.value}.jpg"
 
 
 def _slot_of(name: str) -> str:
@@ -159,8 +159,7 @@ class DiskCache:
             if name in self._entries:
                 self._entries.move_to_end(name)
             else:  # written by another process
-                self._add(name, len(data))
-                self._evict()
+                self._register(name, len(data))
         with contextlib.suppress(OSError):
             os.utime(path)  # the order of use survives a restart
         return image
@@ -185,13 +184,7 @@ class DiskCache:
             _log.warning("Cannot write cache file %s: %s", name, exc)
             return
         with self._lock:
-            old = self._slots.get(key.slot)
-            if old is not None and old != name:
-                self._forget(old)
-                self._unlink(old)
-            self._forget(name)
-            self._add(name, len(data))
-            self._evict()
+            self._register(name, len(data))
 
     def _ensure_loaded(self) -> None:
         if self._loaded:
@@ -223,6 +216,16 @@ class DiskCache:
                 self._forget(old)
                 self._unlink(old)
             self._add(name, size)
+        self._evict()
+
+    def _register(self, name: str, size: int) -> None:
+        """Adds a file that is now on disk as the most recent; deletes the older version of its slot."""
+        old = self._slots.get(_slot_of(name))
+        if old is not None and old != name:
+            self._forget(old)
+            self._unlink(old)
+        self._forget(name)
+        self._add(name, size)
         self._evict()
 
     def _add(self, name: str, size: int) -> None:
