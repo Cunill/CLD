@@ -124,7 +124,7 @@
 - Les miniatures formen una graella que s'adapta a l'amplada (com al Movie Maker 2012), en l'ordre del passi. Sota cada miniatura hi ha el número d'ordre i la durada ("5,0 s"). Unes icones petites indiquen el tipus de moviment, si té una durada personalitzada, si és de baixa resolució o si no es troba el fitxer.
 - Selecció simple, múltiple (Ctrl, Maj) i de totes (Ctrl+A).
 - Per reordenar, s'arrosseguen una o diverses fotos. Una línia vertical indica on aniran. Amb el teclat: Ctrl+← i Ctrl+→.
-- Per eliminar: tecla Supr, botó o menú contextual. Només es demana confirmació si se n'eliminen 5 o més, perquè no hi ha "desfer" (vegeu la proposta P1).
+- Per eliminar: tecla Supr, botó o menú contextual. Només es demana confirmació si se n'eliminen 5 o més. Es manté encara que hi hagi "desfer" (P1, decisió 0007).
 - Per duplicar: Ctrl+D o menú contextual. La còpia va just després de l'original, amb la mateixa durada i el mateix encaix però amb un moviment nou i diferent.
 - Mida de les miniatures: petita, mitjana o gran.
 - En fer clic sobre una miniatura, la previsualització salta a l'inici d'aquella foto i el panell de propietats en mostra els ajustos.
@@ -1486,7 +1486,7 @@ flowchart LR
 | D9 | PC de referència per al rendiment | Un portàtil d'oficina concret de l'estudi |
 | D10 | Fotos i música reals de prova | Carpeta amb 30–50 fotos variades (incloses HEIC d'iPhone, verticals i panoràmiques) i 3 cançons. No es pujaran al repositori. |
 | D11 | Persones per a les proves d'usuari | 1 a F3 i 2 a F5, sense experiència en edició |
-| D12 | Cançó il·legible (malmesa, protegida o inexistent): ara el seu lloc queda en silenci i les cançons següents no s'avancen (B8). **Pendent; cal decidir-ho abans del B11.** | Avançar les següents: el B11 la treu de la línia de temps mentre estigui marcada en vermell, de manera que la música no té forats i "Ajustar a la música" no compta una cançó que no sona |
+| D12 | Cançó il·legible (malmesa, protegida o inexistent): què passa amb les cançons següents | **Decidit el 21/10/2026 (decisió 0007): el seu lloc queda en silenci i les següents no s'avancen**, com ja fa el B8. Es va descartar avançar-les. |
 
 ---
 

@@ -69,5 +69,5 @@ B4 (PR #12, commit `f56b8d4`) · B8 (PR #14, commit `311bed0`) · B6 (PR #15, co
 Manteniment: M01 canvi de nom a PassiMaker (PR #9, commit `72341ff`, decisió 0006) ·
 M02 `SHORT_SONG_FADE_FRACTION` a defaults.py (PR #16, commit `43faaaf`).
 Fita F1 aprovada (decisions 0004 i 0005). Pendents: B5, B9–B16.
-Decisions pendents: D12 (cançó il·legible), abans del B11.
+Decisions de l'usuari del 21/10/2026: decisió 0007 (D12, llindar de 5 fotos, textos d'error del B10).
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
