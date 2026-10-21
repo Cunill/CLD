@@ -1486,6 +1486,7 @@ flowchart LR
 | D9 | PC de referència per al rendiment | Un portàtil d'oficina concret de l'estudi |
 | D10 | Fotos i música reals de prova | Carpeta amb 30–50 fotos variades (incloses HEIC d'iPhone, verticals i panoràmiques) i 3 cançons. No es pujaran al repositori. |
 | D11 | Persones per a les proves d'usuari | 1 a F3 i 2 a F5, sense experiència en edició |
+| D12 | Cançó il·legible (malmesa, protegida o inexistent): ara el seu lloc queda en silenci i les cançons següents no s'avancen (B8). **Pendent; cal decidir-ho abans del B11.** | Avançar les següents: el B11 la treu de la línia de temps mentre estigui marcada en vermell, de manera que la música no té forats i "Ajustar a la música" no compta una cançó que no sona |
 
 ---
 

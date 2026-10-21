@@ -233,6 +233,8 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 
 **Casos límit:**
 - Cançó corrupta o protegida (DRM): es marca en vermell, amb un missatge, i no entra a la mescla.
+  Pendent de decidir (D12, `docs/PLA.md` §5.2): si les cançons següents s'avancen o el seu lloc queda en silenci
+  (comportament actual del B8; vegeu docs/sessions/B08.md).
 - Cançó més curta que les seves dues foses: cada fosa es redueix al 40 % de la durada de la cançó.
 - Retall amb l'inici després del final: no es permet.
 - Àudio mono, 5.1 o amb freqüències de mostreig diferents: es converteix a estèreo de 48 kHz.
