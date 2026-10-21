@@ -259,7 +259,7 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 - Diàleg de progrés: barra, percentatge, temps restant estimat i [Cancel·lar]. Si es cancel·la, l'exportació s'atura en menys de 2 s i el fitxer a mig fer s'esborra.
 - Durant l'exportació no es pot editar (finestra modal) i l'ordinador no entra en repòs.
 - En acabar, surt "Vídeo desat (4:30, 245 MB)" amb [Obrir el vídeo] i [Mostrar a la carpeta].
-- Objectiu de velocitat: al PC de referència, exportar no ha de trigar més que la durada del vídeo.
+- Objectiu de velocitat: al PC de referència, exportar no ha de trigar més del triple de la durada del vídeo (decisió 0008). La previsualització, en canvi, és sempre en temps real (§1.8).
 - Casos límit:
   - Disc ple: abans de començar es comprova si hi ha prou espai (estimat). Si el disc s'omple durant l'exportació, surt un missatge clar i s'esborra el fitxer a mig fer.
   - Ja existeix un fitxer amb aquest nom: es demana si es vol substituir.
