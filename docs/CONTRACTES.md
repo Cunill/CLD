@@ -185,16 +185,16 @@ Claus d'error (`reason_key`): `export.no_photos`, `export.missing_files`, `expor
 a Windows; la variable `PASSIMAKER_CACHE` la substitueix); l'àudio va a `cache_root() / "audio"` i les miniatures
 (B5) han d'anar a `cache_root() / "thumbs"`.
 
-Ordres de línia (`passimaker.cli`): `passimaker-nou <carpeta> [música…] -o <projecte.passimaker> [--vertical]
+Ordres de línia (`passimaker.cli`): `passimaker-nou <carpeta> [música…] -o <projecte.pmk> [--vertical]
 [--ajustar] [--llavor N]` (sense `--llavor`, una llavor a l'atzar que es desa al projecte; decisió 0008) i
-`passimaker-render <projecte.passimaker> <sortida.mp4> [--sentinella]`.
+`passimaker-render <projecte.pmk> <sortida.mp4> [--sentinella]`.
 Codis de sortida: 0 correcte, 1 error, 2 no implementat.
 
 ## 12. Desar i obrir (`passimaker.projectio`) · B1
 
 `save_project(projecte, ruta)` (escriptura segura), `open_project(ruta) -> OpenResult(project,
 missing_files)`, `relink(projecte, carpeta) -> (projecte, nombre)`, `save_recovery`, `find_recovery`,
-`clear_recovery`. Errors: `ProjectFileError`. Extensió: `.passimaker`.
+`clear_recovery`. Errors: `ProjectFileError`. Extensió: `.pmk`.
 
 ## 13. Interfície (`passimaker.ui`) · B10, B11, B14, B16
 

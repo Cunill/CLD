@@ -18,5 +18,5 @@ build/
 dist/
 
 # Fitxers temporals del programa
-*.passimaker.*.tmp
+*.pmk.*.tmp
 *.mp4.part

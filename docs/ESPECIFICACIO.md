@@ -269,7 +269,7 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 
 ### 1.10 Desar i obrir projectes
 
-- El projecte es desa en un fitxer `.passimaker` (text estructurat i llegible) amb tots els ajustos i les rutes de les fotos i les cançons. Els fitxers originals no es copien.
+- El projecte es desa en un fitxer `.pmk` (text estructurat i llegible) amb tots els ajustos i les rutes de les fotos i les cançons. Els fitxers originals no es copien.
 - Desar (Ctrl+S), Desar com a…, Obrir (Ctrl+O) i llista de projectes recents a la pantalla inicial. El títol de la finestra mostra el nom del projecte, amb un asterisc si hi ha canvis sense desar. En tancar, el programa pregunta si es volen desar.
 - Cada 2 minuts es fa una còpia de recuperació, fora de la carpeta del projecte. Si el programa es tanca de cop, en tornar-lo a obrir ofereix recuperar el projecte.
 - Les rutes es desen de dues maneres: relatives al fitxer del projecte i absolutes. Si es mou tota la carpeta (projecte i fotos), el projecte continua funcionant.
@@ -293,7 +293,7 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 | P3 | Títol inicial i crèdits finals senzills | El Movie Maker en tenia i s'usaven molt en els passis | +2 o 3 sessions | Per a la v1.1 |
 | P4 | Punt d'interès o detecció de cares per orientar el zoom | Millora la qualitat del moviment automàtic | +2 sessions | Per a la v1.1 |
 | P5 | "Desar el projecte amb les fotos" en una carpeta | Per portar el projecte a un altre ordinador | +1 sessió | Opcional |
-| P6 | Instal·lador amb associació de fitxers `.passimaker` | Doble clic per obrir projectes | +1 sessió (i un certificat opcional de 200–400 €/any) | No, de moment |
+| P6 | Instal·lador amb associació de fitxers `.pmk` | Doble clic per obrir projectes | +1 sessió (i un certificat opcional de 200–400 €/any) | No, de moment |
 
 ### 1.13 Propostes incorporades a l'abast (decisió D2)
 

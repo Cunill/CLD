@@ -2,7 +2,7 @@
 
     uv run python tools/mostra.py <output_folder>
 
-Writes <output_folder>/mostra.passimaker and <output_folder>/mostra.mp4 exactly as a user would:
+Writes <output_folder>/mostra.pmk and <output_folder>/mostra.mp4 exactly as a user would:
 passimaker-nou with the default values, then passimaker-render.
 """
 
@@ -44,7 +44,7 @@ def main(argv: list[str]) -> int:
         photos.mkdir()
         for name in PHOTOS:
             (photos / name).write_bytes(files[name].read_bytes())
-        project = out / "mostra.passimaker"
+        project = out / "mostra.pmk"
         songs = [str(files[name]) for name in SONGS]
         code = cli.main_new([str(photos), *songs, "-o", str(project), "--llavor", "1"])
         if code != cli.EXIT_OK:

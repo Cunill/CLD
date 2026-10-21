@@ -72,10 +72,10 @@ def test_motion_probabilities_sum_to_one() -> None:
 
 
 def test_cli_parsers_define_the_documented_arguments() -> None:
-    args = cli.build_new_parser().parse_args(["fotos", "a.mp3", "b.mp3", "-o", "p.passimaker", "--vertical"])
+    args = cli.build_new_parser().parse_args(["fotos", "a.mp3", "b.mp3", "-o", "p.pmk", "--vertical"])
     assert args.photos_dir == Path("fotos")
     assert args.music == [Path("a.mp3"), Path("b.mp3")]
     assert args.vertical
-    args = cli.build_render_parser().parse_args(["p.passimaker", "v.mp4"])
+    args = cli.build_render_parser().parse_args(["p.pmk", "v.mp4"])
     assert args.output == Path("v.mp4")
-    assert args.project == Path("p.passimaker") and not args.sentinella
+    assert args.project == Path("p.pmk") and not args.sentinella

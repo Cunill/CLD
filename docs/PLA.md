@@ -2,7 +2,7 @@
 
 > Programa d'escriptori per a Windows per fer passis de fotos amb moviment de càmera, fosa encadenada i música. És l'equivalent de la funció de passi de fotos del Windows Movie Maker.
 > Versió del pla: 1.0 · Data: 19/10/2026 · Estat: **pendent d'aprovació**
-> Nom: **PassiMaker** (abans "Passi", canviat al M01, decisió 0006) · Fitxer de projecte: `.passimaker`
+> Nom: **PassiMaker** (abans "Passi", canviat al M01, decisió 0006) · Fitxer de projecte: `.pmk` (M03, decisió 0009)
 
 ## Decisions preses al Pas 0
 
@@ -21,7 +21,7 @@
 | Idioma | Català, amb els textos en fitxers a part per poder-los traduir. |
 | Lliurament | Xat i aquest fitxer, que serà el futur `docs/PLA.md`. |
 
-**Com he interpretat "el més simple i de menor cost":** un ZIP portable, sense instal·lador ni certificat de signatura. Té dues conseqüències. (1) La primera vegada, Windows SmartScreen pot mostrar un avís ("Més informació → Executa igualment"). (2) Fer doble clic sobre un fitxer `.passimaker` no l'obrirà automàticament. Es pot obrir des del programa, arrossegant-lo a la finestra o sobre `PassiMaker.exe`, o amb "Obre amb…" de Windows.
+**Com he interpretat "el més simple i de menor cost":** un ZIP portable, sense instal·lador ni certificat de signatura. Té dues conseqüències. (1) La primera vegada, Windows SmartScreen pot mostrar un avís ("Més informació → Executa igualment"). (2) Fer doble clic sobre un fitxer `.pmk` no l'obrirà automàticament. Es pot obrir des del programa, arrossegant-lo a la finestra o sobre `PassiMaker.exe`, o amb "Obre amb…" de Windows.
 
 ---
 
@@ -280,7 +280,7 @@
 
 ### 1.10 Desar i obrir projectes
 
-- El projecte es desa en un fitxer `.passimaker` (text estructurat i llegible) amb tots els ajustos i les rutes de les fotos i les cançons. Els fitxers originals no es copien.
+- El projecte es desa en un fitxer `.pmk` (text estructurat i llegible) amb tots els ajustos i les rutes de les fotos i les cançons. Els fitxers originals no es copien.
 - Desar (Ctrl+S), Desar com a…, Obrir (Ctrl+O) i llista de projectes recents a la pantalla inicial. El títol de la finestra mostra el nom del projecte, amb un asterisc si hi ha canvis sense desar. En tancar, el programa pregunta si es volen desar.
 - Cada 2 minuts es fa una còpia de recuperació, fora de la carpeta del projecte. Si el programa es tanca de cop, en tornar-lo a obrir ofereix recuperar el projecte.
 - Les rutes es desen de dues maneres: relatives al fitxer del projecte i absolutes. Si es mou tota la carpeta (projecte i fotos), el projecte continua funcionant.
@@ -304,7 +304,7 @@
 | P3 | Títol inicial i crèdits finals senzills | El Movie Maker en tenia i s'usaven molt en els passis | +2 o 3 sessions | Per a la v1.1 |
 | P4 | Punt d'interès o detecció de cares per orientar el zoom | Millora la qualitat del moviment automàtic | +2 sessions | Per a la v1.1 |
 | P5 | "Desar el projecte amb les fotos" en una carpeta | Per portar el projecte a un altre ordinador | +1 sessió | Opcional |
-| P6 | Instal·lador amb associació de fitxers `.passimaker` | Doble clic per obrir projectes | +1 sessió (i un certificat opcional de 200–400 €/any) | No, de moment |
+| P6 | Instal·lador amb associació de fitxers `.pmk` | Doble clic per obrir projectes | +1 sessió (i un certificat opcional de 200–400 €/any) | No, de moment |
 
 ---
 
@@ -356,7 +356,7 @@
 | M9 | Motor d'àudio | Mescla, foses, volums i anivellament | M5, M8 |
 | M10 | Previsualització | Reproducció en temps real sincronitzada | M4, M5, M7, M9 |
 | M11 | Exportació | MP4 amb progrés i cancel·lació; ordres de línia | M5, M7, M8, M9 |
-| M12 | Desar i obrir | Format `.passimaker`, recuperació, reenllaç de fitxers | M1 |
+| M12 | Desar i obrir | Format `.pmk`, recuperació, reenllaç de fitxers | M1 |
 | M13 | Interfície | Finestres, panells, diàlegs i traduccions | M1, M2, M4, M10, M11, M12 |
 | M14 | Empaquetat | ZIP portable i autoprova (eina de construcció) | tots |
 
@@ -509,7 +509,7 @@
 - *Riscos:* memòria i velocitat amb 1.000 fotos; que la cancel·lació deixi restes.
 
 **M12 · Desar i obrir**
-- *Entrades → sortides:* un projecte → un fitxer `.passimaker`, i a l'inrevés, amb la llista de fitxers que no es troben.
+- *Entrades → sortides:* un projecte → un fitxer `.pmk`, i a l'inrevés, amb la llista de fitxers que no es troben.
 - *Funcions internes:*
   - escriptura segura: es desa en un fitxer provisional i després es reanomena;
   - versió del format i conversió de versions antigues;
@@ -724,8 +724,8 @@ Proves: pytest, pytest-qt, Hypothesis. Estil: ruff. Tipus: pyright (estricte a s
 - Rendiment: `uv run pytest -m perf`
 - Estil i tipus: `uv run ruff check .` · `uv run ruff format --check .` · `uv run pyright`
 - Executar el programa: `uv run passimaker`
-- Crear un projecte des d'una carpeta: `uv run passimaker-nou <carpeta_fotos> [música...] -o <projecte.passimaker>`
-- Exportar sense finestra: `uv run passimaker-render <projecte.passimaker> <sortida.mp4>`
+- Crear un projecte des d'una carpeta: `uv run passimaker-nou <carpeta_fotos> [música...] -o <projecte.pmk>`
+- Exportar sense finestra: `uv run passimaker-render <projecte.pmk> <sortida.mp4>`
 - Construir el ZIP portable: `pwsh tools/construir_zip.ps1`
 
 ## Regles d'arquitectura
@@ -872,7 +872,7 @@ Condició d'aturada: la del CLAUDE.md. A docs/sessions/B00.md, anota les decisio
 ---
 
 #### B1 · Model, controlador i desar/obrir
-- **Objectiu:** implementar el model del projecte, el controlador d'edició amb ordres i el format `.passimaker`.
+- **Objectiu:** implementar el model del projecte, el controlador d'edició amb ordres i el format `.pmk`.
 - **Mòduls:** M1, M12.
 - **Contracte:**
 
@@ -894,7 +894,7 @@ Branca: bloc/B01-model.
 Llegeix: CLAUDE.md, docs/CONTRACTES.md (Projecte, Foto, Cançó, controlador, desar/obrir), docs/ESPECIFICACIO.md
 §1.3 i §1.10, i l'esquelet de src/passimaker/model i src/passimaker/projectio.
 Objectiu: implementar el model, el controlador d'edició amb ordres que es poden desfer (encara que la
-interfície no ho ofereixi) i el format .passimaker.
+interfície no ho ofereixi) i el format .pmk.
 Fitxers permesos: src/passimaker/model/**, src/passimaker/projectio/**, tests/unit/model/**, tests/unit/projectio/**.
 Contracte: el de docs/CONTRACTES.md, sense canvis.
 Criteris d'acceptació:
@@ -1226,7 +1226,7 @@ actual de src/passimaker/ui i les interfícies públiques d'export, projectio i 
 Objectiu: la franja de música (afegir, eliminar, reordenar, arrossegar fitxers d'àudio), la barra d'estat amb
 durades i avisos, el botó "Ajustar a la música", el diàleg d'exportació (progrés, temps restant, cancel·lar,
 obrir el vídeo o la carpeta), Desar / Desar com a / Obrir / Recents, l'asterisc i l'avís de canvis sense desar,
-la recuperació després d'una fallada, el diàleg de reenllaç, i obrir un .passimaker passat com a argument o deixat
+la recuperació després d'una fallada, el diàleg de reenllaç, i obrir un .pmk passat com a argument o deixat
 anar a la finestra.
 Fitxers permesos: src/passimaker/ui/**, src/passimaker/i18n/**, tests/ui/**.
 Criteris d'acceptació (pytest-qt):
@@ -1244,7 +1244,7 @@ Condició d'aturada: la del CLAUDE.md.
 #### B12 · Empaquetat portable
 - **Objectiu:** `PassiMaker-<versió>-win64.zip`, que funciona sense instal·lar res, amb una autoprova.
 - **Mòduls:** M14.
-- **Contracte:** `PassiMaker.exe [projecte.passimaker]` · `PassiMaker.exe --autoprova` → codi de sortida 0 si tot va bé.
+- **Contracte:** `PassiMaker.exe [projecte.pmk]` · `PassiMaker.exe --autoprova` → codi de sortida 0 si tot va bé.
 - **Què cal simular:** res.
 - **Mida i dependències:** Petit · B11.
 
@@ -1475,7 +1475,7 @@ flowchart LR
 
 | # | Decisió | Proposta |
 |---|---|---|
-| D1 | Nom del programa i extensió | **PassiMaker** / `.passimaker` (abans Passi / `.passi`; canviat al M01, decisió 0006) |
+| D1 | Nom del programa i extensió | **PassiMaker** / `.pmk` (abans Passi / `.passi`; nom canviat al M01, decisió 0006; extensió `.passimaker` → `.pmk` al M03, decisió 0009) |
 | D2 | Incloure P1 (desfer) i P2 (girar foto) al pla | Sí, totes dues (+1,5 sessions) |
 | D3 | Valors per defecte (5 s, fosa d'1,5 s, intensitat mitjana, foses de cançó d'1 s i 3 s) | Aprovar-los ara i revisar-los a F2 |
 | D4 | Regla d'encaix (0,70–1,43) i fons difuminat | Aprovar |
