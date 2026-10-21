@@ -1,11 +1,11 @@
-"""M12 · Save and open .passimaker project files (block B1).
+"""M12 · Save and open .pmk project files (block B1).
 
-A .passimaker file is indented UTF-8 JSON (§1.10: readable structured text):
+A .pmk file is indented UTF-8 JSON (§1.10: readable structured text):
 
     {"format": "passimaker", "format_version": 1, "project": {...}}
 
 Every photo and song stores two paths: `path` (absolute) and `relative_path` (relative to the
-folder of the .passimaker file, with "/" separators, or null when there is none, e.g. another drive).
+folder of the .pmk file, with "/" separators, or null when there is none, e.g. another drive).
 On opening, the relative path is tried first, so a folder moved together with its photos, or a
 USB stick with another drive letter, keeps working; then the absolute path.
 """
@@ -41,7 +41,7 @@ from passimaker.model.types import (
     Window,
 )
 
-EXTENSION = ".passimaker"
+EXTENSION = ".pmk"
 FORMAT_NAME = "passimaker"
 RECOVERY_FILE_NAME = "recuperacio" + EXTENSION
 
@@ -402,7 +402,7 @@ def _read_document(path: Path) -> object:
 
 
 def open_project(path: Path) -> OpenResult:
-    """Reads a .passimaker file. Every problem with the file ends as a ProjectFileError."""
+    """Reads a .pmk file. Every problem with the file ends as a ProjectFileError."""
     path = _absolute(path)
     return project_from_json(_read_document(path), path.parent)
 

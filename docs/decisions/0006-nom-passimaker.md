@@ -32,3 +32,5 @@ i cap bloc obert, perquè el canvi toca gairebé tots els fitxers i més endavan
   `main` actual.
 - Les notes de sessió i les decisions anteriors conserven el que es va decidir, però els camins i els noms de mòdul
   s'han actualitzat perquè les sessions següents trobin els fitxers.
+
+> **Actualització (M03, 21/10/2026):** l'extensió dels projectes ha passat de `.passimaker` a `.pmk`. Vegeu la decisió 0009.

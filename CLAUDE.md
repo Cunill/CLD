@@ -26,8 +26,8 @@ Proves: pytest, pytest-qt, Hypothesis. Estil: ruff. Tipus: pyright (estricte a s
 - Estil i tipus: `uv run ruff check .` · `uv run ruff format --check .` · `uv run pyright`
 - Dades de prova per inspeccionar-les: `uv run python -m tests.fixtures.generate tests/_generated`
 - Executar el programa: `uv run passimaker`
-- Crear un projecte des d'una carpeta: `uv run passimaker-nou <carpeta_fotos> [música...] -o <projecte.passimaker>`
-- Exportar sense finestra: `uv run passimaker-render <projecte.passimaker> <sortida.mp4>`
+- Crear un projecte des d'una carpeta: `uv run passimaker-nou <carpeta_fotos> [música...] -o <projecte.pmk>`
+- Exportar sense finestra: `uv run passimaker-render <projecte.pmk> <sortida.mp4>`
 - Construir el ZIP portable (Windows): `pwsh tools/construir_zip.ps1`
 
 ## Regles d'arquitectura
@@ -68,7 +68,8 @@ B2 (PR #6, commit `d24243a`) · B1 (PR #5, commit `defb833`) · B7 (PR #11, comm
 B4 (PR #12, commit `f56b8d4`) · B8 (PR #14, commit `311bed0`) · B6 (PR #15, commit `e4da3fa`) ·
 B5 (PR #20, commit `d23f58e`) · B9 (PR #21, commit `dd3aaa0`).
 Manteniment: M01 canvi de nom a PassiMaker (PR #9, commit `72341ff`, decisió 0006) ·
-M02 `SHORT_SONG_FADE_FRACTION` a defaults.py (PR #16, commit `43faaaf`).
+M02 `SHORT_SONG_FADE_FRACTION` a defaults.py (PR #16, commit `43faaaf`) ·
+M03 extensió `.pmk` (decisió 0009, pendent de fusionar).
 Fita F1 aprovada (decisions 0004 i 0005). Fita F2: pendent de la prova de l'usuari amb les seves fotos
 (ordres a docs/sessions/B09.md). Pendents: B10–B16.
 Decisions de l'usuari del 21/10/2026: decisió 0007 (D12, llindar de 5 fotos, textos d'error del B10).

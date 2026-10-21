@@ -82,13 +82,11 @@ _PROGRESS_STEP = 0.1
 def build_new_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="passimaker-nou",
-        description=(
-            "Crea un projecte .passimaker a partir d'una carpeta de fotos, amb els valors per defecte."
-        ),
+        description="Crea un projecte .pmk a partir d'una carpeta de fotos, amb els valors per defecte.",
     )
     parser.add_argument("photos_dir", type=Path, help="Carpeta amb les fotos")
     parser.add_argument("music", type=Path, nargs="*", help="Fitxers de música, en ordre")
-    parser.add_argument("-o", "--output", type=Path, required=True, help="Fitxer .passimaker de sortida")
+    parser.add_argument("-o", "--output", type=Path, required=True, help="Fitxer .pmk de sortida")
     parser.add_argument("--vertical", action="store_true", help="Format vertical 1080x1920")
     parser.add_argument("--ajustar", action="store_true", help="Ajusta les durades a la música")
     parser.add_argument(
@@ -101,10 +99,8 @@ def build_new_parser() -> argparse.ArgumentParser:
 
 
 def build_render_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        prog="passimaker-render", description="Exporta un projecte .passimaker a MP4."
-    )
-    parser.add_argument("project", type=Path, help="Fitxer .passimaker")
+    parser = argparse.ArgumentParser(prog="passimaker-render", description="Exporta un projecte .pmk a MP4.")
+    parser.add_argument("project", type=Path, help="Fitxer .pmk")
     parser.add_argument("output", type=Path, help="Fitxer .mp4 de sortida")
     parser.add_argument("--sentinella", action="store_true", help="Mode de prova: magenta fora de la imatge")
     return parser

@@ -32,7 +32,7 @@ def test_new_project_has_the_default_values(
     output = tmp_path / "projecte"
     music = [str(fixture_files["tone_440.mp3"]), str(fixture_files["tone_880.ogg"])]
     assert cli.main_new([str(folder), *music, "-o", str(output)]) == cli.EXIT_OK
-    saved = output.with_suffix(".passimaker")
+    saved = output.with_suffix(".pmk")
     project = open_project(saved).project
     assert project.name == "projecte"
     assert project.output_format is OutputFormat.HORIZONTAL
@@ -52,7 +52,7 @@ def test_new_project_has_the_default_values(
 
 
 def test_new_project_options(folder: Path, fixture_files: dict[str, Path], tmp_path: Path) -> None:
-    output = tmp_path / "vertical.passimaker"
+    output = tmp_path / "vertical.pmk"
     song = str(fixture_files["tone_880.wav"])
     args = [str(folder), song, "-o", str(output), "--vertical", "--ajustar", "--llavor", "42"]
     assert cli.main_new(args) == cli.EXIT_OK
@@ -64,7 +64,7 @@ def test_new_project_options(folder: Path, fixture_files: dict[str, Path], tmp_p
 
 
 def test_the_same_folder_and_seed_give_the_same_project(folder: Path, tmp_path: Path) -> None:
-    first, second = tmp_path / "a.passimaker", tmp_path / "b.passimaker"
+    first, second = tmp_path / "a.pmk", tmp_path / "b.pmk"
     assert cli.main_new([str(folder), "-o", str(first), "--llavor", "5"]) == cli.EXIT_OK
     assert cli.main_new([str(folder), "-o", str(second), "--llavor", "5"]) == cli.EXIT_OK
     a, b = open_project(first).project, open_project(second).project
@@ -74,16 +74,16 @@ def test_the_same_folder_and_seed_give_the_same_project(folder: Path, tmp_path: 
 def test_new_project_errors(tmp_path: Path, folder: Path, capsys: pytest.CaptureFixture[str]) -> None:
     empty = tmp_path / "buida"
     empty.mkdir()
-    assert cli.main_new([str(empty), "-o", str(tmp_path / "x.passimaker")]) == cli.EXIT_ERROR
-    assert cli.main_new([str(tmp_path / "no hi és"), "-o", str(tmp_path / "x.passimaker")]) == cli.EXIT_ERROR
+    assert cli.main_new([str(empty), "-o", str(tmp_path / "x.pmk")]) == cli.EXIT_ERROR
+    assert cli.main_new([str(tmp_path / "no hi és"), "-o", str(tmp_path / "x.pmk")]) == cli.EXIT_ERROR
     missing_song = str(tmp_path / "cançó.mp3")
-    assert cli.main_new([str(folder), missing_song, "-o", str(tmp_path / "x.passimaker")]) == cli.EXIT_ERROR
+    assert cli.main_new([str(folder), missing_song, "-o", str(tmp_path / "x.pmk")]) == cli.EXIT_ERROR
     assert "No es troba el fitxer" in capsys.readouterr().err
-    assert not (tmp_path / "x.passimaker").exists()
+    assert not (tmp_path / "x.pmk").exists()
 
 
 def test_render_refuses_a_project_with_missing_files(folder: Path, tmp_path: Path) -> None:
-    project = tmp_path / "p.passimaker"
+    project = tmp_path / "p.pmk"
     assert cli.main_new([str(folder), "-o", str(project)]) == cli.EXIT_OK
     (folder / "ratio_4x3.jpg").unlink()
     err = io.StringIO()
@@ -94,7 +94,7 @@ def test_render_refuses_a_project_with_missing_files(folder: Path, tmp_path: Pat
 
 
 def test_render_of_a_file_that_is_not_a_project(tmp_path: Path) -> None:
-    bad = tmp_path / "malmès.passimaker"
+    bad = tmp_path / "malmès.pmk"
     bad.write_text("no és json", encoding="utf-8")
     err = io.StringIO()
     assert cli.render(bad, tmp_path / "v.mp4", err=err) == cli.EXIT_ERROR
@@ -105,7 +105,7 @@ def test_render_of_a_file_that_is_not_a_project(tmp_path: Path) -> None:
 def test_new_and_render_make_a_video(
     folder: Path, fixture_files: dict[str, Path], tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    project = tmp_path / "passi.passimaker"
+    project = tmp_path / "passi.pmk"
     video = tmp_path / "vídeos" / "passi d'estiu.mp4"
     video.parent.mkdir()
     assert cli.main_new([str(folder), str(fixture_files["tone_660.flac"]), "-o", str(project)]) == cli.EXIT_OK
@@ -136,11 +136,11 @@ def test_without_a_seed_each_new_project_gets_its_own(folder: Path, tmp_path: Pa
     same project, and the printed seed rebuilds it."""
     seeds = set()
     for i in range(4):
-        output = tmp_path / f"p{i}.passimaker"
+        output = tmp_path / f"p{i}.pmk"
         assert cli.main_new([str(folder), "-o", str(output)]) == cli.EXIT_OK
         seeds.add(open_project(output).project.seed)
     assert len(seeds) > 1  # 4 draws among a million
-    first = open_project(tmp_path / "p0.passimaker").project
-    again = tmp_path / "again.passimaker"
+    first = open_project(tmp_path / "p0.pmk").project
+    again = tmp_path / "again.pmk"
     assert cli.main_new([str(folder), "-o", str(again), "--llavor", str(first.seed)]) == cli.EXIT_OK
     assert [p.motion for p in open_project(again).project.photos] == [p.motion for p in first.photos]
