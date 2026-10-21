@@ -55,6 +55,8 @@ FIT_TO_MUSIC_MIN_DURATION_WARNING_S = 1.0
 
 MAX_PHOTOS_WITHOUT_WARNING = 1000
 MIN_PHOTO_SIDE_PX = 64
+DATE_ORDER_MIN_FRACTION = 0.8
+"""Imported photos are ordered by date when at least this fraction has an EXIF capture date (§1.1)."""
 
 AUTOSAVE_INTERVAL_S = 120
 UNDO_HISTORY_STEPS = 100

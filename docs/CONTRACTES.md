@@ -77,7 +77,7 @@ CORRUPT, TOO_SMALL, NOT_FOUND).
 
 | Operació | Rep | Retorna |
 |---|---|---|
-| `get_image(foto, min_long_side)` | foto, costat llarg mínim | `RGBImage` orientada (EXIF + gir manual), sRGB, costat llarg ≥ mínim (o la mida original si és més petita) i no més del doble. Error: `ImageDecodeError`. |
+| `get_image(foto, min_long_side)` | foto, costat llarg mínim | `RGBImage` orientada (EXIF + gir manual), sRGB, costat llarg ≥ mínim (o la mida original si és més petita) i no més del doble, **de només lectura** (la comparteix la memòria cau: qui la vulgui modificar n'ha de fer una còpia). Error: `ImageDecodeError`. |
 | `prefetch(fotos, min_long_side)` | — | Torna de seguida; descodifica en segon pla |
 
 Implementació: `CachedImageSource(memory_budget_bytes=768 MB, workers=2)`.
@@ -198,7 +198,7 @@ importació, les miniatures, el compositor, el reproductor, l'exportació i `pro
 
 | Substitut | Fa el paper de |
 |---|---|
-| `SyntheticImageSource` | `ImageSource` (imatges sintètiques amb la proporció de la foto; registra les peticions) |
+| `SyntheticImageSource` | `ImageSource` (imatges sintètiques de només lectura amb la proporció de la foto; registra les peticions) |
 | `ToneAudioSource` | `AudioSource` (to pur) |
 | `SimulatedClock` | `Clock` |
 | `fixed_timeline`, `fixed_query` | `compute_timeline`, `query` (versió simplificada) |

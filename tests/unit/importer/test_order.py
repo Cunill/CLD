@@ -8,7 +8,8 @@ from pathlib import Path
 from hypothesis import given
 from hypothesis import strategies as st
 
-from passimaker.importer import DATE_ORDER_MIN_FRACTION, PhotoCandidate, sort_candidates
+from passimaker.importer import PhotoCandidate, sort_candidates
+from passimaker.model import defaults
 
 BASE = datetime(2024, 1, 1)
 
@@ -19,7 +20,7 @@ def _candidate(name: str, capture_day: int | None, file_day: int = 0) -> PhotoCa
 
 
 def test_threshold_is_80_percent() -> None:
-    assert DATE_ORDER_MIN_FRACTION == 0.8
+    assert defaults.DATE_ORDER_MIN_FRACTION == 0.8
 
 
 def test_explicit_order_overrides_the_rule() -> None:

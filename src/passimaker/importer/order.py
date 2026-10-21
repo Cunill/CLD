@@ -6,10 +6,8 @@ from collections.abc import Sequence
 from datetime import datetime
 
 from passimaker.importer.types import PhotoCandidate
+from passimaker.model import defaults
 from passimaker.model.editing import natural_key
-
-DATE_ORDER_MIN_FRACTION = 0.8
-"""Photos are ordered by date when at least this fraction has an EXIF capture date (§1.1)."""
 
 
 def _name_key(candidate: PhotoCandidate) -> tuple[tuple[str | int, ...], str]:
@@ -25,7 +23,7 @@ def prefers_date_order(candidates: Sequence[PhotoCandidate]) -> bool:
     if not candidates:
         return False
     dated = sum(1 for c in candidates if c.capture_time is not None)
-    return dated >= DATE_ORDER_MIN_FRACTION * len(candidates)
+    return dated >= defaults.DATE_ORDER_MIN_FRACTION * len(candidates)
 
 
 def sort_candidates(

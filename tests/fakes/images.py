@@ -11,7 +11,9 @@ from tests.fixtures.generate import synthetic_rgb
 
 
 class SyntheticImageSource:
-    """Implements passimaker.images.ImageSource. Records every request in `requests`."""
+    """Implements passimaker.images.ImageSource. Records every request in `requests`.
+
+    Returns read-only arrays, as the contract requires (docs/CONTRACTES.md §3)."""
 
     def __init__(self) -> None:
         self.requests: list[tuple[str, int]] = []
@@ -24,7 +26,9 @@ class SyntheticImageSource:
         scale = target / long_side
         width = max(1, round(photo.width * scale))
         height = max(1, round(photo.height * scale))
-        return synthetic_rgb(width, height, zlib.crc32(photo.id.encode("utf-8")))
+        image = synthetic_rgb(width, height, zlib.crc32(photo.id.encode("utf-8")))
+        image.setflags(write=False)  # like CachedImageSource, whose images are shared with its cache
+        return image
 
     def prefetch(self, photos: Sequence[Photo], min_long_side: int) -> None:
         self.prefetched.extend((p.id, min_long_side) for p in photos)
