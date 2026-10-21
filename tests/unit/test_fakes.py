@@ -24,6 +24,7 @@ def test_synthetic_images_keep_aspect_and_are_deterministic() -> None:
     b = source.get_image(photo, 800)
     assert a.shape == (600, 800, 3) and a.dtype == np.uint8
     assert np.array_equal(a, b)
+    assert not a.flags.writeable  # same rule as CachedImageSource (docs/CONTRACTES.md §3)
     small = Photo("p2", Path("b.jpg"), None, 320, 240)
     assert source.get_image(small, 1920).shape == (240, 320, 3)
 
