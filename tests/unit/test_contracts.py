@@ -1,12 +1,8 @@
-"""B0: the contracts exist, have the documented defaults and are not yet implemented."""
+"""B0: the contracts exist and have the documented defaults."""
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from pathlib import Path
-from typing import Any
-
-import pytest
 
 from passimaker import cli
 from passimaker.model import defaults
@@ -73,21 +69,6 @@ def test_motion_probabilities_sum_to_one() -> None:
     from passimaker.motion import BASE_PROBABILITIES
 
     assert abs(sum(BASE_PROBABILITIES.values()) - 1.0) < 1e-9
-
-
-def _stubs() -> list[tuple[str, Callable[[], Any]]]:
-    from passimaker import audio, timeline
-
-    p = Path("x")
-    return [
-        ("B8 audio", lambda: audio.prepare(Project(), timeline.AudioPlan((), None), p)),
-    ]
-
-
-@pytest.mark.parametrize(("label", "call"), _stubs(), ids=[s[0] for s in _stubs()])
-def test_stubs_are_not_implemented_yet(label: str, call: Callable[[], Any]) -> None:
-    with pytest.raises(NotImplementedError):
-        call()
 
 
 def test_cli_parsers_define_the_documented_arguments() -> None:
