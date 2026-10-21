@@ -90,6 +90,7 @@ class Compositor:
         self._cache_bytes = 0
         self._building: dict[_CacheKey, threading.Lock] = {}
         self._prefetched: set[tuple[str, int]] = set()
+        self._failed: set[str] = set()
 
     def frame_at(self, t: float, width: int, height: int, *, sentinel: bool = False) -> RGBImage:
         if width <= 0 or height <= 0:
@@ -198,7 +199,11 @@ class Compositor:
         try:
             image = self._fetch(photo, long_side)
         except (PassiMakerError, OSError) as error:
-            _log.warning("No es pot dibuixar la foto %s: %s", photo.path, error)
+            with self._lock:
+                first_failure = photo.id not in self._failed
+                self._failed.add(photo.id)
+            if first_failure:
+                _log.warning("No es pot dibuixar la foto %s: %s", photo.path, error)
             return placeholder_canvas(plan.fit)
         return build_canvas(image, plan.fit, photo.width, photo.height, scale)
 
