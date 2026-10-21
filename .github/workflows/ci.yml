@@ -51,6 +51,17 @@ jobs:
       - name: Proves
         run: uv run pytest -m "not perf"
 
+      - name: Vídeo de mostra
+        run: uv run python tools/mostra.py _mostra
+
+      - name: Publicar el vídeo de mostra
+        uses: actions/upload-artifact@v4
+        with:
+          name: mostra
+          path: _mostra/mostra.mp4
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Artefactes de les proves
         if: always()
         uses: actions/upload-artifact@v4
