@@ -214,3 +214,21 @@ def test_photos_of_a_project_edited_by_hand_keep_working() -> None:
     compositor, timeline = compositor_for(project, MemoryImageSource(synthetic_images(project).images))
     for t in frame_times(timeline, step=6):
         assert magenta_count(compositor.frame_at(t, 320, 180, sentinel=True)) == 0
+
+
+def test_a_canvas_built_while_invalidating_is_not_kept() -> None:
+    project = build_project([photo("a", 4000, 3000), photo("b", 4000, 3000)])
+    images = synthetic_images(project).images
+
+    class InvalidatesWhileDecoding(MemoryImageSource):
+        def get_image(self, photo: Photo, min_long_side: int) -> RGBImage:
+            image = super().get_image(photo, min_long_side)
+            if len(self.requests) == 1:
+                compositor.invalidate()  # e.g. the user rotated the photo meanwhile
+            return image
+
+    source = InvalidatesWhileDecoding(images)
+    compositor, _ = compositor_for(project, source)
+    compositor.frame_at(1.0, 320, 180)
+    compositor.frame_at(1.0, 320, 180)
+    assert [r[0] for r in source.requests] == ["a", "a"]

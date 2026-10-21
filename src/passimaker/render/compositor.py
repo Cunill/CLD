@@ -91,6 +91,8 @@ class Compositor:
         self._building: dict[_CacheKey, threading.Lock] = {}
         self._prefetched: set[tuple[str, int]] = set()
         self._failed: set[str] = set()
+        self._generation = 0
+        """Incremented by invalidate(): a canvas built before it is not stored."""
 
     def frame_at(self, t: float, width: int, height: int, *, sentinel: bool = False) -> RGBImage:
         if width <= 0 or height <= 0:
@@ -119,6 +121,7 @@ class Compositor:
     def invalidate(self, photo_ids: frozenset[str] | None = None) -> None:
         """Drops cached canvases (after a fit/rotation change); None drops everything."""
         with self._lock:
+            self._generation += 1
             for key in [k for k in self._cache if photo_ids is None or k[0] in photo_ids]:
                 self._cache_bytes -= self._cache.pop(key).nbytes
             if photo_ids is None:
@@ -170,9 +173,11 @@ class Compositor:
                 cached = self._cached(key)
                 if cached is not None:
                     return cached
+                generation = self._generation
             canvas = self._build(plan, width, height)
             with self._lock:
-                self._store(key, canvas)
+                if generation == self._generation:
+                    self._store(key, canvas)
                 self._building.pop(key, None)
         return canvas
 
