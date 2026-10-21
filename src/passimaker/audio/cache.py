@@ -1,0 +1,122 @@
+"""Decoded songs and their loudness, kept in a cache folder so each song is decoded only once.
+
+Each song is decoded whole (not trimmed): changing the trim, the fades or the volume does not
+decode it again. The key is the absolute path, the size and the modification time of the file;
+if the file changes, it gets a new key. Files are written under a temporary name and renamed,
+so another thread or process never reads a half-written file.
+"""
+
+from __future__ import annotations
+
+import contextlib
+import hashlib
+import json
+import os
+import threading
+from dataclasses import dataclass
+from pathlib import Path
+
+import numpy as np
+
+from passimaker.audio.params import CACHE_VERSION, CHANNELS
+from passimaker.common import AudioBlock
+from passimaker.ffmpeg import (
+    ERROR_FILE_NOT_FOUND,
+    FfmpegError,
+    Loudness,
+    decode_audio,
+    measure_loudness,
+)
+
+PCM_SUFFIX = ".f32"
+LOUDNESS_SUFFIX = ".lufs.json"
+FRAME_BYTES = CHANNELS * 4
+
+_locks: dict[str, threading.Lock] = {}
+_locks_guard = threading.Lock()
+
+
+def _lock(key: str) -> threading.Lock:
+    """One lock per cache entry: two threads preparing the same song decode it only once."""
+    with _locks_guard:
+        return _locks.setdefault(key, threading.Lock())
+
+
+@dataclass(frozen=True, slots=True)
+class DecodedSong:
+    """A whole song as raw little-endian float32 stereo at 48 kHz (see passimaker.ffmpeg.PcmFile)."""
+
+    path: Path
+    frames: int
+
+    def read(self, first: int, count: int) -> AudioBlock:
+        """Frames [first, first + count) of the song; zeros outside the file. Thread-safe."""
+        block = np.zeros((count, CHANNELS), dtype=np.float32)
+        lo, hi = max(0, first), min(self.frames, first + count)
+        if hi > lo:
+            data = np.fromfile(self.path, dtype="<f4", count=(hi - lo) * CHANNELS, offset=lo * FRAME_BYTES)
+            got = len(data) // CHANNELS
+            block[lo - first : lo - first + got] = data[: got * CHANNELS].reshape(got, CHANNELS)
+        return block
+
+
+def song_key(path: Path) -> str:
+    """Cache key of a song file; FfmpegError(file_not_found) if it cannot be read."""
+    try:
+        absolute = path.resolve()
+        stat = absolute.stat()
+    except OSError as error:
+        raise FfmpegError(ERROR_FILE_NOT_FOUND, str(path)) from error
+    text = f"{CACHE_VERSION}|{absolute}|{stat.st_size}|{stat.st_mtime_ns}"
+    return hashlib.sha256(text.encode("utf-8", errors="surrogatepass")).hexdigest()[:32]
+
+
+def _temporary(final: Path) -> Path:
+    return final.with_name(f"{final.name}.{os.getpid()}-{threading.get_ident()}.tmp")
+
+
+def _publish(temporary: Path, final: Path) -> None:
+    """Renames temporary to final; if another process got there first, keeps its file."""
+    try:
+        temporary.replace(final)
+    except OSError:
+        if not final.is_file():
+            raise
+        with contextlib.suppress(OSError):
+            temporary.unlink()
+
+
+def decoded_song(path: Path, cache_dir: Path) -> DecodedSong:
+    """Decodes the song into cache_dir the first time; afterwards only checks the file."""
+    key = song_key(path)
+    final = cache_dir / f"{key}{PCM_SUFFIX}"
+    with _lock(key):
+        if not final.is_file():
+            temporary = _temporary(final)
+            decode_audio(path, temporary)
+            _publish(temporary, final)
+        return DecodedSong(final, final.stat().st_size // FRAME_BYTES)
+
+
+def song_loudness(path: Path, cache_dir: Path) -> Loudness:
+    """EBU R128 loudness of the whole song, measured once and kept in cache_dir."""
+    key = song_key(path)
+    final = cache_dir / f"{key}{LOUDNESS_SUFFIX}"
+    with _lock(key + LOUDNESS_SUFFIX):
+        cached = _read_loudness(final)
+        if cached is not None:
+            return cached
+        loudness = measure_loudness(path)
+        temporary = _temporary(final)
+        data = {"integrated_lufs": loudness.integrated_lufs, "true_peak_dbfs": loudness.true_peak_dbfs}
+        temporary.write_text(json.dumps(data), encoding="utf-8")
+        _publish(temporary, final)
+        return loudness
+
+
+def _read_loudness(path: Path) -> Loudness | None:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return Loudness(float(data["integrated_lufs"]), float(data["true_peak_dbfs"]))
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
