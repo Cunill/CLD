@@ -36,7 +36,7 @@ def test_new_project_has_the_default_values(
     project = open_project(saved).project
     assert project.name == "projecte"
     assert project.output_format is OutputFormat.HORIZONTAL
-    assert project.seed == 0
+    assert 0 <= project.seed < cli.NEW_SEED_LIMIT  # drawn at random (decision of the user)
     # corrupt.jpg has a valid header: B4 imports it (the compositor draws it grey, with a warning).
     assert sorted(p.path.name for p in project.photos) == sorted((*PHOTOS, "corrupt.jpg"))
     assert [s.path.name for s in project.music.songs] == ["tone_440.mp3", "tone_880.ogg"]
@@ -48,7 +48,7 @@ def test_new_project_has_the_default_values(
     err = capsys.readouterr().err
     assert "not_an_image.jpg" in err  # skipped files are listed
     assert "subcarpetes" in err
-    assert "Projecte desat" in err
+    assert "Projecte desat" in err and f"llavor {project.seed})" in err
 
 
 def test_new_project_options(folder: Path, fixture_files: dict[str, Path], tmp_path: Path) -> None:
@@ -129,3 +129,18 @@ def test_progress_printer_without_terminal() -> None:
     assert len(lines) == 11
     assert lines[0] == "Exportant… 0% (queden 0:50)"
     assert lines[-1] == "Exportant… 100% (queden 0:00)"
+
+
+def test_without_a_seed_each_new_project_gets_its_own(folder: Path, tmp_path: Path) -> None:
+    """Each new project draws its own seed (so its own motions) and keeps it: reopening it gives the
+    same project, and the printed seed rebuilds it."""
+    seeds = set()
+    for i in range(4):
+        output = tmp_path / f"p{i}.passimaker"
+        assert cli.main_new([str(folder), "-o", str(output)]) == cli.EXIT_OK
+        seeds.add(open_project(output).project.seed)
+    assert len(seeds) > 1  # 4 draws among a million
+    first = open_project(tmp_path / "p0.passimaker").project
+    again = tmp_path / "again.passimaker"
+    assert cli.main_new([str(folder), "-o", str(again), "--llavor", str(first.seed)]) == cli.EXIT_OK
+    assert [p.motion for p in open_project(again).project.photos] == [p.motion for p in first.photos]

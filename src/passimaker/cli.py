@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import secrets
 import sys
 import threading
 import time
@@ -69,6 +70,11 @@ _IMPORT_FAILURES = {
     ImportFailure.NOT_FOUND: "no es troba",
 }
 
+NEW_SEED_LIMIT = 1_000_000
+"""Without --llavor a new project gets a random seed below this (short enough to type it back).
+Decision of the user (21/10/2026): each new project has different motions; the seed is saved in the
+project, so the same project always gives the same video (rule 5)."""
+
 _PROGRESS_STEP = 0.1
 """Without a terminal (CI, redirected output) progress is printed every 10 %."""
 
@@ -85,7 +91,12 @@ def build_new_parser() -> argparse.ArgumentParser:
     parser.add_argument("-o", "--output", type=Path, required=True, help="Fitxer .passimaker de sortida")
     parser.add_argument("--vertical", action="store_true", help="Format vertical 1080x1920")
     parser.add_argument("--ajustar", action="store_true", help="Ajusta les durades a la música")
-    parser.add_argument("--llavor", type=int, default=None, help="Llavor dels moviments")
+    parser.add_argument(
+        "--llavor",
+        type=int,
+        default=None,
+        help="Llavor dels moviments (sense aquesta opció, se'n tria una a l'atzar i es desa al projecte)",
+    )
     return parser
 
 
@@ -135,7 +146,8 @@ def new_project(
     err: TextIO | None = None,
 ) -> Project:
     """The project that passimaker-nou saves: every photo of the folder (not its subfolders), in the
-    automatic order of §1.1, and the songs in the given order. Raises PassiMakerError."""
+    automatic order of §1.1, and the songs in the given order. seed=None draws a random seed (saved
+    in the project). Raises PassiMakerError."""
     out = err if err is not None else sys.stderr
     result = import_paths([photos_dir.absolute()])
     for failure in result.failures:
@@ -147,7 +159,9 @@ def new_project(
         photo_from_candidate(c, f"p{i:04d}", output_format) for i, c in enumerate(candidates, start=1)
     )
     songs = tuple(song_from_file(path, f"s{i:02d}") for i, path in enumerate(music, start=1))
-    base = Project(name=name, output_format=output_format, seed=0 if seed is None else seed)
+    if seed is None:
+        seed = secrets.randbelow(NEW_SEED_LIMIT)
+    base = Project(name=name, output_format=output_format, seed=seed)
     controller = ProjectController(base)
     if photos:
         controller.execute(AddPhotos(photos))
@@ -192,7 +206,7 @@ def main_new(argv: list[str] | None = None) -> int:
     timeline = compute_timeline(project)
     print(
         f"Projecte desat: {output} ({len(project.photos)} fotos, {len(project.music.songs)} cançons, "
-        f"{_clock(timeline.total_duration_s)})",
+        f"{_clock(timeline.total_duration_s)}, llavor {project.seed})",
         file=sys.stderr,
     )
     return EXIT_OK
