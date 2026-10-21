@@ -176,10 +176,18 @@ Mida màxima: `PREVIEW_MAX_SIZE = (960, 540)`.
 
 `export_project(projecte, destí, progress, cancel, sentinel=False) -> ExportResult(status,
 reason_key, duration_s, size_bytes)`. `ExportStatus`: DONE, CANCELLED, ERROR.
-`progress(fracció 0–1, segons_restants | None)`.
+`progress(fracció 0–1, segons_restants | None)`, des del fil que exporta, com a molt cada 0,1 s; la fracció mai no
+recula. Cancel·lar atura l'exportació en menys de 2 s. El vídeo s'escriu com a `<nom>.mp4.part` i es reanomena en
+acabar: si no acaba bé, no queda cap fitxer. L'ordinador no entra en repòs mentre s'exporta.
+`missing_files(projecte) -> tuple[Path]`: fotos i cançons que no es troben (si n'hi ha, no s'exporta).
+Claus d'error (`reason_key`): `export.no_photos`, `export.missing_files`, `export.disk_full`, `export.write_error`,
+`export.failed` i les `ffmpeg.*` del §8. `cache_root()`: carpeta de les memòries cau (`%LOCALAPPDATA%\PassiMaker\cache`
+a Windows; la variable `PASSIMAKER_CACHE` la substitueix); l'àudio va a `cache_root() / "audio"` i les miniatures
+(B5) han d'anar a `cache_root() / "thumbs"`.
 
 Ordres de línia (`passimaker.cli`): `passimaker-nou <carpeta> [música…] -o <projecte.passimaker> [--vertical]
-[--ajustar] [--llavor N]` i `passimaker-render <projecte.passimaker> <sortida.mp4> [--sentinella]`.
+[--ajustar] [--llavor N]` (sense `--llavor`, una llavor a l'atzar que es desa al projecte; decisió 0008) i
+`passimaker-render <projecte.passimaker> <sortida.mp4> [--sentinella]`.
 Codis de sortida: 0 correcte, 1 error, 2 no implementat.
 
 ## 12. Desar i obrir (`passimaker.projectio`) · B1

@@ -66,10 +66,11 @@ Proves: pytest, pytest-qt, Hypothesis. Estil: ruff. Tipus: pyright (estricte a s
 Blocs integrats a main: B0 (PR #1, commit `bd4cde4`) · B3 (PR #2, commit `1c49679`) ·
 B2 (PR #6, commit `d24243a`) · B1 (PR #5, commit `defb833`) · B7 (PR #11, commit `9d7d926`) ·
 B4 (PR #12, commit `f56b8d4`) · B8 (PR #14, commit `311bed0`) · B6 (PR #15, commit `e4da3fa`) ·
-B5 (PR #20, commit `d23f58e`).
+B5 (PR #20, commit `d23f58e`) · B9 (PR #21, commit `dd3aaa0`).
 Manteniment: M01 canvi de nom a PassiMaker (PR #9, commit `72341ff`, decisió 0006) ·
 M02 `SHORT_SONG_FADE_FRACTION` a defaults.py (PR #16, commit `43faaaf`).
-Fita F1 aprovada (decisions 0004 i 0005). Pendents: B9–B16.
+Fita F1 aprovada (decisions 0004 i 0005). Fita F2: pendent de la prova de l'usuari amb les seves fotos
+(ordres a docs/sessions/B09.md). Pendents: B10–B16.
 Decisions pendents: D12 (cançó il·legible), abans del B11.
 Decisions del B5 aprovades (docs/sessions/B05.md); la nitidesa de la miniatura EXIF es revisa al B10.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
