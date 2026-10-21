@@ -78,4 +78,4 @@ def test_cli_parsers_define_the_documented_arguments() -> None:
     assert args.vertical
     args = cli.build_render_parser().parse_args(["p.passimaker", "v.mp4"])
     assert args.output == Path("v.mp4")
-    assert cli.main_render(["p.passimaker", "v.mp4"]) == cli.EXIT_NOT_IMPLEMENTED
+    assert args.project == Path("p.passimaker") and not args.sentinella
