@@ -49,9 +49,10 @@ def _displacements(frames: list[NDArray[np.float32]]) -> list[float]:
     corners = np.array([[0, 0, 1], [width, 0, 1], [0, height, 1], [width, height, 1]], dtype=np.float64).T
     criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 30, 1e-4)
     warp = np.eye(2, 3, dtype=np.float32)
+    mask = np.full(small[0].shape, 255, dtype=np.uint8)
     result: list[float] = []
     for before, after in itertools.pairwise(small):
-        _, warp = cv2.findTransformECC(before, after, warp.copy(), cv2.MOTION_AFFINE, criteria, None, 3)
+        _, warp = cv2.findTransformECC(before, after, warp.copy(), cv2.MOTION_AFFINE, criteria, mask, 3)
         moved = warp.astype(np.float64) @ corners
         result.append(float(np.linalg.norm(moved - corners[:2], axis=0).mean()))
     return result
