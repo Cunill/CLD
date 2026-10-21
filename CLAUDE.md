@@ -69,9 +69,9 @@ B4 (PR #12, commit `f56b8d4`) · B8 (PR #14, commit `311bed0`) · B6 (PR #15, co
 B5 (PR #20, commit `d23f58e`) · B9 (PR #21, commit `dd3aaa0`).
 Manteniment: M01 canvi de nom a PassiMaker (PR #9, commit `72341ff`, decisió 0006) ·
 M02 `SHORT_SONG_FADE_FRACTION` a defaults.py (PR #16, commit `43faaaf`) ·
-M03 extensió `.pmk` (decisió 0009, pendent de fusionar).
-Fita F1 aprovada (decisions 0004 i 0005). Fita F2: pendent de la prova de l'usuari amb les seves fotos
-(ordres a docs/sessions/B09.md). Pendents: B10–B16.
+M03 extensió `.pmk` (PR #25, commit `66b6e92`, decisió 0009).
+Fita F1 aprovada (decisions 0004 i 0005). Fita F2: vídeo provat per l'usuari amb les seves fotos (vertical i
+horitzontal) el 21/10/2026, correcte; falta ensenyar-lo a una persona externa (PLA §4.4). Pendents: B10–B16.
 Decisions de l'usuari del 21/10/2026: decisió 0007 (D12, llindar de 5 fotos, textos d'error del B10).
 Decisions del B5 aprovades (docs/sessions/B05.md); la nitidesa de la miniatura EXIF es revisa al B10.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
