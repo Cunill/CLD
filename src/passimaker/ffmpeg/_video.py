@@ -42,7 +42,12 @@ CLOSE_TIMEOUT_S = 600.0
 FRAME_TIMEOUT_S = 60.0
 
 # Colour: frames are sRGB; the video is BT.709 limited range (ESPECIFICACIO §1.9), tagged as such.
-_COLOUR_FILTER = "scale=out_color_matrix=bt709:out_range=tv:flags=accurate_rnd+full_chroma_int,format=yuv420p"
+# setparams tags the frames too: since FFmpeg 7.1 the encoder takes the colour tags from the frames
+# and ignores -color_primaries / -color_trc when a filter left them unspecified.
+_COLOUR_FILTER = (
+    "scale=out_color_matrix=bt709:out_range=tv:flags=accurate_rnd+full_chroma_int,format=yuv420p,"
+    "setparams=range=tv:color_primaries=bt709:color_trc=bt709:colorspace=bt709"
+)
 _COLOUR_TAGS = (
     "-colorspace",
     "bt709",
