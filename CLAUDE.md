@@ -70,6 +70,6 @@ B5 (PR #20, commit `d23f58e`).
 Manteniment: M01 canvi de nom a PassiMaker (PR #9, commit `72341ff`, decisió 0006) ·
 M02 `SHORT_SONG_FADE_FRACTION` a defaults.py (PR #16, commit `43faaaf`).
 Fita F1 aprovada (decisions 0004 i 0005). Pendents: B9–B16.
-Decisions pendents: D12 (cançó il·legible), abans del B11.
+Decisions de l'usuari del 21/10/2026: decisió 0007 (D12, llindar de 5 fotos, textos d'error del B10).
 Decisions del B5 aprovades (docs/sessions/B05.md); la nitidesa de la miniatura EXIF es revisa al B10.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
