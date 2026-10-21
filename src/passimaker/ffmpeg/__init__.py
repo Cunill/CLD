@@ -1,113 +1,68 @@
-"""M8 · FFmpeg bridge: the only module that runs ffmpeg/ffprobe (block B7)."""
+"""M8 · FFmpeg bridge: the only module that runs ffmpeg/ffprobe (block B7).
+
+- Processes start without a shell and without a console window; stderr is always drained in
+  parallel, so no pipe can fill up and block (`_process`).
+- Paths go to ffmpeg absolute and as `file:` URLs: accents, spaces, ':' and long Windows paths work.
+- Every failure becomes an FfmpegError whose message_key is one of the ERROR_* constants.
+"""
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Protocol
+from passimaker.ffmpeg._audio import decode_audio, measure_loudness, probe, waveform
+from passimaker.ffmpeg._locate import locate
+from passimaker.ffmpeg._video import FfmpegVideoWriter, extract_frames, open_encoder
+from passimaker.ffmpeg.types import (
+    AUDIO_CHANNELS,
+    AUDIO_SAMPLE_RATE,
+    DEFAULT_ENCODER_SETTINGS,
+    ENV_VAR,
+    ERROR_ABORTED,
+    ERROR_DISK_FULL,
+    ERROR_ENCODE,
+    ERROR_FAILED,
+    ERROR_FILE_NOT_FOUND,
+    ERROR_NO_AUDIO,
+    ERROR_NOT_FOUND,
+    ERROR_TIMEOUT,
+    ERROR_UNREADABLE,
+    ERROR_WRITE,
+    EncoderSettings,
+    FfmpegError,
+    FfmpegPaths,
+    Loudness,
+    MediaInfo,
+    PcmFile,
+    VideoWriter,
+)
 
-import numpy as np
-from numpy.typing import NDArray
-
-from passimaker.common import PassiMakerError, RGBImage
-
-ENV_VAR = "PASSIMAKER_FFMPEG"
-"""Directory containing ffmpeg and ffprobe; takes precedence over the bundled copy."""
-
-AUDIO_SAMPLE_RATE = 48000
-AUDIO_CHANNELS = 2
-
-
-class FfmpegError(PassiMakerError):
-    """FFmpeg failed or is missing; message_key identifies the user message."""
-
-
-@dataclass(frozen=True, slots=True)
-class FfmpegPaths:
-    ffmpeg: Path
-    ffprobe: Path
-
-
-@dataclass(frozen=True, slots=True)
-class MediaInfo:
-    duration_s: float
-    has_audio: bool
-    sample_rate: int | None
-    channels: int | None
-    has_video: bool
-    width: int | None
-    height: int | None
-
-
-@dataclass(frozen=True, slots=True)
-class PcmFile:
-    """Raw interleaved little-endian float32 stereo at 48 kHz."""
-
-    path: Path
-    frames: int
-
-
-@dataclass(frozen=True, slots=True)
-class Loudness:
-    integrated_lufs: float
-    true_peak_dbfs: float
-
-
-@dataclass(frozen=True, slots=True)
-class EncoderSettings:
-    fps: int = 30
-    crf: int = 18
-    preset: str = "medium"
-    profile: str = "high"
-    audio_bitrate: str = "192k"
-
-
-DEFAULT_ENCODER_SETTINGS = EncoderSettings()
-
-
-class VideoWriter(Protocol):
-    def write(self, frame: RGBImage) -> None: ...
-
-    def close(self) -> None:
-        """Finishes encoding; raises FfmpegError if ffmpeg failed."""
-        ...
-
-    def abort(self) -> None:
-        """Stops ffmpeg and deletes the partial output (< 2 s)."""
-        ...
-
-
-def locate() -> FfmpegPaths:
-    raise NotImplementedError("B7")
-
-
-def probe(path: Path) -> MediaInfo:
-    raise NotImplementedError("B7")
-
-
-def decode_audio(path: Path, dest: Path, start_s: float = 0.0, end_s: float | None = None) -> PcmFile:
-    raise NotImplementedError("B7")
-
-
-def measure_loudness(path: Path) -> Loudness:
-    raise NotImplementedError("B7")
-
-
-def open_encoder(
-    dest: Path,
-    width: int,
-    height: int,
-    audio_wav: Path | None,
-    settings: EncoderSettings = DEFAULT_ENCODER_SETTINGS,
-) -> VideoWriter:
-    raise NotImplementedError("B7")
-
-
-def extract_frames(video: Path, times_s: Sequence[float]) -> list[RGBImage]:
-    raise NotImplementedError("B7")
-
-
-def waveform(path: Path, points: int) -> NDArray[np.float32]:
-    """Peak amplitude (0-1) per bucket, `points` buckets over the whole file."""
-    raise NotImplementedError("B7")
+__all__ = [
+    "AUDIO_CHANNELS",
+    "AUDIO_SAMPLE_RATE",
+    "DEFAULT_ENCODER_SETTINGS",
+    "ENV_VAR",
+    "ERROR_ABORTED",
+    "ERROR_DISK_FULL",
+    "ERROR_ENCODE",
+    "ERROR_FAILED",
+    "ERROR_FILE_NOT_FOUND",
+    "ERROR_NOT_FOUND",
+    "ERROR_NO_AUDIO",
+    "ERROR_TIMEOUT",
+    "ERROR_UNREADABLE",
+    "ERROR_WRITE",
+    "EncoderSettings",
+    "FfmpegError",
+    "FfmpegPaths",
+    "FfmpegVideoWriter",
+    "Loudness",
+    "MediaInfo",
+    "PcmFile",
+    "VideoWriter",
+    "decode_audio",
+    "extract_frames",
+    "locate",
+    "measure_loudness",
+    "open_encoder",
+    "probe",
+    "waveform",
+]
