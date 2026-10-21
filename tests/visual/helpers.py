@@ -24,6 +24,7 @@ from passimaker.timeline import Timeline, compute_timeline
 from tests.fixtures.generate import MAX_MAGENTA_EXCESS, synthetic_rgb
 
 ARTEFACTS = Path(__file__).resolve().parents[1] / "_artefactes" / "render"
+QUARTER_ABOVE = 1200
 
 # (width, height) of every proportion the program must handle.
 SIZES: tuple[tuple[int, int], ...] = (
@@ -133,11 +134,16 @@ def synthetic_images(project: Project, max_long_side: int = 2400) -> MemoryImage
 
 @functools.cache
 def _synthetic(photo_id: str, width: int, height: int, max_long_side: int) -> RGBImage:
-    """Generated at a quarter of the size and enlarged (linear: no overshoot towards magenta)."""
+    """Big images are generated at a quarter of the size and enlarged (linear: no overshoot
+    towards magenta); small ones at their own size, so that they keep their detail."""
     scale = min(1.0, max_long_side / max(width, height))
     size = (max(1, round(width * scale)), max(1, round(height * scale)))
-    small = synthetic_rgb(max(1, size[0] // 4), max(1, size[1] // 4), zlib.crc32(photo_id.encode("utf-8")))
-    image = np.asarray(cv2.resize(small, size, interpolation=cv2.INTER_LINEAR), dtype=np.uint8)
+    seed = zlib.crc32(photo_id.encode("utf-8"))
+    if max(size) <= QUARTER_ABOVE:
+        image = synthetic_rgb(*size, seed)
+    else:
+        small = synthetic_rgb(max(1, size[0] // 4), max(1, size[1] // 4), seed)
+        image = np.asarray(cv2.resize(small, size, interpolation=cv2.INTER_LINEAR), dtype=np.uint8)
     image.setflags(write=False)
     return image
 
