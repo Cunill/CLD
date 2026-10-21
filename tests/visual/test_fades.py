@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import itertools
+
 import numpy as np
 
 from passimaker.model.types import MotionType, Project
@@ -69,8 +71,8 @@ def test_fades_from_and_to_black() -> None:
     times = frame_times(timeline)
     rising = [luminance(compositor.frame_at(t, 480, 270)) for t in times if t <= fade_in.end]
     falling = [luminance(compositor.frame_at(t, 480, 270)) for t in times if t >= fade_out.start]
-    assert all(b > a for a, b in zip(rising, rising[1:], strict=False))
-    assert all(b < a for a, b in zip(falling, falling[1:], strict=False))
+    assert all(b > a for a, b in itertools.pairwise(rising))
+    assert all(b < a for a, b in itertools.pairwise(falling))
     # The last exported frame is shown 1/30 s before the end, so it is not quite black (see B06.md).
     assert falling[-1] < 0.03 * falling[0]
 
