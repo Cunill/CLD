@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import threading
 import time
+import wave
 from collections.abc import Iterable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
@@ -22,6 +23,9 @@ from passimaker.importer import FailedFile
 from passimaker.model import Photo, Project, ProjectController
 from passimaker.model.commands import AddPhotos
 from passimaker.thumbs import INTERMEDIATE_SIZE, THUMBNAIL_SIZE, Priority, ThumbnailCallback
+from passimaker.ui.duration_status import FitCheck
+from passimaker.ui.music_strip import FailedSong
+from passimaker.ui.project_files import SaveAnswer
 from tests.fakes.images import SyntheticImageSource
 from tests.fixtures.generate import synthetic_rgb
 
@@ -117,8 +121,21 @@ def write_photos(folder: Path, names: Sequence[str], size: tuple[int, int] = (32
     return paths
 
 
+def write_song(path: Path, seconds: float, frequency: float = 440.0, rate: int = 48_000) -> Path:
+    """A real WAV file with a quiet tone (read by FFmpeg like any song)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    t = np.arange(int(seconds * rate), dtype=np.float64) / rate
+    tone = (0.2 * 32767 * np.sin(2 * np.pi * frequency * t)).astype(np.int16)
+    with wave.open(str(path), "wb") as output:
+        output.setnchannels(2)
+        output.setsampwidth(2)
+        output.setframerate(rate)
+        output.writeframes(np.repeat(tone[:, None], 2, axis=1).tobytes())
+    return path
+
+
 class RecordedQuestions:
-    """Answers the questions of §1.1 and §1.2 without a dialog, and records them."""
+    """Answers every question of the window without a dialog, and records them."""
 
     def __init__(
         self,
@@ -140,6 +157,26 @@ class RecordedQuestions:
         self.asked_delete: list[int] = []
         self.failures: list[FailedFile] = []
         self.many_photos: list[int] = []
+        # Music (§1.7)
+        self.music: list[Path] = []
+        self.song_failures: list[FailedSong] = []
+        self.fit = True
+        self.fit_checks: list[FitCheck] = []
+        # Export (§1.9)
+        self.export_path: Path | None = None
+        self.suggested_exports: list[Path] = []
+        self.missing_reports: list[list[Path]] = []
+        # Project files (§1.10)
+        self.open_path: Path | None = None
+        self.save_path: Path | None = None
+        self.save_answer = SaveAnswer.DISCARD
+        self.asked_save: list[str] = []
+        self.recover = True
+        self.offered_recovery = 0
+        self.relink_folder: Path | None = None
+        self.asked_relink: list[int] = []
+        self.relinked: list[tuple[int, int]] = []
+        self.errors: list[str] = []
 
     def ask_subfolders(self, count: int) -> bool:
         self.asked_subfolders.append(count)
@@ -166,6 +203,47 @@ class RecordedQuestions:
     def choose_folder(self) -> Path | None:
         self.chosen_folders += 1
         return self.folder
+
+    def choose_music(self) -> list[Path]:
+        return list(self.music)
+
+    def report_song_failures(self, failures: Sequence[FailedSong]) -> None:
+        self.song_failures.extend(failures)
+
+    def confirm_fit(self, check: FitCheck) -> bool:
+        self.fit_checks.append(check)
+        return self.fit
+
+    def choose_export_path(self, suggested: Path) -> Path | None:
+        self.suggested_exports.append(suggested)
+        return self.export_path
+
+    def report_missing_files(self, paths: Sequence[Path]) -> None:
+        self.missing_reports.append(list(paths))
+
+    def choose_project_to_open(self) -> Path | None:
+        return self.open_path
+
+    def choose_project_save_path(self, suggested: Path) -> Path | None:
+        return self.save_path
+
+    def ask_save_changes(self, name: str) -> SaveAnswer:
+        self.asked_save.append(name)
+        return self.save_answer
+
+    def offer_recovery(self) -> bool:
+        self.offered_recovery += 1
+        return self.recover
+
+    def ask_relink(self, count: int) -> Path | None:
+        self.asked_relink.append(count)
+        return self.relink_folder
+
+    def report_relinked(self, found: int, still_missing: int) -> None:
+        self.relinked.append((found, still_missing))
+
+    def show_error(self, text: str) -> None:
+        self.errors.append(text)
 
 
 def images() -> SyntheticImageSource:
