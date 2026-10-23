@@ -10,48 +10,69 @@ from __future__ import annotations
 from collections.abc import Generator
 from contextlib import contextmanager
 
+from PySide6.QtCore import QLocale
+from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDoubleSpinBox,
     QFormLayout,
     QGroupBox,
+    QPushButton,
     QVBoxLayout,
     QWidget,
 )
 
 from passimaker.model import Change, Intensity, OutputFormat, ProjectController, defaults
-from passimaker.model.commands import SetDefaultDuration, SetProjectSettings
+from passimaker.model.commands import RerollMotions, SetDefaultDuration, SetMusicSettings, SetProjectSettings
 from passimaker.motion import INTENSITY_PRESETS
 
 _INTENSITIES = (Intensity.SOFT, Intensity.MEDIUM, Intensity.STRONG)
 _FORMATS = (OutputFormat.HORIZONTAL, OutputFormat.VERTICAL)
 PERCENT = 100.0
 """The motion amounts are a fraction in the model and a percentage on screen (§1.0)."""
+CUSTOM_INTENSITY = len(_INTENSITIES)
+"""Index of "Personalitzada" in the intensity box: the amounts match no preset (§1.5)."""
+PRESET_TOLERANCE = 1e-6
+
+NUMBER_LOCALE = QLocale(QLocale.Language.Catalan, QLocale.Country.Spain)
+"""The number boxes write and read "2,5" with a comma, whatever the language of the system (§1.2)."""
+
+type PanelCommand = SetDefaultDuration | SetProjectSettings | SetMusicSettings | RerollMotions
+
+
+def number_box() -> QDoubleSpinBox:
+    box = QDoubleSpinBox()
+    locale = QLocale(NUMBER_LOCALE)
+    locale.setNumberOptions(QLocale.NumberOption.OmitGroupSeparator)
+    box.setLocale(locale)
+    box.setKeyboardTracking(False)
+    return box
 
 
 def seconds_box(allowed: defaults.Range, suffix: str) -> QDoubleSpinBox:
-    box = QDoubleSpinBox()
+    box = number_box()
     box.setRange(allowed.minimum, allowed.maximum)
     box.setSingleStep(allowed.step)
     box.setDecimals(1)
     box.setSuffix(suffix)
-    box.setKeyboardTracking(False)
     return box
 
 
 def percent_box(allowed: defaults.Range, suffix: str) -> QDoubleSpinBox:
-    box = QDoubleSpinBox()
+    box = number_box()
     box.setRange(allowed.minimum * PERCENT, allowed.maximum * PERCENT)
     box.setSingleStep(allowed.step * PERCENT)
     box.setDecimals(0)
     box.setSuffix(suffix)
-    box.setKeyboardTracking(False)
     return box
 
 
 class ProjectPanel(QWidget):
-    """Duration, crossfade, motion, intensity and format, plus the "Avançat" group of §1.0."""
+    """Duration, crossfade, motion, intensity and format, plus the "Avançat" group of §1.0.
+
+    "Avançat" also holds the master volume and the loudness levelling of the music (§1.7).
+    """
 
     def __init__(self, controller: ProjectController, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -64,8 +85,13 @@ class ProjectPanel(QWidget):
         self.crossfade = seconds_box(defaults.CROSSFADE_RANGE, in_seconds)
         self.motion_enabled = QCheckBox(self.tr("Moviment de càmera"))
         self.intensity = QComboBox()
-        for label in (self.tr("Suau"), self.tr("Mitjana"), self.tr("Marcada")):
+        for label in (self.tr("Suau"), self.tr("Mitjana"), self.tr("Marcada"), self.tr("Personalitzada")):
             self.intensity.addItem(label)
+        items = self.intensity.model()
+        if isinstance(items, QStandardItemModel):
+            items.item(CUSTOM_INTENSITY).setEnabled(False)  # it comes from the two amounts, it is not chosen
+        self.reroll_all = QPushButton(self.tr("Tornar a sortejar tots"))
+        self.reroll_all.setToolTip(self.tr("Sorteja un moviment nou per a totes les fotos en mode automàtic"))
         self.output_format = QComboBox()
         for label in (self.tr("Horitzontal 16:9"), self.tr("Vertical 9:16")):
             self.output_format.addItem(label)
@@ -73,6 +99,11 @@ class ProjectPanel(QWidget):
         self.fade_to_black = seconds_box(defaults.BLACK_FADE_RANGE, in_seconds)
         self.zoom_amount = percent_box(defaults.MOTION_AMOUNT_RANGE, in_percent)
         self.pan_amount = percent_box(defaults.MOTION_AMOUNT_RANGE, in_percent)
+        self.master_volume = percent_box(defaults.MASTER_VOLUME_RANGE, in_percent)
+        self.normalize = QCheckBox(self.tr("Anivellar el volum de les cançons"))
+        self.normalize.setToolTip(
+            self.tr("Iguala el volum percebut de totes les cançons perquè cap no soni molt més forta")
+        )
 
         layout = QVBoxLayout(self)
         form = QFormLayout()
@@ -80,6 +111,7 @@ class ProjectPanel(QWidget):
         form.addRow(self.tr("Fosa encadenada"), self.crossfade)
         form.addRow("", self.motion_enabled)
         form.addRow(self.tr("Intensitat del moviment"), self.intensity)
+        form.addRow("", self.reroll_all)
         form.addRow(self.tr("Format"), self.output_format)
         layout.addLayout(form)
 
@@ -91,6 +123,8 @@ class ProjectPanel(QWidget):
         advanced_form.addRow(self.tr("Fosa a negre"), self.fade_to_black)
         advanced_form.addRow(self.tr("Zoom per foto"), self.zoom_amount)
         advanced_form.addRow(self.tr("Desplaçament per foto"), self.pan_amount)
+        advanced_form.addRow(self.tr("Volum general"), self.master_volume)
+        advanced_form.addRow("", self.normalize)
         self.advanced.toggled.connect(self._show_advanced)
         layout.addWidget(self.advanced)
         layout.addStretch(1)
@@ -105,6 +139,9 @@ class ProjectPanel(QWidget):
         self.fade_to_black.valueChanged.connect(self._on_fade_to_black)
         self.zoom_amount.valueChanged.connect(self._on_zoom)
         self.pan_amount.valueChanged.connect(self._on_pan)
+        self.reroll_all.clicked.connect(self._on_reroll_all)
+        self.master_volume.valueChanged.connect(self._on_master_volume)
+        self.normalize.toggled.connect(self._on_normalize)
 
         self._unsubscribe = controller.subscribe(self._on_changes)
         self.refresh()
@@ -117,14 +154,17 @@ class ProjectPanel(QWidget):
             self.duration.setValue(project.default_duration_s)
             self.crossfade.setValue(project.crossfade_s)
             self.motion_enabled.setChecked(project.motion_enabled)
-            level = current_intensity(project.zoom_amount, project.pan_amount)
-            self.intensity.setCurrentIndex(_INTENSITIES.index(level))
+            level = matching_intensity(project.zoom_amount, project.pan_amount)
+            self.intensity.setCurrentIndex(CUSTOM_INTENSITY if level is None else _INTENSITIES.index(level))
             self.output_format.setCurrentIndex(_FORMATS.index(project.output_format))
             self.fade_from_black.setValue(project.fade_from_black_s)
             self.fade_to_black.setValue(project.fade_to_black_s)
             self.zoom_amount.setValue(round(project.zoom_amount * PERCENT))
             self.pan_amount.setValue(round(project.pan_amount * PERCENT))
+            self.master_volume.setValue(round(project.music.master_volume * PERCENT))
+            self.normalize.setChecked(project.music.normalize)
         self.intensity.setEnabled(project.motion_enabled)
+        self.reroll_all.setEnabled(project.motion_enabled and bool(project.photos))
         self.zoom_amount.setEnabled(project.motion_enabled)
         self.pan_amount.setEnabled(project.motion_enabled)
 
@@ -142,7 +182,14 @@ class ProjectPanel(QWidget):
             self._updating = previous
 
     def _show_advanced(self, shown: bool) -> None:
-        for widget in (self.fade_from_black, self.fade_to_black, self.zoom_amount, self.pan_amount):
+        for widget in (
+            self.fade_from_black,
+            self.fade_to_black,
+            self.zoom_amount,
+            self.pan_amount,
+            self.master_volume,
+            self.normalize,
+        ):
             widget.setVisible(shown)
         layout = self.advanced.layout()
         if isinstance(layout, QFormLayout):
@@ -183,13 +230,32 @@ class ProjectPanel(QWidget):
         if 0 <= index < len(_FORMATS):
             self._send(SetProjectSettings(output_format=_FORMATS[index]))
 
-    def _send(self, command: SetDefaultDuration | SetProjectSettings) -> None:
+    def _on_reroll_all(self) -> None:
+        """§1.5: every photo in automatic mode gets a new motion; the manual ones stay."""
+        self._send(RerollMotions(None))
+
+    def _on_master_volume(self, percent: float) -> None:
+        self._send(SetMusicSettings(master_volume=percent / PERCENT))
+
+    def _on_normalize(self, enabled: bool) -> None:
+        self._send(SetMusicSettings(normalize=enabled))
+
+    def _send(self, command: PanelCommand) -> None:
         """Rule 2: the panel never touches the project, it asks the controller to change it."""
         if not self._updating:
             self._controller.execute(command)
 
     def close_panel(self) -> None:
         self._unsubscribe()
+
+
+def matching_intensity(zoom: float, pan: float) -> Intensity | None:
+    """The preset with exactly these amounts, or None: "Personalitzada" (§1.5)."""
+    for level in _INTENSITIES:
+        preset = INTENSITY_PRESETS[level]
+        if abs(preset.zoom - zoom) <= PRESET_TOLERANCE and abs(preset.pan - pan) <= PRESET_TOLERANCE:
+            return level
+    return None
 
 
 def current_intensity(zoom: float, pan: float) -> Intensity:

@@ -125,13 +125,21 @@ def test_a_line_shows_where_the_dragged_photos_will_go(window_with_photos: MainW
 
 def test_letting_go_between_two_photos_puts_it_between_them(window_with_photos: MainWindow) -> None:
     window = window_with_photos
+    view = window.view
     before = ids_of(window)
-    left_cell = window.view.visualRect(window.model.index(3, 0))
-    right_cell = window.view.visualRect(window.model.index(4, 0))
+    # Two neighbours on the same line of the grid (how many columns depends on the window's width).
+    left = next(
+        row
+        for row in range(1, len(before) - 1)
+        if view.visualRect(window.model.index(row, 0)).top()
+        == view.visualRect(window.model.index(row + 1, 0)).top()
+    )
+    left_cell = view.visualRect(window.model.index(left, 0))
+    right_cell = view.visualRect(window.model.index(left + 1, 0))
     assert right_cell.left() - left_cell.right() > 1  # there is a gap
     gap = QPoint((left_cell.right() + right_cell.left()) // 2, left_cell.center().y())
     drag_photos_with_the_mouse(window, [before[0]], gap)
-    assert ids_of(window) == [*before[1:4], before[0], *before[4:]]
+    assert ids_of(window) == [*before[1 : left + 1], before[0], *before[left + 1 :]]
 
 
 def test_letting_go_after_the_end_of_a_line_of_the_grid_puts_it_after_its_last_photo(

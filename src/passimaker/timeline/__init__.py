@@ -4,6 +4,7 @@ Public API: compute_timeline, query, fit_to_music, time_to_frame and frame_to_ti
 data types of docs/CONTRACTES.md §5. Pure functions over lists of numbers: no images, no audio.
 """
 
+from passimaker.timeline.audio_plan import build_audio_plan
 from passimaker.timeline.build import compute_timeline, query
 from passimaker.timeline.fit import fit_to_music
 from passimaker.timeline.frames import frame_to_time, time_to_frame
@@ -31,6 +32,7 @@ __all__ = [
     "Timeline",
     "VisibleLayer",
     "Visibles",
+    "build_audio_plan",
     "compute_timeline",
     "fit_to_music",
     "frame_to_time",

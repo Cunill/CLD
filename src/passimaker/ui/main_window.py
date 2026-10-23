@@ -35,10 +35,11 @@ from passimaker.model.commands import (
     RemovePhotos,
     RerollMotions,
     RotatePhotos,
+    SetPhotoMotion,
     SetProjectSettings,
     SortPhotos,
 )
-from passimaker.model.types import Rotation
+from passimaker.model.types import MotionMode, Rotation
 from passimaker.ui.delegate import ThumbnailSize
 from passimaker.ui.dialogs import DialogQuestions, WindowQuestions
 from passimaker.ui.drops import sort_dropped
@@ -47,10 +48,13 @@ from passimaker.ui.export_dialog import VideoExport
 from passimaker.ui.formatting import clock
 from passimaker.ui.importing import PhotoImporter
 from passimaker.ui.music_strip import MusicStrip, SongLoader
+from passimaker.ui.photo_panel import PhotoPanel
 from passimaker.ui.photos import PhotoListModel
 from passimaker.ui.player_panel import PlayerPanel
 from passimaker.ui.project_files import MissingFilesBar, ProjectFiles, RecentProjects
 from passimaker.ui.project_panel import ProjectPanel
+from passimaker.ui.properties import PropertiesPanel
+from passimaker.ui.song_panel import SongPanel
 from passimaker.ui.storyboard import StoryboardPanel
 from passimaker.ui.thumbnails import ThumbnailBridge, ThumbnailProvider
 
@@ -62,7 +66,7 @@ TOOLBAR_ICON = QSize(20, 20)
 
 
 class MainWindow(QMainWindow):
-    """Photos (B10), music, export and project files (B11)."""
+    """Photos (B10), music, export and project files (B11), photo and song controls (B14)."""
 
     music_changed = Signal()
     """The songs or the music settings of the project changed (for the player of B13/B14)."""
@@ -92,10 +96,14 @@ class MainWindow(QMainWindow):
 
         self.player_panel = PlayerPanel(controller, images, thumbnails.get_intermediate)
         self.panel = ProjectPanel(controller)
+        self.photo_panel = PhotoPanel(controller)
+        self.song_panel = SongPanel(controller)
+        self.properties = PropertiesPanel(self.panel, self.photo_panel, self.song_panel)
         self.storyboard = StoryboardPanel(self.model, self.thumbnails)
         self.view = self.storyboard.view
         self.music_strip = MusicStrip(controller)
         self.recent_projects = RecentProjects(self.files)
+        self._preview_playing = False
         self._build_layout()
         self._add_music_strip()
         self._build_actions()
@@ -110,7 +118,7 @@ class MainWindow(QMainWindow):
     def _build_layout(self) -> None:
         left = QSplitter(Qt.Orientation.Vertical)
         left.addWidget(self.player_panel)
-        left.addWidget(self.panel)
+        left.addWidget(self.properties)
         left.setStretchFactor(0, 3)
         left.setStretchFactor(1, 2)
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -215,6 +223,10 @@ class MainWindow(QMainWindow):
         self.rotate_left_action.triggered.connect(lambda: self.rotate_selected(Rotation.R270))
         self.reroll_action = QAction(self.tr("Sortejar un altre moviment"), self)
         self.reroll_action.triggered.connect(self.reroll_selected)
+        self.reroll_all_action = QAction(self.tr("Tornar a sortejar tots"), self)
+        self.reroll_all_action.triggered.connect(self.reroll_all)
+        self.reset_motions_action = QAction(self.tr("Restablir tots a automàtic"), self)
+        self.reset_motions_action.triggered.connect(self.reset_motions)
         self.sort_by_date_action = QAction(self.tr("Ordenar per data"), self)
         self.sort_by_date_action.triggered.connect(lambda: self.controller.execute(SortPhotos(True)))
         self.sort_by_name_action = QAction(self.tr("Ordenar per nom"), self)
@@ -273,6 +285,10 @@ class MainWindow(QMainWindow):
         edit_menu.addAction(self.move_right_action)
         edit_menu.addAction(self.rotate_left_action)
         edit_menu.addAction(self.rotate_right_action)
+        edit_menu.addSeparator()
+        edit_menu.addAction(self.reroll_action)
+        edit_menu.addAction(self.reroll_all_action)
+        edit_menu.addAction(self.reset_motions_action)
         view_menu = bar.addMenu(self.tr("Visualitza"))
         view_menu.addAction(self.sort_by_date_action)
         view_menu.addAction(self.sort_by_name_action)
@@ -330,6 +346,11 @@ class MainWindow(QMainWindow):
         self.recent_projects.open_requested.connect(self.open_path)
         self.video_export.finished.connect(self._on_export_finished)
         self.music_changed.connect(lambda: self.player_panel.reload_audio(only_if_changed=True))
+        self.photo_panel.rotate_requested.connect(self.rotate_selected)
+        self.music_strip.view.selectionModel().selectionChanged.connect(self._on_song_selection)
+        self.music_strip.model.modelReset.connect(self._on_song_selection)
+        self.song_panel.listening_started.connect(self.player_panel.player.pause)
+        self.player_panel.player.state_changed.connect(self._on_player_state)
 
     # --- Commands --------------------------------------------------------------------------------
 
@@ -419,6 +440,17 @@ class MainWindow(QMainWindow):
         if ids:
             self.controller.execute(RerollMotions(frozenset(ids)))
 
+    def reroll_all(self) -> None:
+        """§1.5: a new motion for every photo in automatic mode; the manual ones stay."""
+        if self.controller.project.photos:
+            self.controller.execute(RerollMotions(None))
+
+    def reset_motions(self) -> None:
+        """§1.5, "Restablir tots a automàtic": the photos with a fixed motion get a drawn one."""
+        manual = frozenset(p.id for p in self.controller.project.photos if p.motion.mode is MotionMode.MANUAL)
+        if manual:
+            self.controller.execute(SetPhotoMotion(manual, None))
+
     def undo(self) -> None:
         self.controller.undo()
 
@@ -442,6 +474,7 @@ class MainWindow(QMainWindow):
             self.refresh_status()
         if Change.MUSIC in changes:
             self.music_changed.emit()
+        self.properties.refresh_tabs()
         self._refresh_actions()
         vertical = self.controller.project.output_format is OutputFormat.VERTICAL
         if self.format_action.isChecked() != vertical:
@@ -460,7 +493,23 @@ class MainWindow(QMainWindow):
         if photo is None and rows:
             photo = self.model.photo_at(rows[0])
         self.player_panel.show_photo(photo.id if photo is not None else None)
+        self.properties.show_photos(self.view.selected_ids())
         self._refresh_actions()
+
+    def _on_song_selection(self) -> None:
+        ids = self.music_strip.view.selected_ids()
+        self.properties.show_song(ids[0] if ids else None)
+
+    def _on_player_state(self, playing: bool, _t: float, _photo_index: int) -> None:
+        """The preview and [Escoltar el tros] do not sound at the same time.
+
+        Only the moment the preview starts stops the listening: reports of "playing" that were
+        already on their way when the listening paused the preview must not stop it.
+        """
+        started = playing and not self._preview_playing
+        self._preview_playing = playing
+        if started:
+            self.song_panel.listening.stop()
 
     def _on_files_dropped(self, paths: Sequence[Path], row: int) -> None:
         self.receive_files(paths, photo_index=None if row < 0 else row)
@@ -488,6 +537,7 @@ class MainWindow(QMainWindow):
         missing = self.files.missing_ids()
         self.model.set_missing(missing)
         self.music_strip.model.set_missing(missing)
+        self.song_panel.set_missing(missing)
         self._refresh_actions()
 
     def _refresh_title(self) -> None:
@@ -533,7 +583,11 @@ class MainWindow(QMainWindow):
             self.reroll_action,
         ):
             action.setEnabled(has_selection)
-        has_photos = bool(self.controller.project.photos)
+        photos = self.controller.project.photos
+        has_photos = bool(photos)
+        motion = self.controller.project.motion_enabled
+        self.reroll_all_action.setEnabled(has_photos and motion)
+        self.reset_motions_action.setEnabled(any(p.motion.mode is MotionMode.MANUAL for p in photos))
         self.select_all_action.setEnabled(has_photos)
         self.sort_by_date_action.setEnabled(has_photos)
         self.sort_by_name_action.setEnabled(has_photos)
@@ -580,5 +634,7 @@ class MainWindow(QMainWindow):
         self.player_panel.close_panel()
         self.model.close()
         self.panel.close_panel()
+        self.photo_panel.close_panel()
+        self.song_panel.close_panel()
         self._service.cancel_pending()
         super().closeEvent(event)

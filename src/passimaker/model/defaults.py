@@ -44,6 +44,8 @@ SONG_FADE_RANGE = Range(0.0, 10.0, 0.5)
 MUSIC_FINAL_FADE_S = 3.0
 CUT_MICRO_FADE_S = 0.010
 SHORT_SONG_FADE_FRACTION = 0.4
+SONG_TRIM_STEP_S = 0.1
+"""The trim of a song goes in tenths of a second; its start stays at least this far from its end (B14)."""
 """§1.7: a song shorter than its two fades gets each fade reduced to 40 % of its length."""
 
 MASTER_VOLUME = 1.0
