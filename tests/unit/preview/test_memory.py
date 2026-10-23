@@ -58,9 +58,16 @@ def resident_bytes() -> int:
 
         counters = Counters()
         counters.cb = ctypes.sizeof(Counters)
-        windll = ctypes.windll  # type: ignore[attr-defined]
-        process = windll.kernel32.GetCurrentProcess()
-        assert windll.psapi.GetProcessMemoryInfo(process, ctypes.byref(counters), counters.cb)
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # type: ignore[attr-defined]
+        # Types declared: without them ctypes passes the 64-bit process handle as a 32-bit int.
+        current = kernel32.GetCurrentProcess
+        current.restype = ctypes.c_void_p
+        current.argtypes = []
+        info = kernel32.K32GetProcessMemoryInfo
+        info.restype = ctypes.c_int
+        info.argtypes = [ctypes.c_void_p, ctypes.POINTER(Counters), ctypes.c_ulong]
+        if not info(current(), ctypes.byref(counters), counters.cb):
+            raise ctypes.WinError(ctypes.get_last_error())  # type: ignore[attr-defined]
         return int(counters.WorkingSetSize)
     with Path("/proc/self/statm").open(encoding="ascii") as statm:
         return int(statm.read().split()[1]) * 4096
