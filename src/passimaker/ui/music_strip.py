@@ -290,10 +290,17 @@ class SongListModel(QAbstractListModel):
             self._controller.execute(MoveSongs(moving, target))
 
     def _on_changes(self, changes: frozenset[Change]) -> None:
-        if Change.MUSIC in changes:
-            self.beginResetModel()
-            self._songs = self._controller.project.music.songs
-            self.endResetModel()
+        if Change.MUSIC not in changes:
+            return
+        songs = self._controller.project.music.songs
+        if songs and [s.id for s in songs] == [s.id for s in self._songs]:
+            # Same songs in the same order (a trim, a fade, a volume): the selection stays.
+            self._songs = songs
+            self.dataChanged.emit(self.index(0, 0), self.index(len(songs) - 1, 0))
+            return
+        self.beginResetModel()
+        self._songs = songs
+        self.endResetModel()
 
     def close(self) -> None:
         self._unsubscribe()
