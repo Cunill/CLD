@@ -19,3 +19,14 @@ SECONDS_SYMBOL = " s"
 def duration(seconds: float) -> str:
     """``2,0 s`` with a comma, the decimal separator in Catalan (§1.2)."""
     return f"{seconds:.1f}".replace(".", ",") + SECONDS_SYMBOL
+
+
+MEGABYTE = 1_000_000
+MEGABYTE_SYMBOL = " MB"
+
+
+def megabytes(size_bytes: int) -> str:
+    """``245 MB``, or ``8,4 MB`` under ten, as in "Vídeo desat (4:30, 245 MB)" (§1.9)."""
+    value = size_bytes / MEGABYTE
+    text = f"{value:.0f}" if value >= 10 else f"{value:.1f}".replace(".", ",")
+    return text + MEGABYTE_SYMBOL
