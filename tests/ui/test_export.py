@@ -134,7 +134,7 @@ def test_progress_shows_percentage_and_remaining_time(
     dialog.opener = lambda url: opened.append(url) or True
     dialog.open_video_button.click()
     dialog.show_folder_button.click()
-    assert [url.toLocalFile() for url in opened] == [str(tmp_path / "fet.mp4"), str(tmp_path)]
+    assert [Path(url.toLocalFile()) for url in opened] == [tmp_path / "fet.mp4", tmp_path]
     dialog.close_button.click()
     window.close()
 
