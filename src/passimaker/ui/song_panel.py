@@ -11,6 +11,7 @@ prepares it and opens the sound device in a worker thread (both can take longer 
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import replace
@@ -43,6 +44,8 @@ from passimaker.ui.project_panel import PERCENT, number_box, percent_box, second
 from passimaker.ui.trim_bar import TRIM_STEP_S, Peaks, TrimBar, WaveformLoader, limit_trim
 
 type OutputFactory = Callable[[], AudioOutput]
+
+_log = logging.getLogger(__name__)
 
 LISTEN_END_MARGIN_MS = 150
 """After the part has been heard, the device is stopped a little later (its own latency)."""
@@ -122,11 +125,18 @@ class SongListening(QObject):
         def work() -> None:
             try:
                 source = self._source_factory(project, song)
+                if generation != self._generation:
+                    return  # stopped (or another song) while it was being prepared: not a sound
                 if self._output is None:
                     self._output = self.output_factory()
                 self._output.start(source, 0.0)
             except PassiMakerError as error:
                 self._signals.failed.emit(generation, message(error.message_key))
+                return
+            except Exception:
+                # No sound device, no PortAudio, a cache folder that cannot be written...
+                _log.exception("Could not play the part of the song")
+                self._signals.failed.emit(generation, "")
                 return
             self._signals.started.emit(generation, source.duration_s)
 
@@ -138,17 +148,23 @@ class SongListening(QObject):
         self._generation += 1
         self._song_id = None
         self._timer.stop()
-        output = self._output
-        if output is not None:
-            self._pool.start(_Job(output.stop))
+        # Queued after the job that may still be starting the sound (one thread), so it stops it too.
+        self._pool.start(_Job(self._stop_output))
         self.stopped.emit()
 
     def wait(self, milliseconds: int = 10_000) -> bool:
         return self._pool.waitForDone(milliseconds)
 
     def close(self) -> None:
+        """Stops and closes the sound device (stop() alone keeps it open for a while: M04)."""
         self.stop()
         self.wait()
+        if isinstance(self._output, SoundDeviceOutput):
+            self._output.close()
+
+    def _stop_output(self) -> None:
+        if self._output is not None:
+            self._output.stop()
 
     def _on_started(self, generation: int, duration_s: float) -> None:
         if generation != self._generation:  # stopped (or another song) while it was being prepared
@@ -160,7 +176,7 @@ class SongListening(QObject):
         if generation != self._generation:
             return
         self._song_id = None
-        self.failed.emit(text)
+        self.failed.emit(text or self.tr("no s'ha pogut obrir el dispositiu de so."))
         self.stopped.emit()
 
 
@@ -255,13 +271,23 @@ class SongPanel(QWidget):
         self._song_id = song_id
         song = self.song()
         if song is not None:
+            known = self.waveforms.known(song.path)
+            if known is not None and known[1]:
+                self.waveforms.forget(song.path)  # it failed before: the file may be readable now
             self.trim_bar.set_peaks(None, self.tr("Llegint la forma d'ona…"))
             self.waveforms.request(song.path)
         self.refresh()
 
     def set_missing(self, ids: frozenset[str]) -> None:
         """Songs whose file is not found (§1.7: marked in red, they cannot be heard)."""
+        found_again = (
+            self._song_id is not None and self._song_id in self._missing and self._song_id not in ids
+        )
         self._missing = ids
+        if found_again:
+            self.problem.clear()
+            self.show_song(self._song_id)  # reads the waveform again
+            return
         self.refresh()
 
     def song(self) -> Song | None:
@@ -274,7 +300,11 @@ class SongPanel(QWidget):
 
     def refresh(self) -> None:
         song = self.song()
-        if song is None:
+        if song is None and self._song_id is not None:
+            # The song is gone (deleted, or an undo): it must not go on sounding.
+            if self.listening.song_id == self._song_id:
+                self.listening.stop()
+            self.problem.clear()
             self._song_id = None
         self.setEnabled(song is not None)
         with self._quiet():
@@ -359,14 +389,17 @@ class SongPanel(QWidget):
         self._send(
             replace(
                 song,
-                fade_in=Fade(self.fade_in_enabled.isChecked(), self.fade_in.value()),
-                fade_out=Fade(self.fade_out_enabled.isChecked(), self.fade_out.value()),
+                fade_in=Fade(self.fade_in_enabled.isChecked(), _kept(self.fade_in, song.fade_in.seconds)),
+                fade_out=Fade(self.fade_out_enabled.isChecked(), _kept(self.fade_out, song.fade_out.seconds)),
             )
         )
 
     def _on_trim_boxes(self, *_args: object) -> None:
-        if not self._updating:
-            self._send_trim(self.trim_start.value(), self.trim_end.value())
+        song = self.song()
+        if song is None or self._updating:
+            return
+        start, end = trim_of(song)
+        self._send_trim(_kept(self.trim_start, start), _kept(self.trim_end, end))
 
     def _send_trim(self, start: float, end: float) -> None:
         song = self.song()
@@ -402,6 +435,15 @@ class SongPanel(QWidget):
         self._unsubscribe()
         self.listening.close()
         self.waveforms.wait()
+
+
+def _kept(box: QDoubleSpinBox, current: float) -> float:
+    """The box's value, or the song's own if the box only shows it rounded (the user did not touch it).
+
+    Editing one control must not round the values of the others (a trim of 120,25 s stays 120,25 s).
+    """
+    half_step = 0.5 * 10 ** -box.decimals()
+    return current if abs(box.value() - current) <= half_step + 1e-9 else box.value()
 
 
 def trim_of(song: Song) -> tuple[float, float]:

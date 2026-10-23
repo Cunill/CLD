@@ -10,6 +10,7 @@ them, so selecting the same song again draws it at once.
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from pathlib import Path
 
@@ -21,6 +22,8 @@ from PySide6.QtWidgets import QSizePolicy, QWidget
 
 from passimaker.common import PassiMakerError
 from passimaker.ffmpeg import waveform
+
+_log = logging.getLogger(__name__)
 
 WAVEFORM_POINTS = 600
 """Peaks per song: one every 2 px on a wide panel."""
@@ -207,6 +210,10 @@ def limit_trim(start: float, end: float, duration: float) -> tuple[float, float]
 # --- Reading the waveform ------------------------------------------------------------------------
 
 
+UNEXPECTED_ERROR_KEY = "ffmpeg.unreadable"
+"""Message shown when reading the waveform fails in an unexpected way."""
+
+
 class _Signals(QObject):
     done = Signal(object, object, str)
     """path, peaks or None, message key of the error ("" when it went well)."""
@@ -224,6 +231,11 @@ class _Read(QRunnable):
             peaks = np.asarray(self._reader(self._path, WAVEFORM_POINTS), dtype=np.float32)
         except PassiMakerError as error:
             self._signals.done.emit(self._path, None, error.message_key)
+            return
+        except Exception:
+            # Always answer: otherwise the path would stay "being read" for the whole session.
+            _log.exception("Could not read the waveform of %s", self._path)
+            self._signals.done.emit(self._path, None, UNEXPECTED_ERROR_KEY)
             return
         self._signals.done.emit(self._path, peaks, "")
 

@@ -6,15 +6,26 @@ strip opens "Cançó"; the project tab is always there. A tab with nothing selec
 
 from __future__ import annotations
 
+from PySide6.QtCore import QSize
 from PySide6.QtWidgets import QFrame, QScrollArea, QTabWidget, QWidget
 
 from passimaker.ui.photo_panel import PhotoPanel
 from passimaker.ui.project_panel import ProjectPanel
 from passimaker.ui.song_panel import SongPanel
 
+PREFERRED_HEIGHT = 240
+"""Height the tabs ask for. They scroll, so they need not ask for all their content: otherwise the
+splitter gives them most of the column and the preview gets small (the 3:2 split of §1.0)."""
+
+
+class _ScrollArea(QScrollArea):
+    def sizeHint(self) -> QSize:  # noqa: N802 (Qt)
+        hint = super().sizeHint()
+        return QSize(hint.width(), min(hint.height(), PREFERRED_HEIGHT))
+
 
 def scrolled(panel: QWidget) -> QScrollArea:
-    area = QScrollArea()
+    area = _ScrollArea()
     area.setWidget(panel)
     area.setWidgetResizable(True)
     area.setFrameShape(QFrame.Shape.NoFrame)

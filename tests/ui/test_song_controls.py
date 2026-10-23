@@ -6,7 +6,9 @@ mixer as in the program; only the sound device is a fake.
 
 from __future__ import annotations
 
+import threading
 from collections.abc import Iterator
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -14,13 +16,15 @@ from PySide6.QtCore import QItemSelectionModel, QPoint, Qt
 from pytestqt.qtbot import QtBot
 
 from passimaker.audio import SAMPLE_RATE, AudioSource
-from passimaker.model import Song
-from passimaker.model.commands import AddSongs, SetProjectSettings
-from passimaker.preview import Clock
+from passimaker.common import PassiMakerError
+from passimaker.model import Fade, Song
+from passimaker.model.commands import AddSongs, SetProjectSettings, UpdateSong
+from passimaker.preview import Clock, SoundDeviceOutput
 from passimaker.ui.main_window import MainWindow
 from passimaker.ui.project_panel import CUSTOM_INTENSITY
 from passimaker.ui.properties import PropertiesPanel
-from passimaker.ui.trim_bar import TRIM_STEP_S, WAVEFORM_POINTS
+from passimaker.ui.song_panel import SongListening
+from passimaker.ui.trim_bar import TRIM_STEP_S, WAVEFORM_POINTS, WaveformLoader
 from tests.ui.conftest import build_window
 from tests.ui.helpers import FakeThumbnailService, RecordedQuestions, controller_with, write_song
 
@@ -294,3 +298,123 @@ def test_removing_the_song_takes_its_tab_away(window_with_song: MainWindow) -> N
     window.music_strip.remove_selected()
     assert not window.properties.isTabEnabled(PropertiesPanel.SONG)
     assert window.properties.currentIndex() == PropertiesPanel.PROJECT
+
+
+# --- Review of the B14 (fixes) ---------------------------------------------------------------------
+
+
+def _source(seconds: float = 1.0) -> AudioSource:
+    from tests.fakes.audio import ToneAudioSource
+
+    return ToneAudioSource(seconds)
+
+
+def test_stopping_while_the_part_is_being_prepared_plays_nothing(qtbot: QtBot) -> None:
+    """The first listen can take seconds (decoding, loudness): a stop meanwhile must win."""
+    release = threading.Event()
+    output = FakeOutput()
+
+    def slow_source(_project: object, _song: object) -> AudioSource:
+        release.wait(5.0)
+        return _source()
+
+    listening = SongListening(output_factory=lambda: output, source_factory=slow_source)
+    any_song = Song(id="s1", path=Path("x.wav"), relative_path=None, original_duration_s=1.0)
+    listening.play(controller_with(1).project, any_song)
+    listening.stop()
+    release.set()
+    listening.wait()
+    assert output.started == []  # it was not even started
+    assert listening.song_id is None
+    listening.close()
+
+
+def test_a_missing_sound_device_is_explained(qtbot: QtBot) -> None:
+    def no_device() -> FakeOutput:
+        raise OSError("PortAudio library not found")
+
+    listening = SongListening(output_factory=no_device, source_factory=lambda _p, _s: _source())
+    any_song = Song(id="s1", path=Path("x.wav"), relative_path=None, original_duration_s=1.0)
+    with qtbot.waitSignal(listening.failed, timeout=TIMEOUT_MS) as failed:
+        listening.play(controller_with(1).project, any_song)
+    assert failed.args == ["no s'ha pogut obrir el dispositiu de so."]
+    assert listening.song_id is None
+    listening.close()
+
+
+def test_closing_the_listening_closes_the_sound_device(qtbot: QtBot) -> None:
+    from tests.unit.preview.test_sound import Streams
+
+    streams = Streams()
+    listening = SongListening(
+        output_factory=lambda: SoundDeviceOutput(streams), source_factory=lambda _p, _s: _source()
+    )
+    any_song = Song(id="s1", path=Path("x.wav"), relative_path=None, original_duration_s=1.0)
+    with qtbot.waitSignal(listening.started, timeout=TIMEOUT_MS):
+        listening.play(controller_with(1).project, any_song)
+    listening.stop()  # the end of the part: since M04 the stream stays open for a while
+    listening.wait()
+    assert not streams.opened[0].closed
+    listening.close()
+    assert streams.opened[0].closed
+
+
+def test_removing_the_song_being_heard_stops_it(qtbot: QtBot, window_with_song: MainWindow) -> None:
+    window = window_with_song
+    panel = window.song_panel
+    panel.listening.output_factory = FakeOutput
+    select_song(window)
+    with qtbot.waitSignal(panel.listening.started, timeout=TIMEOUT_MS):
+        panel.listen.click()
+    window.music_strip.remove_selected()
+    assert panel.listening.song_id is None
+
+
+def test_an_unexpected_waveform_error_does_not_leave_it_reading(qtbot: QtBot, tmp_path: Path) -> None:
+    def broken_reader(_path: Path, _points: int) -> object:
+        raise ValueError("unexpected")
+
+    loader = WaveformLoader(reader=broken_reader)  # pyright: ignore[reportArgumentType]
+    with qtbot.waitSignal(loader.ready, timeout=TIMEOUT_MS) as ready:
+        loader.request(tmp_path / "a.wav")
+    args = ready.args
+    assert args is not None
+    assert args[1] is None and args[2]
+    loader.wait()
+
+
+def test_a_song_that_could_not_be_read_is_read_again_when_selected(
+    qtbot: QtBot, window_with_song: MainWindow
+) -> None:
+    window = window_with_song
+    panel = window.song_panel
+    real_reader = panel.waveforms._reader  # pyright: ignore[reportPrivateUsage]
+    calls: list[Path] = []
+
+    def first_fails(path: Path, points: int) -> object:
+        calls.append(path)
+        if len(calls) == 1:
+            raise PassiMakerError("ffmpeg.file_not_found")
+        return real_reader(path, points)
+
+    panel.waveforms._reader = first_fails  # pyright: ignore[reportPrivateUsage, reportAttributeAccessIssue]
+    select_song(window)
+    qtbot.waitUntil(lambda: bool(panel.problem.text()), timeout=TIMEOUT_MS)
+    panel.show_song(None)
+    panel.show_song("s1")  # the file is back
+    qtbot.waitUntil(lambda: panel.trim_bar.peaks is not None, timeout=TIMEOUT_MS)
+    assert len(calls) == 2
+    assert panel.problem.text() == ""
+
+
+def test_editing_one_control_does_not_round_the_others(window_with_song: MainWindow) -> None:
+    window = window_with_song
+    exact = replace(song(window), trim_end_s=5.25, fade_in=Fade(True, 2.25))
+    window.controller.execute(UpdateSong(exact))
+    select_song(window)
+    panel = window.song_panel
+    panel.trim_start.setValue(1.0)
+    assert song(window).trim_start_s == pytest.approx(1.0)
+    assert song(window).trim_end_s == 5.25  # not 5,2 or 5,3
+    panel.fade_out_enabled.setChecked(not panel.fade_out_enabled.isChecked())
+    assert song(window).fade_in.seconds == 2.25

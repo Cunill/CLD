@@ -9,8 +9,10 @@ from PySide6.QtCore import QMimeData, QPoint, Qt, QUrl
 from PySide6.QtGui import QDropEvent
 from pytestqt.qtbot import QtBot
 
+from passimaker.common import CancelToken
 from passimaker.importer import ImportFailure
 from passimaker.model import defaults
+from passimaker.ui import importing
 from passimaker.ui.main_window import MainWindow
 from tests.ui.helpers import RecordedQuestions, write_photos
 
@@ -90,10 +92,25 @@ def test_the_progress_is_shown_and_counts_up(qtbot: QtBot, window: MainWindow, t
     assert not window.progress_widget.isVisible()
 
 
-def test_cancelling_an_import_adds_nothing(qtbot: QtBot, window: MainWindow, tmp_path: Path) -> None:
+def test_cancelling_an_import_adds_nothing(
+    qtbot: QtBot, window: MainWindow, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     files = write_photos(tmp_path / "moltes", [f"f_{i:03d}.jpg" for i in range(150)])
-    # Cancelling on the first progress report stops the scan halfway, as the button does.
-    window.importer.progress.connect(lambda *_: window.importer.cancel())
+    # Cancelling on the first progress report stops the scan halfway, as the button does. It is done
+    # in the scanning thread: the report reaches the window later, and on a busy computer the 150
+    # photos could all be read by then (the test failed now and then in the whole suite).
+    real_import = importing.import_paths
+
+    def cancelled_halfway(
+        paths: object, *, cancel: CancelToken, progress: object, **kwargs: object
+    ) -> object:
+        def report(done: int, total: int) -> None:
+            cancel.cancel()
+            progress(done, total)  # pyright: ignore[reportCallIssue]
+
+        return real_import(paths, cancel=cancel, progress=report, **kwargs)  # pyright: ignore[reportArgumentType]
+
+    monkeypatch.setattr(importing, "import_paths", cancelled_halfway)
     added = import_and_wait(qtbot, window, files)
     assert added == 0
     assert window.controller.project.photos == ()

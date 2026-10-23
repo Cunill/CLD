@@ -114,6 +114,9 @@ class PhotoPanel(QWidget):
         layout.addStretch(1)
 
         self.duration.valueChanged.connect(self._on_duration)
+        # With different durations the box shows the shortest: Enter gives that one to all of them
+        # (valueChanged does not fire when the value typed is the one already shown).
+        self.duration.lineEdit().returnPressed.connect(self._on_duration_entered)
         self.reset_duration.clicked.connect(self._on_reset_duration)
         self.motion.currentIndexChanged.connect(self._on_motion)
         self.reroll.clicked.connect(self._on_reroll)
@@ -228,6 +231,11 @@ class PhotoPanel(QWidget):
 
     def _on_duration(self, value: float) -> None:
         self._send(SetPhotoDuration(self._selection(), value))
+
+    def _on_duration_entered(self) -> None:
+        project = self._controller.project
+        if len({project.photo_duration(photo) for photo in self.photos()}) > 1:
+            self._send(SetPhotoDuration(self._selection(), self.duration.value()))
 
     def _on_reset_duration(self) -> None:
         self._send(SetPhotoDuration(self._selection(), None))

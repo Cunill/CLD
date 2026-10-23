@@ -6,7 +6,7 @@ import pytest
 from PySide6.QtCore import Qt
 from pytestqt.qtbot import QtBot
 
-from passimaker.model.commands import SetPhotoMotion
+from passimaker.model.commands import SetPhotoDuration, SetPhotoMotion
 from passimaker.model.types import FitMode, MotionMode, MotionType, Rotation
 from passimaker.ui.main_window import MainWindow
 from passimaker.ui.photo_panel import FIT_CHOICES, MIXED, MOTION_CHOICES
@@ -220,3 +220,17 @@ def test_without_camera_motion_the_motion_controls_are_disabled(window_with_phot
     assert not window.photo_panel.motion.isEnabled()
     assert not window.photo_panel.reroll.isEnabled()
     assert not window.panel.reroll_all.isEnabled()
+
+
+def test_enter_gives_the_duration_shown_to_photos_with_different_durations(
+    window_with_photos: MainWindow,
+) -> None:
+    window = window_with_photos
+    panel = window.photo_panel
+    window.controller.execute(SetPhotoDuration(frozenset({"p0002"}), 2.8))
+    window.view.select_ids(["p0001", "p0002"])
+    shown = panel.duration.value()
+    assert panel.duration_note.text() == "(diferents)"
+    panel.duration.lineEdit().returnPressed.emit()  # typing the value shown and pressing Enter
+    assert photo(window, "p0001").duration_s == pytest.approx(shown)
+    assert photo(window, "p0002").duration_s == pytest.approx(shown)
