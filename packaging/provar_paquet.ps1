@@ -16,17 +16,20 @@ $ErrorActionPreference = 'Stop'
 
 $MaxWindowS = 4.0
 $WindowTimeoutS = 60
+$TitleTimeoutS = 10
 $Exe = if ($IsWindows) { 'PassiMaker.exe' } else { 'PassiMaker' }
 
 $Work = Join-Path ([System.IO.Path]::GetTempPath()) ("Prova PassiMaker àèòç " + [guid]::NewGuid().ToString('N').Substring(0, 8))
 if (-not $Informes) { $Informes = Join-Path $Work 'informes' }
+$Informes = [System.IO.Path]::GetFullPath($Informes, (Get-Location).Path)  # the program runs in $Work
 New-Item -ItemType Directory -Force -Path $Work, $Informes | Out-Null
 $Failures = [System.Collections.Generic.List[string]]::new()
 
 function Get-FolderState([string]$Path) {
+    # Folders by name only: Windows updates their dates by itself after the extraction.
     Get-ChildItem -Recurse -Force $Path | ForEach-Object {
-        $Size = if ($_.PSIsContainer) { '' } else { $_.Length }
-        '{0}|{1}|{2:o}' -f [System.IO.Path]::GetRelativePath($Path, $_.FullName), $Size, $_.LastWriteTimeUtc
+        $Name = [System.IO.Path]::GetRelativePath($Path, $_.FullName)
+        if ($_.PSIsContainer) { "$Name\" } else { '{0}|{1}|{2:o}' -f $Name, $_.Length, $_.LastWriteTimeUtc }
     } | Sort-Object
 }
 
@@ -44,11 +47,20 @@ function Wait-Window([System.Diagnostics.Process]$Process) {
 function Test-Window([string]$App, [string]$Label, [string[]]$Arguments, [string]$Title, [bool]$Enforce) {
     $Options = @{ FilePath = (Join-Path $App $Exe); PassThru = $true; WorkingDirectory = $Work }
     if ($Arguments) { $Options.ArgumentList = $Arguments }
-    $Started = [System.Diagnostics.Stopwatch]::StartNew()
     $Process = Start-Process @Options
     try {
         $Seconds = Wait-Window $Process
+        if ($Title) {
+            # The project is opened just after the window appears: wait for its name in the title.
+            $Clock = [System.Diagnostics.Stopwatch]::StartNew()
+            while ($Clock.Elapsed.TotalSeconds -lt $TitleTimeoutS -and $Process.MainWindowTitle -notlike "*$Title*") {
+                Start-Sleep -Milliseconds 100
+                $Process.Refresh()
+            }
+        }
         $Process.Refresh()
+        $Line = ('{0}: la finestra s''obre en {1:N2} s ("{2}")' -f $Label, $Seconds, $Process.MainWindowTitle)
+        Add-Content -Path (Join-Path $Informes 'finestra.txt') -Value $Line -Encoding utf8
         Write-Host ('  {0}: la finestra s''obre en {1:N2} s ("{2}")' -f $Label, $Seconds, $Process.MainWindowTitle)
         if ($Enforce -and $Seconds -gt $MaxWindowS) {
             $Failures.Add(('{0}: la finestra triga {1:N2} s (màxim {2} s)' -f $Label, $Seconds, $MaxWindowS))
