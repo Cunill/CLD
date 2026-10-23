@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from PySide6.QtGui import QKeySequence
 
 from passimaker.model import OutputFormat
 from passimaker.ui.delegate import ThumbnailSize
@@ -45,10 +46,19 @@ def test_the_format_action_changes_the_project_through_the_controller(
     assert window.controller.project.output_format is OutputFormat.HORIZONTAL
 
 
-def test_the_actions_of_the_next_blocks_are_disabled(window: MainWindow) -> None:
-    assert not window.add_music_action.isEnabled()
+def test_music_and_export_actions_follow_the_project(window: MainWindow) -> None:
+    """B11 enables them: music always; fitting with photos and songs; exporting with photos."""
+    assert window.add_music_action.isEnabled()
     assert not window.fit_to_music_action.isEnabled()
     assert not window.export_action.isEnabled()
+
+
+def test_open_has_ctrl_o_and_add_photos_does_not(window: MainWindow) -> None:
+    """§1.10 reserves Ctrl+O for Obrir (B10 had given it to "+ Fotos")."""
+    open_key = QKeySequence(QKeySequence.StandardKey.Open)
+    assert window.open_action.shortcut() == open_key
+    assert window.add_photos_action.shortcut().isEmpty()
+    assert window.save_action.shortcut() == QKeySequence(QKeySequence.StandardKey.Save)
 
 
 def test_actions_follow_the_selection(window_with_photos: MainWindow) -> None:

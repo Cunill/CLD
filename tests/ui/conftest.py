@@ -3,15 +3,27 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
+from PySide6.QtCore import QSettings
 from pytestqt.qtbot import QtBot
 
+from passimaker.export import CACHE_ENV_VAR
 from passimaker.model import ProjectController
 from passimaker.ui.main_window import MainWindow
 from tests.ui.helpers import FakeThumbnailService, RecordedQuestions, controller_with, images
 
 pytestmark = pytest.mark.ui
+
+
+@pytest.fixture(autouse=True)
+def isolated_user_files(tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Recent projects, recovery copy and caches go to a temporary folder, never the user's."""
+    folder = tmp_path_factory.mktemp("usuari")
+    monkeypatch.setenv(CACHE_ENV_VAR, str(folder / "cache"))
+    QSettings.setPath(QSettings.Format.IniFormat, QSettings.Scope.UserScope, str(folder / "config"))
+    return folder
 
 
 @pytest.fixture
