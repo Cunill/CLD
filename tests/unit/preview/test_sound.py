@@ -73,7 +73,7 @@ def test_the_card_gets_the_mix_from_the_start_instant() -> None:
     for _ in range(20):
         stream.pull()
         time.sleep(0.005)  # a real card asks every 21 ms: the feeder has time to read ahead
-    output.stop()
+    output.close()
     expected = ToneAudioSource(60.0).read(10.0, 20 * AUDIO_BLOCK_FRAMES)
     np.testing.assert_array_equal(np.concatenate(stream.played), expected)
     assert stream.stopped and stream.closed
@@ -102,16 +102,69 @@ def test_the_clock_follows_the_sample_being_heard() -> None:
     output.stop()
 
 
-def test_restarting_closes_the_previous_stream() -> None:
+def test_pausing_and_jumping_keep_the_same_stream_open() -> None:
+    """Reopening the stream makes Bluetooth headphones fade in again (M04)."""
     streams = Streams()
     output = SoundDeviceOutput(streams)
     output.start(ToneAudioSource(60.0), 0.0)
-    output.start(ToneAudioSource(60.0), 30.0)
+    output.start(ToneAudioSource(60.0), 30.0)  # a jump while playing
+    output.stop()  # pause
+    output.start(ToneAudioSource(60.0), 12.0)  # play again
+    assert len(streams.opened) == 1
+    assert not streams.opened[0].closed
+    output.close()
+    output.close()  # twice is harmless
     assert streams.opened[0].closed
-    assert not streams.opened[1].closed
+
+
+def test_after_a_jump_the_card_gets_the_mix_from_the_new_instant() -> None:
+    streams = Streams()
+    output = SoundDeviceOutput(streams)
+    output.start(ToneAudioSource(60.0), 0.0)
+    stream = streams.opened[0]
+    stream.pull()
+    clock = output.start(ToneAudioSource(60.0), 30.0)
+    stream.played.clear()
+    for _ in range(5):
+        stream.pull()
+        time.sleep(0.005)
+    expected = ToneAudioSource(60.0).read(30.0, 5 * AUDIO_BLOCK_FRAMES)
+    np.testing.assert_array_equal(np.concatenate(stream.played), expected)
+    stream.time = LATENCY_S + 0.01  # 10 ms after the first block of the jump is heard
+    assert clock.now() == pytest.approx(30.01)
+    output.close()
+
+
+def test_while_paused_the_card_gets_silence_and_the_stream_closes_later() -> None:
+    streams = Streams()
+    output = SoundDeviceOutput(streams, keep_open_s=0.2)
+    output.start(ToneAudioSource(60.0), 0.0)
+    stream = streams.opened[0]
     output.stop()
-    output.stop()  # twice is harmless
-    assert streams.opened[1].closed
+    stream.played.clear()
+    for _ in range(3):
+        stream.pull()
+    assert not np.concatenate(stream.played).any()
+    assert output.underruns == 0  # silence while paused is not a missed block
+    assert output.stream_open
+    deadline = time.perf_counter() + 2.0
+    while output.stream_open and time.perf_counter() < deadline:
+        time.sleep(0.01)
+    assert stream.closed
+    output.start(ToneAudioSource(60.0), 5.0)  # playing again opens a new one
+    assert len(streams.opened) == 2 and streams.opened[1].started
+    output.close()
+
+
+def test_playing_again_before_the_delay_keeps_the_stream() -> None:
+    streams = Streams()
+    output = SoundDeviceOutput(streams, keep_open_s=0.2)
+    output.start(ToneAudioSource(60.0), 0.0)
+    output.stop()
+    output.start(ToneAudioSource(60.0), 1.0)
+    time.sleep(0.4)
+    assert output.stream_open and not streams.opened[0].closed
+    output.close()
 
 
 def test_a_device_that_cannot_start_raises_and_leaves_nothing_open() -> None:
@@ -133,6 +186,6 @@ def test_an_empty_queue_plays_silence_without_moving_the_clock() -> None:
     deadline = time.perf_counter() + 0.5
     while output.underruns == 0 and time.perf_counter() < deadline:
         stream.pull()
-    output.stop()
+    output.close()
     silent = [block for block in stream.played if not block.any()]
     assert len(silent) == output.underruns

@@ -26,7 +26,7 @@ import numpy as np
 
 from passimaker.audio import CHANNELS, SAMPLE_RATE, AudioSource
 from passimaker.common import AudioBlock
-from passimaker.preview.params import AUDIO_BLOCK_FRAMES, AUDIO_BUFFER_BLOCKS, AUDIO_LATENCY
+from passimaker.preview.params import AUDIO_BLOCK_FRAMES, AUDIO_BUFFER_BLOCKS, AUDIO_LATENCY, KEEP_OPEN_S
 
 _log = logging.getLogger(__name__)
 
@@ -142,13 +142,34 @@ class StreamClock:
             return self._last
 
 
-class SoundDeviceOutput:
-    """Implements AudioOutput with the default sound device (or the given stream factory)."""
+class _Session:
+    """What one start() plays: the feeder, its clock and the frames already handed to the card."""
 
-    def __init__(self, stream_factory: StreamFactory = sounddevice_stream) -> None:
+    def __init__(self, feeder: _Feeder, clock: StreamClock, from_s: float) -> None:
+        self.feeder = feeder
+        self.clock = clock
+        self.from_s = from_s
+        self.consumed = 0
+
+
+class SoundDeviceOutput:
+    """Implements AudioOutput with the default sound device (or the given stream factory).
+
+    The stream stays open between stop() and the next start(), playing silence: closing and
+    reopening it on every pause or jump makes Bluetooth headphones fade the sound in again for
+    one or two seconds. It is closed after `keep_open_s` without sound (an open stream keeps
+    Windows from sleeping) and by close().
+    """
+
+    def __init__(
+        self, stream_factory: StreamFactory = sounddevice_stream, keep_open_s: float = KEEP_OPEN_S
+    ) -> None:
         self._factory = stream_factory
+        self._keep_open_s = keep_open_s
+        self._lock = threading.Lock()
         self._stream: AudioStream | None = None
-        self._feeder: _Feeder | None = None
+        self._session: _Session | None = None
+        self._closer: threading.Timer | None = None
         self.underruns = 0
         """Blocks the card asked for before the feeder had them ready (they are played as silence)."""
 
@@ -156,41 +177,86 @@ class SoundDeviceOutput:
         self.stop()
         feeder = _Feeder(source, from_s)
         feeder.prime()
-        consumed = [0]
-        clock_ref: list[StreamClock] = []
-
-        def callback(outdata: np.ndarray, frames: int, time_info: Any, status: Any) -> None:
-            block = feeder.take() if frames == AUDIO_BLOCK_FRAMES else None
-            if block is None:
-                outdata.fill(0)
-                self.underruns += 1
-                return
-            outdata[:] = block
-            if clock_ref:
-                show_s = from_s + consumed[0] / SAMPLE_RATE
-                clock_ref[0].block_played(show_s, float(time_info.outputBufferDacTime), frames)
-            consumed[0] += frames
-
-        stream = self._factory(callback)
-        clock = StreamClock(lambda: stream.time, from_s)
-        clock_ref.append(clock)
+        with self._lock:
+            self._cancel_closer()
+            stream = self._stream
+            opened = stream is None
+            if stream is None:
+                stream = self._factory(self._callback)
+                self._stream = stream
+            session = _Session(feeder, StreamClock(lambda: stream.time, from_s), from_s)
+            self._session = session
         feeder.start()
-        try:
-            stream.start()
-        except Exception:
-            feeder.stop()
-            stream.close()
-            raise
-        self._stream, self._feeder = stream, feeder
-        return clock
+        if opened:
+            try:
+                stream.start()
+            except Exception:
+                with self._lock:
+                    self._session = None
+                    self._stream = None
+                feeder.stop()
+                stream.close()
+                raise
+        return session.clock
 
     def stop(self) -> None:
-        stream, feeder = self._stream, self._feeder
-        self._stream = self._feeder = None
-        if stream is not None:
-            try:
-                stream.stop()
-            finally:
-                stream.close()
-        if feeder is not None:
-            feeder.stop()
+        """Stops the sound now; the stream goes on with silence until it is closed."""
+        with self._lock:
+            session, self._session = self._session, None
+            if self._stream is not None and self._closer is None:
+                self._closer = threading.Timer(self._keep_open_s, self._close_if_silent)
+                self._closer.daemon = True
+                self._closer.start()
+        if session is not None:
+            session.feeder.stop()
+
+    def close(self) -> None:
+        """Stops the sound and closes the stream (when the player is closed)."""
+        self.stop()
+        with self._lock:
+            self._cancel_closer()
+            stream, self._stream = self._stream, None
+        _close_stream(stream)
+
+    @property
+    def stream_open(self) -> bool:
+        return self._stream is not None
+
+    def _close_if_silent(self) -> None:
+        with self._lock:
+            if self._session is not None:
+                return
+            self._closer = None
+            stream, self._stream = self._stream, None
+        _close_stream(stream)
+
+    def _cancel_closer(self) -> None:
+        if self._closer is not None:
+            self._closer.cancel()
+            self._closer = None
+
+    def _callback(self, outdata: np.ndarray, frames: int, time_info: Any, status: Any) -> None:
+        session = self._session
+        if session is None:
+            outdata.fill(0)
+            return
+        block = session.feeder.take() if frames == AUDIO_BLOCK_FRAMES else None
+        if block is None:
+            outdata.fill(0)
+            self.underruns += 1
+            return
+        outdata[:] = block
+        show_s = session.from_s + session.consumed / SAMPLE_RATE
+        session.clock.block_played(show_s, float(time_info.outputBufferDacTime), frames)
+        session.consumed += frames
+
+
+def _close_stream(stream: AudioStream | None) -> None:
+    if stream is None:
+        return
+    try:
+        stream.stop()
+    except Exception:
+        _log.warning("No s'ha pogut aturar el flux de so", exc_info=True)
+    finally:
+        stream.close()

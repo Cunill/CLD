@@ -65,9 +65,11 @@ class Player(QObject):
         self._closed = False
         self._delivered.connect(self._on_delivered)
         self._notified.connect(self.state_changed)
+        self._own_output = SoundDeviceOutput() if output is None else None
+        """The default device is opened here, so close() also closes its stream."""
         self._loop = PlaybackLoop(
             Scene(compositor, timeline, audio),
-            output if output is not None else SoundDeviceOutput(),
+            output if output is not None else self._own_output,
             self._deliver,
             self._notify,
             clock_factory=clock_factory,
@@ -150,6 +152,8 @@ class Player(QObject):
         self._closed = True
         self._loop.close()
         self._thread.join(THREAD_JOIN_TIMEOUT_S)
+        if self._own_output is not None:
+            self._own_output.close()
 
     # --- Threads ---------------------------------------------------------------------------------
 
