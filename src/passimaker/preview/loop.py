@@ -101,7 +101,8 @@ def same_place(old: Timeline, new: Timeline, t: float) -> float | None:
     target = next((slot for slot in new.slots if slot.photo_id == photo_id), None)
     if target is None:
         return None
-    if abs(t - photo_start(old, index)) < 1e-9:
+    # The paused position is a frame time: within one frame of the start counts as the start.
+    if abs(t - photo_start(old, index)) < 1.0 / old.fps:
         return photo_start(new, target.index)
     slot = old.slots[index]
     fraction = (t - slot.slot_start) / max(1e-9, slot.slot_end - slot.slot_start)

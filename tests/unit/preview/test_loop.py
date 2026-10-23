@@ -10,7 +10,15 @@ import statistics
 
 import pytest
 
-from passimaker.preview import Delivery, PlaybackLoop, PlayState, Scene, photo_index_at, photo_start
+from passimaker.preview import (
+    Delivery,
+    PlaybackLoop,
+    PlayState,
+    Scene,
+    photo_index_at,
+    photo_start,
+    same_place,
+)
 from passimaker.timeline import Timeline, frame_to_time, time_to_frame
 from tests.fakes.audio import ToneAudioSource
 from tests.fakes.clock import SimulatedClock
@@ -354,3 +362,19 @@ def test_photo_index_at() -> None:
     timeline = timeline_of(count=3, duration_s=2.0)
     assert [photo_index_at(timeline, t) for t in (0.0, 1.99, 2.0, 5.9, 6.0, 100.0)] == [0, 0, 1, 2, 2, 2]
     assert photo_index_at(fixed_timeline([]), 1.0) == -1
+
+
+def test_same_place_keeps_the_photo_after_a_change_of_duration() -> None:
+    old, new = timeline_of(duration_s=5.0), timeline_of(duration_s=2.0)
+    # At the start of photo 3, even rounded to a frame (as the paused position is): the start.
+    start = photo_start(old, 3)
+    assert same_place(old, new, start) == photo_start(new, 3)
+    rounded = frame_to_time(time_to_frame(start, FPS) + 1, FPS) - 1e-6
+    assert same_place(old, new, rounded) == photo_start(new, 3)
+    # Elsewhere, the same fraction of the photo's own space.
+    middle = (old.slots[3].slot_start + old.slots[3].slot_end) / 2
+    assert same_place(old, new, middle) == pytest.approx(
+        (new.slots[3].slot_start + new.slots[3].slot_end) / 2
+    )
+    # A photo that is gone: no place.
+    assert same_place(old, timeline_of(count=2), middle) is None

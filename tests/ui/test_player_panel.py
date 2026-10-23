@@ -275,6 +275,9 @@ def test_in_pause_a_change_of_duration_or_motion_is_seen_within_200_ms(
     ]
     assert max(times) < 0.200, times
     assert panel.player.timeline.slots[0].slot_end == pytest.approx(1.5)
+    # The preview stayed on the photo it was showing, at its start (§1.8).
+    assert panel.player.photo_index == 2
+    assert panel.player.position == pytest.approx(photo_start(panel.player.timeline, 2), abs=1 / 30)
 
 
 def test_in_pause_the_preview_stays_on_its_photo_after_an_edit(
