@@ -163,3 +163,23 @@ def test_missing_files_are_listed_and_nothing_is_exported(
     assert questions.suggested_exports == []
     assert window.video_export.dialog is None
     window.close()
+
+
+def test_the_dialog_shows_the_result_before_finished_is_announced(
+    qtbot: QtBot, thumbnails: FakeThumbnailService, questions: RecordedQuestions, tmp_path: Path
+) -> None:
+    window = real_window(qtbot, thumbnails, questions, tmp_path / "fotos", 2)
+    window.video_export.exporter = fake_exporter(ExportResult(ExportStatus.ERROR, "export.disk_full", 0.0, 0))
+    questions.export_path = tmp_path / "ple.mp4"
+    seen: list[str] = []
+
+    def on_finished(result: object) -> None:
+        dialog = window.video_export.dialog
+        assert dialog is not None
+        seen.append(dialog.title_label.text())
+
+    window.video_export.finished.connect(on_finished)
+    dialog = export_and_wait(qtbot, window)
+    assert seen == ["No s'ha pogut exportar el vídeo."]
+    dialog.close_button.click()
+    window.close()
