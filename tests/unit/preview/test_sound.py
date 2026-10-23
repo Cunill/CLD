@@ -6,6 +6,7 @@ the mix from the right instant, and that the clock follows the sample being hear
 
 from __future__ import annotations
 
+import threading
 import time
 from types import SimpleNamespace
 from typing import Any
@@ -31,12 +32,17 @@ class FakeStream:
         self.fail = fail
         self.time = 0.0
         self.started = self.stopped = self.closed = False
+        self.broken = False
         self.played: list[np.ndarray] = []
 
     def start(self) -> None:
         if self.fail:
             raise OSError("cap dispositiu")
         self.started = True
+
+    @property
+    def active(self) -> bool:
+        return self.started and not self.stopped and not self.broken
 
     def stop(self) -> None:
         self.stopped = True
@@ -164,6 +170,32 @@ def test_playing_again_before_the_delay_keeps_the_stream() -> None:
     output.start(ToneAudioSource(60.0), 1.0)
     time.sleep(0.4)
     assert output.stream_open and not streams.opened[0].closed
+    output.close()
+
+
+def test_a_stream_that_stopped_during_the_pause_is_replaced() -> None:
+    """Headphones switched off while paused: playing again must not reuse the dead stream."""
+    streams = Streams()
+    output = SoundDeviceOutput(streams)
+    output.start(ToneAudioSource(60.0), 0.0)
+    output.stop()
+    streams.opened[0].broken = True
+    output.start(ToneAudioSource(60.0), 4.0)
+    assert streams.opened[0].closed
+    assert len(streams.opened) == 2 and streams.opened[1].started
+    output.close()
+
+
+def test_jumping_while_playing_starts_no_closing_timer() -> None:
+    streams = Streams()
+    output = SoundDeviceOutput(streams, keep_open_s=0.05)
+    output.start(ToneAudioSource(60.0), 0.0)
+    before = threading.active_count()
+    for t in range(20):
+        output.start(ToneAudioSource(60.0), float(t))
+    assert threading.active_count() <= before
+    time.sleep(0.2)
+    assert output.stream_open  # no stray timer closed the stream while it was playing
     output.close()
 
 

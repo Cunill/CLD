@@ -161,8 +161,8 @@ class PhotoListModel(QAbstractListModel):
         """Reorders through the controller; the model is rebuilt by the change notification."""
         known = {p.id for p in self._photos}
         moving = tuple(pid for pid in photo_ids if pid in known)
-        if not moving:
-            return False
+        if not moving or _same_order_after_move([p.id for p in self._photos], set(moving), target):
+            return False  # let go where they were: no undo step, no unsaved changes
         self._controller.execute(MovePhotos(moving, target))
         return False
         # False: the view must not remove the dragged rows itself (the controller already did).
@@ -185,3 +185,11 @@ class PhotoListModel(QAbstractListModel):
 
     def close(self) -> None:
         self._unsubscribe()
+
+
+def _same_order_after_move(order: Sequence[str], moving: set[str], target: int) -> bool:
+    """Whether moving these photos to `target` (as MovePhotos does) would leave the order as it is."""
+    target = min(len(order), max(0, target))
+    rest = [pid for pid in order if pid not in moving]
+    position = target - sum(1 for pid in order[:target] if pid in moving)
+    return [*rest[:position], *(pid for pid in order if pid in moving), *rest[position:]] == list(order)

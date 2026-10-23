@@ -98,6 +98,8 @@ class StoryboardView(QListView):
         self._arrived: set[str] = set()
         self._insert_row: int | None = None
         """Where a drag over the grid would let go (-1 = at the end); None when nothing is dragged."""
+        self._insert_y = 0
+        """Height of the cursor during the drag: it decides on which line of the grid the line goes."""
         self._repaint = QTimer(self)
         self._repaint.setSingleShot(True)
         self._repaint.setInterval(REPAINT_DELAY_MS)
@@ -243,18 +245,20 @@ class StoryboardView(QListView):
 
     def insertion_line(self) -> QRect | None:
         """The vertical line drawn while dragging: before the photo the drop would land on, or after
-        the last one."""
+        the previous one when that is the one under the cursor (the end of a line of the grid)."""
         model = self.model()
         count = model.rowCount()
         if self._insert_row is None or count == 0:
             return None
-        if 0 <= self._insert_row < count:
-            cell = self.visualRect(model.index(self._insert_row, 0))
-            x = cell.left() - INSERTION_LINE_WIDTH + 1
-        else:
-            cell = self.visualRect(model.index(count - 1, 0))
-            x = cell.right() + 1
-        return QRect(x, cell.top(), INSERTION_LINE_WIDTH, cell.height())
+        row = self._insert_row if 0 <= self._insert_row < count else count
+        before = self.visualRect(model.index(row, 0)) if row < count else None
+        after = self.visualRect(model.index(row - 1, 0)) if row > 0 else None
+        if after is not None and (before is None or after.top() <= self._insert_y <= after.bottom()):
+            return QRect(after.right() + 1, after.top(), INSERTION_LINE_WIDTH, after.height())
+        assert before is not None
+        return QRect(
+            before.left() - INSERTION_LINE_WIDTH + 1, before.top(), INSERTION_LINE_WIDTH, before.height()
+        )
 
     def _accept_photos(self, event: QDragMoveEvent) -> None:
         if not event.mimeData().hasFormat(PHOTO_MIME):
@@ -269,8 +273,9 @@ class StoryboardView(QListView):
 
     def _show_insertion(self, position: QPoint) -> None:
         row = self.drop_row(position)
-        if row != self._insert_row:
+        if row != self._insert_row or position.y() != self._insert_y:
             self._insert_row = row
+            self._insert_y = position.y()
             self.viewport().update()
 
     def _hide_insertion(self) -> None:
@@ -279,12 +284,24 @@ class StoryboardView(QListView):
             self.viewport().update()
 
     def drop_row(self, position: QPoint) -> int:
-        """Row a drop at this point lands on; -1 means "at the end"."""
+        """Row a drop at this point lands on; -1 means "at the end".
+
+        Between two photos, or in the empty space after the last photo of a line of the grid, it is
+        the place after the nearest photo on the left (where the insertion line is drawn).
+        """
         index = self.indexAt(position)
-        if not index.isValid():
-            return -1
-        rect = self.visualRect(index)
-        return index.row() + 1 if position.x() > rect.center().x() else index.row()
+        if index.isValid():
+            rect = self.visualRect(index)
+            return index.row() + 1 if position.x() > rect.center().x() else index.row()
+        step = max(1, self.gridSize().width() // 4)
+        probe = QPoint(position.x() - step, position.y())
+        while probe.x() >= 0:
+            on_the_left = self.indexAt(probe)
+            if on_the_left.isValid():
+                return on_the_left.row() + 1
+            probe.setX(probe.x() - step)
+        on_the_right = self.indexAt(QPoint(position.x() + step, position.y()))
+        return on_the_right.row() if on_the_right.isValid() else -1
 
     # --- Selection -------------------------------------------------------------------------------
 

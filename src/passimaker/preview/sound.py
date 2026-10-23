@@ -39,6 +39,11 @@ class AudioStream(Protocol):
     @property
     def time(self) -> float: ...
 
+    @property
+    def active(self) -> bool:
+        """False once PortAudio has stopped calling back (device removed or an error)."""
+        ...
+
     def start(self) -> None: ...
 
     def stop(self) -> None: ...
@@ -174,12 +179,17 @@ class SoundDeviceOutput:
         """Blocks the card asked for before the feeder had them ready (they are played as silence)."""
 
     def start(self, source: AudioSource, from_s: float) -> StreamClock:
-        self.stop()
+        self._end_session()
         feeder = _Feeder(source, from_s)
         feeder.prime()
         with self._lock:
             self._cancel_closer()
             stream = self._stream
+            if stream is not None and not stream.active:
+                # The device stopped during the pause: a new stream (or an error, and the internal clock).
+                self._stream = None
+                _close_stream(stream)
+                stream = None
             opened = stream is None
             if stream is None:
                 stream = self._factory(self._callback)
@@ -201,18 +211,16 @@ class SoundDeviceOutput:
 
     def stop(self) -> None:
         """Stops the sound now; the stream goes on with silence until it is closed."""
+        self._end_session()
         with self._lock:
-            session, self._session = self._session, None
             if self._stream is not None and self._closer is None:
                 self._closer = threading.Timer(self._keep_open_s, self._close_if_silent)
                 self._closer.daemon = True
                 self._closer.start()
-        if session is not None:
-            session.feeder.stop()
 
     def close(self) -> None:
         """Stops the sound and closes the stream (when the player is closed)."""
-        self.stop()
+        self._end_session()
         with self._lock:
             self._cancel_closer()
             stream, self._stream = self._stream, None
@@ -222,10 +230,16 @@ class SoundDeviceOutput:
     def stream_open(self) -> bool:
         return self._stream is not None
 
+    def _end_session(self) -> None:
+        with self._lock:
+            session, self._session = self._session, None
+        if session is not None:
+            session.feeder.stop()
+
     def _close_if_silent(self) -> None:
         with self._lock:
-            if self._session is not None:
-                return
+            if self._closer is not threading.current_thread() or self._session is not None:
+                return  # cancelled or replaced while it waited for the lock
             self._closer = None
             stream, self._stream = self._stream, None
         _close_stream(stream)
