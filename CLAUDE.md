@@ -82,4 +82,6 @@ Pendent de decidir del B11: afegir `ffmpeg` (durada de les cançons) i `timeline
 interfície pot fer servir (CONTRACTES §13), o moure `song_from_file` a un mòdul compartit. Prova manual del B11 a
 Windows pendent (docs/sessions/B11.md).
 Prova manual del B13 a Windows pendent: so real i fluïdesa al PC de referència (docs/sessions/B13.md).
+B12 (empaquetat portable): llest per fusionar, PR #33, CI en verd (ZIP de 138 MB, autoprova i finestra provades
+a Windows); vegeu docs/sessions/B12.md.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
