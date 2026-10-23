@@ -260,3 +260,26 @@ def test_photos_music_project_and_video_in_paths_longer_than_260_characters(
     result = export_project(reopened.project, video)
     assert result.status is ExportStatus.DONE, result
     assert Path(os_path(video)).stat().st_size > 0
+
+
+def test_the_export_keeps_fewer_decoded_photos_than_the_window(
+    eight: Project, out_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """1,000 photos of 24 MP took the export to 1.6 GB with the 768 MB image cache of the window
+    (docs/RENDIMENT.md). The export walks the photos in order: it needs far fewer at once."""
+    from passimaker.export import params
+    from passimaker.images import CachedImageSource
+    from passimaker.images.source import DEFAULT_MEMORY_BUDGET_BYTES
+
+    budgets: list[int] = []
+
+    class Recording(CachedImageSource):
+        def __init__(self, memory_budget_bytes: int = DEFAULT_MEMORY_BUDGET_BYTES, workers: int = 2) -> None:
+            super().__init__(memory_budget_bytes, workers)
+            budgets.append(memory_budget_bytes)
+
+    monkeypatch.setattr(pipeline, "CachedImageSource", Recording)
+    result = export_project(eight, out_dir / "video.mp4")
+    assert result.status is ExportStatus.DONE, result
+    assert budgets == [params.IMAGE_MEMORY_BYTES]
+    assert params.IMAGE_MEMORY_BYTES <= DEFAULT_MEMORY_BUDGET_BYTES // 2

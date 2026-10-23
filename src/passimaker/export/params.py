@@ -28,3 +28,8 @@ DISK_MARGIN_BYTES = 64 * 1024 * 1024
 
 CANCEL_POLL_S = 0.05
 """How often a cancelled export checks the token while waiting for a frame."""
+
+IMAGE_MEMORY_BYTES = 384 * 1024 * 1024
+"""Decoded photos kept by the export (B15). The export walks the photos in order and needs only the
+ones on screen and the next PREFETCH_AHEAD; with the 768 MB of the window's image source, 1,000 photos
+of 24 MP took the export to 1.6 GB (limit: 1.5 GB)."""

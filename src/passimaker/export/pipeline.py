@@ -21,7 +21,7 @@ from passimaker.common import CancelToken, PassiMakerError, RGBImage
 from passimaker.export.checks import estimated_video_bytes, has_room, missing_files, wav_bytes
 from passimaker.export.files import long_path, remove_quietly, replace
 from passimaker.export.locations import audio_cache_dir
-from passimaker.export.params import CANCEL_POLL_S, FRAMES_IN_FLIGHT, RENDER_THREADS
+from passimaker.export.params import CANCEL_POLL_S, FRAMES_IN_FLIGHT, IMAGE_MEMORY_BYTES, RENDER_THREADS
 from passimaker.export.power import keep_awake
 from passimaker.export.progress import ExportProgress, ProgressTracker
 from passimaker.ffmpeg import ERROR_DISK_FULL as FFMPEG_DISK_FULL
@@ -205,7 +205,7 @@ def _export(
         audio.render_wav(wav, tracker.audio, cancel)
         if cancel.cancelled:
             return False
-        images = CachedImageSource()
+        images = CachedImageSource(memory_budget_bytes=IMAGE_MEMORY_BYTES)
         completed = False
         try:
             compositor = Compositor(project, timeline, _ExportImages(images))
