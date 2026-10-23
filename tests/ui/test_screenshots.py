@@ -32,11 +32,11 @@ def shoot(qtbot: QtBot, window: MainWindow, name: str) -> Path:
 
 
 def settled(qtbot: QtBot, window: MainWindow, service: FakeThumbnailService) -> None:
-    """Waits for every thumbnail asked for and for the fixed view."""
+    """Waits for every thumbnail asked for and for the preview."""
     window.view.request_visible_thumbnails()
     service.wait()
     qtbot.wait(150)
-    window.still.wait(TIMEOUT_MS)
+    window.player_panel.wait(TIMEOUT_MS)
     qtbot.wait(100)
 
 
@@ -52,7 +52,7 @@ def test_screenshots_of_the_main_states(qtbot: QtBot, questions: RecordedQuestio
 
     window.view.select_ids(["p0003", "p0004"])
     settled(qtbot, window, service)
-    shoot(qtbot, window, "03_seleccio_i_vista_fixa")
+    shoot(qtbot, window, "03_seleccio_i_previsualitzacio")
 
     window.panel.advanced.setChecked(True)
     qtbot.wait(60)
@@ -81,7 +81,7 @@ def test_screenshots_of_the_main_states(qtbot: QtBot, questions: RecordedQuestio
     assert sorted(path.name for path in ARTEFACTS.glob("*.png")) == [
         "01_estat_buit.png",
         "02_storyboard.png",
-        "03_seleccio_i_vista_fixa.png",
+        "03_seleccio_i_previsualitzacio.png",
         "04_panell_avancat.png",
         "05_format_vertical.png",
         "06_miniatures_grans.png",

@@ -48,9 +48,9 @@ from passimaker.ui.formatting import clock
 from passimaker.ui.importing import PhotoImporter
 from passimaker.ui.music_strip import MusicStrip, SongLoader
 from passimaker.ui.photos import PhotoListModel
+from passimaker.ui.player_panel import PlayerPanel
 from passimaker.ui.project_files import MissingFilesBar, ProjectFiles, RecentProjects
 from passimaker.ui.project_panel import ProjectPanel
-from passimaker.ui.still import StillView
 from passimaker.ui.storyboard import StoryboardPanel
 from passimaker.ui.thumbnails import ThumbnailBridge, ThumbnailProvider
 
@@ -90,7 +90,7 @@ class MainWindow(QMainWindow):
         self.resize(WINDOW_SIZE)
         self.setAcceptDrops(True)
 
-        self.still = StillView(controller, images, thumbnails.get_intermediate)
+        self.player_panel = PlayerPanel(controller, images, thumbnails.get_intermediate)
         self.panel = ProjectPanel(controller)
         self.storyboard = StoryboardPanel(self.model, self.thumbnails)
         self.view = self.storyboard.view
@@ -109,7 +109,7 @@ class MainWindow(QMainWindow):
 
     def _build_layout(self) -> None:
         left = QSplitter(Qt.Orientation.Vertical)
-        left.addWidget(self.still)
+        left.addWidget(self.player_panel)
         left.addWidget(self.panel)
         left.setStretchFactor(0, 3)
         left.setStretchFactor(1, 2)
@@ -329,6 +329,7 @@ class MainWindow(QMainWindow):
         self.files.missing_changed.connect(self._on_missing_changed)
         self.recent_projects.open_requested.connect(self.open_path)
         self.video_export.finished.connect(self._on_export_finished)
+        self.music_changed.connect(lambda: self.player_panel.reload_audio(only_if_changed=True))
 
     # --- Commands --------------------------------------------------------------------------------
 
@@ -458,7 +459,7 @@ class MainWindow(QMainWindow):
         rows = self.view.selected_rows()
         if photo is None and rows:
             photo = self.model.photo_at(rows[0])
-        self.still.show_photo(photo.id if photo is not None else None)
+        self.player_panel.show_photo(photo.id if photo is not None else None)
         self._refresh_actions()
 
     def _on_files_dropped(self, paths: Sequence[Path], row: int) -> None:
@@ -576,7 +577,7 @@ class MainWindow(QMainWindow):
         self.music_strip.close_strip()
         self.importer.cancel()
         self.importer.wait(5_000)
-        self.still.close_view()
+        self.player_panel.close_panel()
         self.model.close()
         self.panel.close_panel()
         self._service.cancel_pending()

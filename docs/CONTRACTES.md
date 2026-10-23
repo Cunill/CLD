@@ -171,6 +171,12 @@ ràpid per al temps real), `render_wav(destí, progress, cancel)` (WAV PCM 16 bi
 `refresh()`; senyals `frame_ready(QImage, t)` i `state_changed(reproduint, t, índex_foto)`.
 `Clock.now()` i `AudioOutput.start(source, from_s) -> Clock` / `stop()` permeten simular el temps.
 Mida màxima: `PREVIEW_MAX_SIZE = (960, 540)`.
+Afegit al B13 (aprovat en tancar-lo): paràmetres de nom `clock_factory` (rellotge intern) i `size` al constructor
+(`output=None` = dispositiu de so per defecte); `set_scene(compositor, línia, àudio, at=None)` (el projecte ha
+canviat: mateixa posició o `at`; si l'àudio és el mateix objecte, el so no es talla), `set_size(amplada, alçada)`,
+`toggle()`, `close()`, `wait_idle()` i les propietats `playing`, `position`, `photo_index` i `timeline`.
+Protocol `FrameSource` (el que el reproductor necessita del compositor) i funcions `photo_start(línia, i)` (primera
+imatge on la foto es veu sencera), `photo_index_at(línia, t)` i `same_place(antiga, nova, t)`.
 
 ## 11. Exportació (`passimaker.export`) · B9
 

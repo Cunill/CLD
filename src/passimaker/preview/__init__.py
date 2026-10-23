@@ -1,65 +1,49 @@
-"""M10 · Real-time preview player (block B13). Qt is allowed here."""
+"""M10 · Real-time preview player (block B13). Qt is allowed here.
+
+Public API (docs/CONTRACTES.md §10): Player, Clock, AudioOutput and PREVIEW_MAX_SIZE; plus the
+pieces the interface and the tests build it with: the internal clock, the real sound output and
+the scene helpers (photo_start, photo_index_at, same_place).
+
+How it works: passimaker.preview.loop (the playback loop, no Qt), passimaker.preview.scheduler
+(which frame to draw next), passimaker.preview.sound (sound card and its clock) and
+passimaker.preview.player (the thread and the Qt signals).
+"""
 
 from __future__ import annotations
 
-from typing import Protocol
+from passimaker.preview.clock import ClockFactory, MonotonicClock
+from passimaker.preview.loop import (
+    Delivery,
+    PlaybackLoop,
+    PlayState,
+    Scene,
+    photo_index_at,
+    photo_start,
+    same_place,
+)
+from passimaker.preview.params import PREVIEW_MAX_SIZE
+from passimaker.preview.player import Player, to_qimage
+from passimaker.preview.scheduler import FrameScheduler
+from passimaker.preview.sound import SoundDeviceOutput, StreamClock
+from passimaker.preview.types import AudioOutput, Clock, FrameSource
 
-from PySide6.QtCore import QObject, Signal
-
-from passimaker.audio import AudioSource
-from passimaker.render import Compositor
-from passimaker.timeline import Timeline
-
-PREVIEW_MAX_SIZE = (960, 540)
-
-
-class Clock(Protocol):
-    """Master clock. The real one follows the audio device; tests use a simulated one."""
-
-    def now(self) -> float:
-        """Seconds of show time currently being heard."""
-        ...
-
-
-class AudioOutput(Protocol):
-    def start(self, source: AudioSource, from_s: float) -> Clock: ...
-
-    def stop(self) -> None: ...
-
-
-class Player(QObject):
-    """Contract:
-    - play(), pause(), seek(t), seek_photo(index)
-    - frame_ready(image: QImage, t: float) emitted from the GUI thread
-    - state_changed(playing: bool, t: float, photo_index: int)
-    """
-
-    frame_ready = Signal(object, float)
-    state_changed = Signal(bool, float, int)
-
-    def __init__(
-        self,
-        compositor: Compositor,
-        timeline: Timeline,
-        audio: AudioSource | None,
-        output: AudioOutput | None = None,
-        parent: QObject | None = None,
-    ) -> None:
-        super().__init__(parent)
-        raise NotImplementedError("B13")
-
-    def play(self) -> None:
-        raise NotImplementedError("B13")
-
-    def pause(self) -> None:
-        raise NotImplementedError("B13")
-
-    def seek(self, t: float) -> None:
-        raise NotImplementedError("B13")
-
-    def seek_photo(self, index: int) -> None:
-        raise NotImplementedError("B13")
-
-    def refresh(self) -> None:
-        """Redraws the current frame (after an edit while paused)."""
-        raise NotImplementedError("B13")
+__all__ = [
+    "PREVIEW_MAX_SIZE",
+    "AudioOutput",
+    "Clock",
+    "ClockFactory",
+    "Delivery",
+    "FrameScheduler",
+    "FrameSource",
+    "MonotonicClock",
+    "PlayState",
+    "PlaybackLoop",
+    "Player",
+    "Scene",
+    "SoundDeviceOutput",
+    "StreamClock",
+    "photo_index_at",
+    "photo_start",
+    "same_place",
+    "to_qimage",
+]

@@ -259,8 +259,10 @@ class VideoExport(QObject):
 
     def export_to(self, project: Project, dest: Path) -> ExportDialog:
         job = ExportJob(project, dest, self.exporter, self)
-        job.finished.connect(self.finished)
         self.dialog = ExportDialog(job, self._parent)
+        # After the dialog's own connection: slots run in connection order, so whoever listens to
+        # `finished` finds the dialog already showing the result.
+        job.finished.connect(self.finished)
         self.dialog.start()
         return self.dialog
 
