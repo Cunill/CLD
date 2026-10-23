@@ -22,12 +22,13 @@ from PySide6.QtWidgets import QSizePolicy, QWidget
 
 from passimaker.common import PassiMakerError
 from passimaker.ffmpeg import waveform
+from passimaker.model import defaults
 
 _log = logging.getLogger(__name__)
 
 WAVEFORM_POINTS = 600
 """Peaks per song: one every 2 px on a wide panel."""
-TRIM_STEP_S = 0.1
+TRIM_STEP_S = defaults.SONG_TRIM_STEP_S
 """The trim boxes go in tenths of a second; the start stays at least this far from the end."""
 HANDLE_GRAB_PX = 10
 """A press closer than this to a handle takes that handle; elsewhere, the closest one jumps there."""

@@ -207,6 +207,10 @@ missing_files)`, `relink(projecte, carpeta) -> (projecte, nombre)`, `save_recove
 Punt d'entrada `passimaker = passimaker.ui.app:main(argv) -> int`. Només parla amb el controlador, la
 importació, les miniatures, el compositor, el reproductor, l'exportació i `projectio`. Textos amb
 `tr()`; els missatges dels errors del nucli es tradueixen amb `passimaker.i18n.message(clau)`.
+Ampliat al B14 (aprovat per l'usuari el 23/10/2026; resol també el pendent del B11): la interfície pot fer servir
+`passimaker.timeline` (línia de temps, avís d'ajustar a la música i `build_audio_plan`), `passimaker.audio`
+(`prepare`, per escoltar un tros d'una cançó tal com sonarà) i `passimaker.ffmpeg` (`probe` per a la durada de les
+cançons i `waveform` per a la forma d'ona), sempre fora del fil de la interfície quan triguin.
 
 ## 14. Substituts per a les proves (`tests/fakes`)
 

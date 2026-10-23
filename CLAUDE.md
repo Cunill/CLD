@@ -79,8 +79,8 @@ Decisions del B5 aprovades (docs/sessions/B05.md); la nitidesa de la miniatura E
 a Windows (vegeu docs/sessions/B10.md).
 Pendent de decidir del B10: si cancel·lar una importació ha de conservar les fotos ja llegides
 (ara no n'afegeix cap).
-Pendent de decidir del B11: afegir `ffmpeg` (durada de les cançons) i `timeline` (avís d'ajustar) als mòduls que la
-interfície pot fer servir (CONTRACTES §13), o moure `song_from_file` a un mòdul compartit. Prova manual del B11 a
+Decidit el 23/10/2026 (pendent del B11 i desviacions del B14): la interfície pot fer servir `timeline`, `audio` i
+`ffmpeg` (CONTRACTES §13, ampliat), i el pas del retall de les cançons és `defaults.SONG_TRIM_STEP_S`. Prova manual del B11 a
 Windows feta el 23/10/2026 amb el ZIP del B12: correcta.
 Prova manual del B13 a Windows feta el 23/10/2026: correcta (la fosa amb Bluetooth i l'arrossegament de fotos, al M04).
 ZIP portable (B12): la CI el genera a cada PR, fusió a main i etiqueta (artefacte PassiMaker-<versió>-win64; vegeu

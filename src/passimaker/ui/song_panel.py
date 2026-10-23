@@ -37,7 +37,7 @@ from passimaker.model import Change, Fade, Project, ProjectController, Song, def
 from passimaker.model.commands import UpdateSong
 from passimaker.model.editing import song_duration
 from passimaker.preview import AudioOutput, SoundDeviceOutput
-from passimaker.timeline.audio_plan import build_audio_plan
+from passimaker.timeline import build_audio_plan
 from passimaker.ui.formatting import clock
 from passimaker.ui.music_strip import MISSING_COLOUR
 from passimaker.ui.project_panel import PERCENT, number_box, percent_box, seconds_box
