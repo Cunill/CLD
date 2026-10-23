@@ -8,18 +8,36 @@ project enters through ``replace_project``.
 Two cases leave the project different from any file even though the controller's history is
 new: a recovered copy and a relinked project. ``modified`` covers them with its own flag, so the
 title shows the asterisk and closing asks to save.
+
+Each window keeps its recovery copy in a folder of its own inside ``recovery_dir`` (decision
+0010), held with a lock file while the window is open. At start-up only the folders whose lock
+is free are offered: their window crashed (a lock left by a process that no longer runs is
+stale) or is from a version that kept a single copy straight in ``recovery_dir``.
 """
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+import logging
+import shutil
+import uuid
+from collections.abc import Iterator, Sequence
 from contextlib import suppress
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Protocol, cast
 
-from PySide6.QtCore import QObject, QRunnable, QSettings, QStandardPaths, Qt, QThreadPool, QTimer, Signal
+from PySide6.QtCore import (
+    QLockFile,
+    QObject,
+    QRunnable,
+    QSettings,
+    QStandardPaths,
+    Qt,
+    QThreadPool,
+    QTimer,
+    Signal,
+)
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
 from passimaker.common import PassiMakerError
@@ -41,6 +59,12 @@ MAX_RECENT = 8
 """Recent projects kept in the File menu and on the empty screen."""
 RECOVERY_FOLDER = "recuperacio"
 """Inside cache_root(): §1.10, the recovery copy lives outside the project folder."""
+WINDOW_FOLDER_PREFIX = "finestra-"
+"""One folder per open window inside the recovery folder (decision 0010)."""
+LOCK_FILE_NAME = "oberta.lock"
+"""Held by the window that owns the folder; free once it closes or crashes."""
+
+_log = logging.getLogger(__name__)
 ORGANISATION = "PassiMaker"
 APPLICATION = "PassiMaker"
 
@@ -89,6 +113,53 @@ def default_recovery_dir() -> Path:
 
 def with_extension(path: Path) -> Path:
     return path if path.suffix.lower() == EXTENSION else path.with_name(path.name + EXTENSION)
+
+
+def _lock(folder: Path) -> QLockFile | None:
+    """The folder's lock if it is free (no window owns it), already taken; None if a window has it."""
+    lock = QLockFile(str(folder / LOCK_FILE_NAME))
+    # 0: a lock is stale only when the process that wrote it no longer runs, never for its age
+    # (a window can stay open for days).
+    lock.setStaleLockTime(0)
+    return lock if lock.tryLock(0) else None
+
+
+def _orphans(recovery_dir: Path, own: Path) -> Iterator[tuple[Path, QLockFile | None]]:
+    """Recovery folders no open window owns, newest copy first, each with its lock taken.
+
+    ``recovery_dir`` itself comes first if it holds a copy from a version with a single one; it
+    has no lock (None).
+    """
+    if find_recovery(recovery_dir) is not None:
+        yield recovery_dir, None
+    try:
+        folders = [
+            p for p in recovery_dir.iterdir() if p.is_dir() and p.name.startswith(WINDOW_FOLDER_PREFIX)
+        ]
+    except OSError:
+        return
+    found: list[tuple[float, Path, QLockFile]] = []
+    for folder in folders:
+        if folder == own:
+            continue
+        lock = _lock(folder)
+        if lock is None:
+            continue  # another window is open
+        copy = find_recovery(folder)
+        if copy is None:
+            _remove_folder(folder, lock)  # a window that closed without its clean-up
+            continue
+        with suppress(OSError):
+            found.append((copy.stat().st_mtime, folder, lock))
+    found.sort(key=lambda item: item[0], reverse=True)
+    for _, folder, lock in found:
+        yield folder, lock
+
+
+def _remove_folder(folder: Path, lock: QLockFile | None) -> None:
+    if lock is not None:
+        lock.unlock()
+    shutil.rmtree(folder, ignore_errors=True)
 
 
 @dataclass(frozen=True, slots=True)
@@ -142,6 +213,9 @@ class ProjectFiles(QObject):
         self._controller = controller
         self._questions = questions
         self.recovery_dir = recovery_dir if recovery_dir is not None else default_recovery_dir()
+        self.own_recovery_dir = self.recovery_dir / f"{WINDOW_FOLDER_PREFIX}{uuid.uuid4().hex[:12]}"
+        """This window's recovery folder (decision 0010); created on the first copy."""
+        self._own_lock: QLockFile | None = None
         self._settings = settings if settings is not None else user_settings()
         self.path: Path | None = None
         self._detached = False
@@ -313,27 +387,53 @@ class ProjectFiles(QObject):
         project = self._controller.project
         if not project.photos and not project.music.songs:
             return
+        self._save_recovery(project)
+
+    def _save_recovery(self, project: Project) -> None:
         # A recovery copy that cannot be written must not interrupt the user.
-        with suppress(PassiMakerError):
-            save_recovery(project, self.recovery_dir)
+        try:
+            if self._own_lock is None:
+                self.own_recovery_dir.mkdir(parents=True, exist_ok=True)
+                self._own_lock = _lock(self.own_recovery_dir)
+            save_recovery(project, self.own_recovery_dir)
+        except (OSError, PassiMakerError) as error:
+            _log.log(logging.WARNING, "No s'ha pogut desar la còpia de recuperació: %s", error)
 
     def offer_recovery(self) -> bool:
-        """§1.10: after a crash, at start-up. True if a project was recovered."""
-        found = find_recovery(self.recovery_dir)
-        if found is None:
-            return False
-        if not self._questions.offer_recovery():
-            self._clear_recovery()
-            return False
-        try:
-            opened = open_project(found)
-        except PassiMakerError as error:
-            self._questions.show_error(message(error.message_key))
-            self._clear_recovery()
-            return False
-        self._load(opened.project, None, detached=True)
-        self._set_missing(opened.missing_files)
-        return True
+        """§1.10: after a crash, at start-up. True if a project was recovered.
+
+        The copies of the windows that crashed are offered one by one, newest first: a declined
+        copy is deleted, and the first one accepted opens in this window (the rest wait for the
+        next start, since a window holds one project).
+        """
+        for folder, lock in _orphans(self.recovery_dir, self.own_recovery_dir):
+            found = find_recovery(folder)
+            if found is None:
+                continue
+            if not self._questions.offer_recovery():
+                self._discard_orphan(folder, lock)
+                continue
+            try:
+                opened = open_project(found)
+            except PassiMakerError as error:
+                _log.log(logging.WARNING, "Còpia de recuperació il·legible %s: %s", found, error)
+                self._questions.show_error(message(error.message_key))
+                self._discard_orphan(folder, lock)
+                continue
+            self._load(opened.project, None, detached=True)
+            self._set_missing(opened.missing_files)
+            # The copy now belongs to this window: written again before the old one goes.
+            self._save_recovery(opened.project)
+            self._discard_orphan(folder, lock)
+            return True
+        return False
+
+    def _discard_orphan(self, folder: Path, lock: QLockFile | None) -> None:
+        if lock is None:
+            with suppress(PassiMakerError):
+                clear_recovery(folder)
+        else:
+            _remove_folder(folder, lock)
 
     def startup(self, argument: Path | None) -> None:
         """The program starts with a .pmk to open, or offers the recovery copy if there is one."""
@@ -349,10 +449,13 @@ class ProjectFiles(QObject):
         self.wait(5_000)
         self._unsubscribe()
         self._clear_recovery()
+        if self._own_lock is not None:
+            _remove_folder(self.own_recovery_dir, self._own_lock)
+            self._own_lock = None
 
     def _clear_recovery(self) -> None:
         with suppress(PassiMakerError):
-            clear_recovery(self.recovery_dir)
+            clear_recovery(self.own_recovery_dir)
 
     # --- Recent projects -------------------------------------------------------------------------
 

@@ -92,11 +92,11 @@ def test_the_progress_is_shown_and_counts_up(qtbot: QtBot, window: MainWindow, t
     assert not window.progress_widget.isVisible()
 
 
-def test_cancelling_an_import_adds_nothing(
+def test_cancelling_an_import_keeps_the_photos_already_read(
     qtbot: QtBot, window: MainWindow, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     files = write_photos(tmp_path / "moltes", [f"f_{i:03d}.jpg" for i in range(150)])
-    # Cancelling on the first progress report stops the scan halfway, as the button does. It is done
+    # Cancelling once the first photo is read stops the scan halfway, as the button does. It is done
     # in the scanning thread: the report reaches the window later, and on a busy computer the 150
     # photos could all be read by then (the test failed now and then in the whole suite).
     real_import = importing.import_paths
@@ -105,15 +105,19 @@ def test_cancelling_an_import_adds_nothing(
         paths: object, *, cancel: CancelToken, progress: object, **kwargs: object
     ) -> object:
         def report(done: int, total: int) -> None:
-            cancel.cancel()
+            if done:
+                cancel.cancel()
             progress(done, total)  # pyright: ignore[reportCallIssue]
 
         return real_import(paths, cancel=cancel, progress=report, **kwargs)  # pyright: ignore[reportArgumentType]
 
     monkeypatch.setattr(importing, "import_paths", cancelled_halfway)
     added = import_and_wait(qtbot, window, files)
-    assert added == 0
-    assert window.controller.project.photos == ()
+    # Decision 0010: the photos read before cancelling are added, in order; the rest are not.
+    photos = window.controller.project.photos
+    assert 0 < added == len(photos) < len(files)
+    names = [photo.path.name for photo in photos]
+    assert names == sorted(names)
     assert not window.progress_widget.isVisible()
 
 

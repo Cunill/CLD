@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import shutil
 from pathlib import Path
 
@@ -12,10 +13,10 @@ from pytestqt.qtbot import QtBot
 
 from passimaker.model import Photo, ProjectController, Song
 from passimaker.model.commands import AddPhotos, AddSongs, SetDefaultDuration
-from passimaker.projectio import find_recovery, open_project, save_project
+from passimaker.projectio import find_recovery, open_project, save_project, save_recovery
 from passimaker.ui.main_window import MainWindow
 from passimaker.ui.music_strip import read_song
-from passimaker.ui.project_files import SaveAnswer, default_recovery_dir
+from passimaker.ui.project_files import LOCK_FILE_NAME, SaveAnswer, default_recovery_dir
 from tests.ui.conftest import build_window
 from tests.ui.helpers import (
     FakeThumbnailService,
@@ -151,6 +152,27 @@ def test_recent_projects_appear_on_the_empty_screen(
 # --- Recovery after a crash (§1.10) ---------------------------------------------------------------
 
 
+def simulate_crash(window: MainWindow) -> Path:
+    """The window disappears without its closeEvent (no question, no clean-up). Its process is
+    gone, so its lock file names a process that no longer runs: QLockFile treats it as stale."""
+    folder = window.files.own_recovery_dir
+    window.files.autosave_timer.stop()
+    lock = window.files._own_lock  # pyright: ignore[reportPrivateUsage]
+    assert lock is not None
+    # Qt's own lock file (process id, program, host…) with the id of a process that does not run.
+    lines = (folder / LOCK_FILE_NAME).read_bytes().split(b"\n")
+    lock.unlock()
+    (folder / LOCK_FILE_NAME).write_bytes(b"\n".join([str(DEAD_PID).encode(), *lines[1:]]))
+    window.files._own_lock = None  # pyright: ignore[reportPrivateUsage]
+    window.hide()
+    window.deleteLater()
+    return folder
+
+
+DEAD_PID = 2_000_000_000
+"""Larger than any process id Windows or Linux hands out."""
+
+
 def test_recovery_after_a_simulated_crash(
     qtbot: QtBot, thumbnails: FakeThumbnailService, tmp_path: Path
 ) -> None:
@@ -159,12 +181,8 @@ def test_recovery_after_a_simulated_crash(
     crashed.controller.execute(SetDefaultDuration(2.5))
     assert crashed.files.autosave_timer.interval() == 120_000  # §1.10: every 2 minutes
     crashed.files.autosave()  # what the timer does
-    recovery = find_recovery(default_recovery_dir())
-    assert recovery is not None
-    # The crash: the window disappears without its closeEvent (no question, no clean-up).
-    crashed.files.autosave_timer.stop()
-    crashed.hide()
-    crashed.deleteLater()
+    assert find_recovery(crashed.files.own_recovery_dir) is not None
+    old_folder = simulate_crash(crashed)
 
     questions = RecordedQuestions(photos=[])
     reopened = build_window(qtbot, controller_with(0), thumbnails, questions)
@@ -174,36 +192,103 @@ def test_recovery_after_a_simulated_crash(
     assert len(project.photos) == 7
     assert project.default_duration_s == 2.5
     assert reopened.isWindowModified()  # a recovered project is not saved anywhere yet
+    # The copy moved to the new window's folder: a second crash would not lose it.
+    assert not old_folder.exists()
+    assert find_recovery(reopened.files.own_recovery_dir) is not None
     questions.save_path = tmp_path / "recuperat.pmk"
     reopened.save_action.trigger()
-    assert find_recovery(default_recovery_dir()) is None
+    assert find_recovery(reopened.files.own_recovery_dir) is None
     reopened.close()
 
 
-def test_declining_the_recovery_deletes_it(
-    qtbot: QtBot, thumbnails: FakeThumbnailService, window_with_photos: MainWindow
-) -> None:
-    window_with_photos.files.autosave()
-    assert find_recovery(default_recovery_dir()) is not None
+def test_declining_the_recovery_deletes_it(qtbot: QtBot, thumbnails: FakeThumbnailService) -> None:
+    crashed = build_window(qtbot, controller_with(3), thumbnails, RecordedQuestions())
+    crashed.controller.execute(SetDefaultDuration(2.5))
+    crashed.files.autosave()
+    folder = simulate_crash(crashed)
     questions = RecordedQuestions()
     questions.recover = False
     window = build_window(qtbot, controller_with(0), thumbnails, questions)
     window.files.startup(None)
+    assert questions.offered_recovery == 1
     assert window.controller.project.photos == ()
-    assert find_recovery(default_recovery_dir()) is None
+    assert not folder.exists()
     window.close()
 
 
 def test_a_clean_exit_leaves_no_recovery(window_with_photos: MainWindow) -> None:
     window_with_photos.files.autosave()
-    assert find_recovery(default_recovery_dir()) is not None
+    folder = window_with_photos.files.own_recovery_dir
+    assert find_recovery(folder) is not None
     window_with_photos.close()  # the questions answer "No desar"
-    assert find_recovery(default_recovery_dir()) is None
+    assert not folder.exists()
+    assert list(default_recovery_dir().iterdir()) == []
 
 
 def test_nothing_is_copied_without_changes(window: MainWindow) -> None:
     window.files.autosave()
-    assert find_recovery(default_recovery_dir()) is None
+    assert find_recovery(window.files.own_recovery_dir) is None
+
+
+def test_two_open_windows_keep_their_own_copy(
+    qtbot: QtBot, thumbnails: FakeThumbnailService, window_with_photos: MainWindow
+) -> None:
+    """Decision 0010: a second window neither offers nor overwrites the copy of one still open."""
+    window_with_photos.files.autosave()
+    first_copy = find_recovery(window_with_photos.files.own_recovery_dir)
+    assert first_copy is not None
+    before = first_copy.read_bytes()
+    questions = RecordedQuestions()
+    second = build_window(qtbot, controller_with(2), thumbnails, questions)
+    second.files.startup(None)
+    assert questions.offered_recovery == 0
+    second.controller.execute(SetDefaultDuration(7.0))
+    second.files.autosave()
+    assert second.files.own_recovery_dir != window_with_photos.files.own_recovery_dir
+    assert first_copy.read_bytes() == before
+    second.close()
+    assert first_copy.exists()
+
+
+def test_the_copies_of_two_crashed_windows_are_offered_newest_first(
+    qtbot: QtBot, thumbnails: FakeThumbnailService
+) -> None:
+    folders: list[Path] = []
+    for count in (2, 5):
+        crashed = build_window(qtbot, controller_with(count), thumbnails, RecordedQuestions())
+        crashed.controller.execute(SetDefaultDuration(3.0))
+        crashed.files.autosave()
+        folders.append(simulate_crash(crashed))
+    older = find_recovery(folders[0])
+    assert older is not None
+    os.utime(older, (1_000_000_000, 1_000_000_000))
+
+    questions = RecordedQuestions(photos=[])
+    window = build_window(qtbot, controller_with(0), thumbnails, questions)
+    window.files.startup(None)
+    assert questions.offered_recovery == 1
+    assert len(window.controller.project.photos) == 5  # the newest
+    assert folders[0].exists()  # waits for the next start
+    window.close()
+
+    questions = RecordedQuestions(photos=[])
+    window = build_window(qtbot, controller_with(0), thumbnails, questions)
+    window.files.startup(None)
+    assert len(window.controller.project.photos) == 2
+    window.close()
+
+
+def test_a_copy_from_the_single_copy_version_is_still_offered(
+    qtbot: QtBot, thumbnails: FakeThumbnailService
+) -> None:
+    root = default_recovery_dir()
+    save_recovery(controller_with(4).project, root)
+    questions = RecordedQuestions(photos=[])
+    window = build_window(qtbot, controller_with(0), thumbnails, questions)
+    window.files.startup(None)
+    assert len(window.controller.project.photos) == 4
+    assert find_recovery(root) is None
+    window.close()
 
 
 # --- Relinking (§1.10) ----------------------------------------------------------------------------
