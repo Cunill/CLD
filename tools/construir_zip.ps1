@@ -50,7 +50,10 @@ try {
     $App = Join-Path $Dist $Folder
     Rename-Item (Join-Path $Dist $Name) $Folder
     $Required = @($Exe)
-    if ($IsWindows) { $Required += @("bin/ffmpeg$ExeSuffix", "bin/ffprobe$ExeSuffix") }
+    if ($IsWindows) {
+        # PortAudio, for the sound of the preview (B13): bin/_sounddevice_data/portaudio-binaries.
+        $Required += @("bin/ffmpeg$ExeSuffix", "bin/ffprobe$ExeSuffix", 'bin/_sounddevice_data/portaudio-binaries')
+    }
     foreach ($File in $Required) {
         if (-not (Test-Path (Join-Path $App $File))) { throw "Falta $File a la carpeta del programa" }
     }

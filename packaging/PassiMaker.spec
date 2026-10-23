@@ -64,7 +64,9 @@ a = Analysis(
     pathex=[str(ROOT / "src")],
     binaries=[],
     datas=datas,
-    hiddenimports=[],
+    # passimaker.preview.sound imports sounddevice with importlib (so a PC without PortAudio still starts):
+    # PyInstaller cannot see it. Its hook brings PortAudio (bin/_sounddevice_data).
+    hiddenimports=["sounddevice"],
     excludes=EXCLUDES,
     noarchive=False,
 )

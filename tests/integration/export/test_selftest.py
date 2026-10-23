@@ -46,6 +46,7 @@ def test_selftest_exports_five_seconds(tmp_path: Path) -> None:
     assert (kept / "autoprova.pmk").is_file()
     text = report.read_text(encoding="utf-8")
     assert "Autoprova correcta" in text
+    assert "So: PortAudio" in text
     assert "Vídeo desat" in text
 
 
@@ -59,6 +60,25 @@ def test_selftest_fails_without_ffmpeg(
     assert "No s'ha trobat FFmpeg" in report.read_text(encoding="utf-8")
     assert "No s'ha trobat FFmpeg" in capsys.readouterr().err  # the report is also written to stderr
     assert sorted(p.name for p in tmp_path.iterdir()) == ["autoprova.txt"]  # the temporary folder is deleted
+
+
+def test_selftest_fails_without_portaudio(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The packaged program must carry PortAudio, or the preview would play without sound (B13)."""
+    real_import = cli.importlib.import_module
+
+    def no_sounddevice(name: str) -> object:
+        if name == "sounddevice":
+            raise OSError("PortAudio library not found")
+        return real_import(name)
+
+    monkeypatch.setattr(cli.importlib, "import_module", no_sounddevice)
+    report = tmp_path / "autoprova.txt"
+    assert cli.main_selftest(["--informe", str(report)]) == cli.EXIT_ERROR
+    assert "PortAudio" in report.read_text(encoding="utf-8")
+
+
+def test_portaudio_is_found() -> None:
+    assert cli.portaudio_version() is not None
 
 
 def test_selftest_detects_a_wrong_video(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

@@ -10,6 +10,7 @@ its own and exports 5 s of video without opening the window.
 from __future__ import annotations
 
 import argparse
+import importlib
 import logging
 import secrets
 import shutil
@@ -20,7 +21,7 @@ import time
 import wave
 from collections.abc import Sequence
 from pathlib import Path
-from typing import TextIO, cast
+from typing import Any, TextIO, cast
 
 import numpy as np
 from PIL import Image
@@ -358,6 +359,18 @@ def self_test(work_dir: Path, *, err: TextIO | None = None) -> int:
     try:
         paths = locate()
         print(f"  FFmpeg: {paths.ffmpeg}", file=out)
+    except PassiMakerError as error:
+        print(_error_text(error.message_key, error.detail), file=out)
+        return EXIT_ERROR
+    portaudio = portaudio_version()
+    if portaudio is None:
+        print(
+            "Autoprova incorrecta: no es pot carregar PortAudio (la previsualització aniria sense so).",
+            file=out,
+        )
+        return EXIT_ERROR
+    print(f"  So: {portaudio}", file=out)
+    try:
         photos, song = write_selftest_files(work_dir)
         project = new_project(
             photos, [song], name=_SELF_TEST_NAME, fit_to_music=True, seed=SELF_TEST_SEED, err=out
@@ -391,6 +404,16 @@ def self_test(work_dir: Path, *, err: TextIO | None = None) -> int:
         file=out,
     )
     return EXIT_OK
+
+
+def portaudio_version() -> str | None:
+    """The PortAudio library the preview plays through (B13), or None if it cannot be loaded. Only loads
+    it: the self-test does not need a sound device (the CI has none)."""
+    try:
+        sounddevice: Any = importlib.import_module("sounddevice")
+        return str(sounddevice.get_portaudio_version()[1])
+    except (ImportError, OSError):
+        return None
 
 
 class _Tee:
