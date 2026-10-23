@@ -81,4 +81,6 @@ Pendent de decidir del B10: si cancel·lar una importació ha de conservar les f
 Pendent de decidir del B11: afegir `ffmpeg` (durada de les cançons) i `timeline` (avís d'ajustar) als mòduls que la
 interfície pot fer servir (CONTRACTES §13), o moure `song_from_file` a un mòdul compartit. Prova manual del B11 a
 Windows pendent (docs/sessions/B11.md).
+B12 (empaquetat portable): llest per fusionar, PR #33, CI en verd (ZIP de 138 MB, autoprova i finestra provades
+a Windows); vegeu docs/sessions/B12.md.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
