@@ -79,7 +79,7 @@
   - Les fotos noves van al final, o al punt on es deixen anar si s'arrosseguen sobre el storyboard.
   - El menú "Ordenar per data / per nom" les torna a ordenar totes.
 - En importar-la, cada foto rep la durada general, l'encaix automàtic i un moviment sortejat.
-- La importació és progressiva i es pot cancel·lar.
+- La importació és progressiva i es pot cancel·lar. En cancel·lar, s'afegeixen les fotos que ja s'havien llegit (decisió 0010).
 
 **Casos límit**
 
@@ -271,7 +271,7 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 
 - El projecte es desa en un fitxer `.pmk` (text estructurat i llegible) amb tots els ajustos i les rutes de les fotos i les cançons. Els fitxers originals no es copien.
 - Desar (Ctrl+S), Desar com a…, Obrir (Ctrl+O) i llista de projectes recents a la pantalla inicial. El títol de la finestra mostra el nom del projecte, amb un asterisc si hi ha canvis sense desar. En tancar, el programa pregunta si es volen desar.
-- Cada 2 minuts es fa una còpia de recuperació, fora de la carpeta del projecte. Si el programa es tanca de cop, en tornar-lo a obrir ofereix recuperar el projecte.
+- Cada 2 minuts es fa una còpia de recuperació, fora de la carpeta del projecte. Si el programa es tanca de cop, en tornar-lo a obrir ofereix recuperar el projecte. Cada finestra té la seva còpia: una finestra oberta no esborra ni substitueix la d'una altra (decisió 0010).
 - Les rutes es desen de dues maneres: relatives al fitxer del projecte i absolutes. Si es mou tota la carpeta (projecte i fotos), el projecte continua funcionant.
 - Fitxers que no es troben: "No es troben 12 fitxers. [Cercar en una carpeta…]". El programa els torna a enllaçar automàticament pel nom.
 - El format porta un número de versió. Si s'obre un projecte fet amb una versió més nova del programa, surt un missatge clar en lloc d'una fallada.
