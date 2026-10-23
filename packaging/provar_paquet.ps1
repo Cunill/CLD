@@ -137,6 +137,14 @@ try {
                 $Failures.Add("No s'ha creat $Place")
             }
         }
+        # B15: el registre d'errors es crea en obrir la finestra.
+        $Log = Join-Path $Cache 'logs\passimaker.log'
+        if (Test-Path $Log) {
+            Write-Host "  Registre: $Log"
+        }
+        else {
+            $Failures.Add("No s'ha creat el registre $Log")
+        }
     }
 
     if ($Failures.Count) {
