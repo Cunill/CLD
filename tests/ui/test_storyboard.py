@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import pytest
-from PySide6.QtCore import QMimeData, QPoint, Qt
+from PySide6.QtCore import QMimeData, QPoint, QPointF, Qt
+from PySide6.QtGui import QDragEnterEvent, QDragLeaveEvent, QDragMoveEvent, QDropEvent, QPalette
+from PySide6.QtWidgets import QApplication
 from pytestqt.qtbot import QtBot
 
 from passimaker.model import MotionType
 from passimaker.ui.main_window import CONFIRM_DELETE_FROM, MainWindow
 from passimaker.ui.photos import PHOTO_MIME, PhotoRole
+from passimaker.ui.storyboard import SPACING
+from tests.ui.conftest import build_window, controller_with
 from tests.ui.helpers import RecordedQuestions
 
 pytestmark = pytest.mark.ui
@@ -23,6 +27,32 @@ def drop_photos(window: MainWindow, photo_ids: list[str], row: int) -> None:
     data = QMimeData()
     data.setData(PHOTO_MIME, "\n".join(photo_ids).encode("utf-8"))
     window.view.model().dropMimeData(data, Qt.DropAction.MoveAction, row, 0, window.model.index(-1, -1))
+
+
+_MOVE, _LEFT, _NO_KEYS = Qt.DropAction.MoveAction, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier
+
+
+def drag_over(window: MainWindow, photo_ids: list[str], to: QPoint) -> tuple[QMimeData, bool, Qt.DropAction]:
+    """Imitates what Qt delivers to the grid while photos are dragged over it: enter, then move to `to`.
+
+    Returns the dragged data, whether the move was accepted and with which action (M04: the grid used
+    to refuse every drag of its own photos, and the tests that only imitate letting go did not notice).
+    """
+    view = window.view
+    data = view.model().mimeData([window.model.index(window.model.row_of(pid), 0) for pid in photo_ids])
+    QApplication.sendEvent(view.viewport(), QDragEnterEvent(to, _MOVE, data, _LEFT, _NO_KEYS))
+    move = QDragMoveEvent(to, _MOVE, data, _LEFT, _NO_KEYS)
+    QApplication.sendEvent(view.viewport(), move)
+    return data, move.isAccepted(), move.dropAction()
+
+
+def drag_photos_with_the_mouse(
+    window: MainWindow, photo_ids: list[str], to: QPoint
+) -> tuple[bool, Qt.DropAction]:
+    """The whole gesture: drag over the grid to `to` and let go there."""
+    data, accepted, action = drag_over(window, photo_ids, to)
+    QApplication.sendEvent(window.view.viewport(), QDropEvent(QPointF(to), _MOVE, data, _LEFT, _NO_KEYS))
+    return accepted, action
 
 
 def test_the_photos_are_shown_in_order_with_their_duration(window_with_photos: MainWindow) -> None:
@@ -48,6 +78,111 @@ def test_dragging_several_photos_keeps_their_order(window_with_photos: MainWindo
     assert moved.index(before[1]) + 1 == moved.index(before[2])
     assert moved[:1] == before[:1]
     assert moved[1:4] == [before[3], before[4], before[5]]
+
+
+def test_dragging_with_the_mouse_moves_the_photo(window_with_photos: MainWindow) -> None:
+    window = window_with_photos
+    before = ids_of(window)
+    cell = window.view.visualRect(window.model.index(4, 0))
+    accepted, action = drag_photos_with_the_mouse(
+        window, [before[0]], QPoint(cell.left() + 3, cell.center().y())
+    )
+    assert accepted
+    assert action == Qt.DropAction.MoveAction
+    assert ids_of(window) == [*before[1:4], before[0], *before[4:]]
+
+
+def test_dragging_with_the_mouse_to_the_right_half_of_a_photo_puts_it_after(
+    window_with_photos: MainWindow,
+) -> None:
+    window = window_with_photos
+    before = ids_of(window)
+    cell = window.view.visualRect(window.model.index(6, 0))
+    drag_photos_with_the_mouse(window, [before[1], before[2]], QPoint(cell.right() - 3, cell.center().y()))
+    assert ids_of(window) == [before[0], *before[3:7], before[1], before[2], *before[7:]]
+
+
+def test_a_line_shows_where_the_dragged_photos_will_go(window_with_photos: MainWindow, qtbot: QtBot) -> None:
+    window = window_with_photos
+    view = window.view
+    window.show()
+    qtbot.waitExposed(window)
+    ids = ids_of(window)
+    cell = view.visualRect(window.model.index(3, 0))
+    drag_over(window, [ids[0]], QPoint(cell.left() + 3, cell.center().y()))
+    line = view.insertion_line()
+    assert line is not None
+    assert line.height() > 0 and line.width() <= 4
+    assert cell.left() - SPACING - 4 <= line.center().x() <= cell.left() + 2
+    # The line is drawn: the pixel in its middle has the highlight colour.
+    image = view.viewport().grab().toImage()
+    colour = view.palette().color(QPalette.ColorRole.Highlight)
+    assert image.pixelColor(line.center()).rgb() == colour.rgb()
+    QApplication.sendEvent(view.viewport(), QDragLeaveEvent())
+    assert view.insertion_line() is None
+    assert ids_of(window) == ids  # leaving the grid moves nothing
+
+
+def test_letting_go_between_two_photos_puts_it_between_them(window_with_photos: MainWindow) -> None:
+    window = window_with_photos
+    before = ids_of(window)
+    left_cell = window.view.visualRect(window.model.index(3, 0))
+    right_cell = window.view.visualRect(window.model.index(4, 0))
+    assert right_cell.left() - left_cell.right() > 1  # there is a gap
+    gap = QPoint((left_cell.right() + right_cell.left()) // 2, left_cell.center().y())
+    drag_photos_with_the_mouse(window, [before[0]], gap)
+    assert ids_of(window) == [*before[1:4], before[0], *before[4:]]
+
+
+def test_letting_go_after_the_end_of_a_line_of_the_grid_puts_it_after_its_last_photo(
+    window_with_photos: MainWindow,
+) -> None:
+    window = window_with_photos
+    view = window.view
+    before = ids_of(window)
+    columns = view.viewport().width() // view.gridSize().width()
+    last_of_line = view.visualRect(window.model.index(columns - 1, 0))
+    empty = QPoint(view.viewport().width() - 2, last_of_line.center().y())
+    assert not view.indexAt(empty).isValid()
+    drag_photos_with_the_mouse(window, [before[0]], empty)
+    assert ids_of(window).index(before[0]) == columns - 1  # just after the line's last photo
+
+
+def test_the_line_stays_on_the_line_of_the_grid_under_the_cursor(window_with_photos: MainWindow) -> None:
+    window = window_with_photos
+    view = window.view
+    columns = view.viewport().width() // view.gridSize().width()
+    last_of_line = view.visualRect(window.model.index(columns - 1, 0))
+    drag_over(window, [ids_of(window)[0]], QPoint(last_of_line.right() - 3, last_of_line.center().y()))
+    line = view.insertion_line()
+    assert line is not None
+    assert line.top() == last_of_line.top()  # not at the start of the next line
+    assert last_of_line.right() <= line.left() <= last_of_line.right() + SPACING
+    QApplication.sendEvent(view.viewport(), QDragLeaveEvent())
+
+
+def test_letting_go_where_the_photo_was_changes_nothing(window_with_photos: MainWindow) -> None:
+    window = window_with_photos
+    window.controller.mark_saved()
+    project = window.controller.project
+    own = window.view.visualRect(window.model.index(2, 0))
+    drag_photos_with_the_mouse(window, [ids_of(window)[2]], QPoint(own.left() + 3, own.center().y()))
+    assert window.controller.project is project  # no command: nothing to undo
+    assert not window.controller.has_unsaved_changes
+
+
+def test_dragging_near_the_bottom_edge_scrolls_the_grid(qtbot: QtBot, thumbnails, questions) -> None:
+    window = build_window(qtbot, controller_with(200), thumbnails, questions)
+    window.show()
+    qtbot.waitExposed(window)
+    view = window.view
+    bar = view.verticalScrollBar()
+    assert bar.maximum() > 0 and bar.value() == 0
+    near_bottom = QPoint(view.viewport().width() // 2, view.viewport().height() - 2)
+    drag_over(window, [ids_of(window)[0]], near_bottom)
+    qtbot.waitUntil(lambda: bar.value() > 0, timeout=2000)
+    QApplication.sendEvent(view.viewport(), QDragLeaveEvent())
+    window.close()
 
 
 def test_undo_puts_the_photos_back(window_with_photos: MainWindow) -> None:

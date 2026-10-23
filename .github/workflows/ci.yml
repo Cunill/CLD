@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
+    tags: ["v*"]
   workflow_dispatch:
 
 concurrency:
@@ -68,5 +69,56 @@ jobs:
         with:
           name: artefactes-proves
           path: tests/_artefactes/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  paquet-windows:
+    # B12: el ZIP portable, provat en aquest mateix Windows sense Python instal·lat (PyInstaller porta el seu).
+    # Es genera a cada PR, a cada fusió a main i a cada etiqueta; es descarrega des de la pàgina de l'execució
+    # (Actions → CI → l'execució → Artifacts → PassiMaker-<versió>-win64).
+    name: Paquet (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instal·lar uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.32"
+          enable-cache: true
+
+      - name: Memòria cau d'FFmpeg
+        uses: actions/cache@v4
+        with:
+          path: vendor/ffmpeg
+          key: ffmpeg-${{ runner.os }}-${{ hashFiles('tools/obtenir_ffmpeg.ps1') }}
+
+      - name: Construir el ZIP
+        id: zip
+        shell: pwsh
+        run: ./tools/construir_zip.ps1 -Sortida dist
+
+      - name: Provar el ZIP
+        shell: pwsh
+        run: ./packaging/provar_paquet.ps1 -Zip "${{ steps.zip.outputs.zip }}" -Informes _paquet
+
+      - name: Publicar el ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.zip.outputs.nom }}
+          path: ${{ steps.zip.outputs.zip }}
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+
+      - name: Informe de l'autoprova
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autoprova
+          path: _paquet/
           if-no-files-found: ignore
           retention-days: 14

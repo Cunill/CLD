@@ -22,6 +22,9 @@ AUDIO_BUFFER_BLOCKS = 8
 """Blocks mixed ahead of the sound card (~170 ms): the sound never stops if a frame is slow."""
 AUDIO_LATENCY = "high"
 """PortAudio latency setting: the stable choice on every Windows driver; the clock compensates it."""
+KEEP_OPEN_S = 60.0
+"""After a pause the sound stream stays open (playing silence) this long, so pressing play again does
+not make Bluetooth headphones fade in; after that it is closed so Windows can sleep."""
 
 THREAD_JOIN_TIMEOUT_S = 5.0
 """How long close() waits for the render thread (it only waits for the frame being drawn)."""
