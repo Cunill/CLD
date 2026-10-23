@@ -77,6 +77,8 @@ def photo_start(timeline: Timeline, index: int) -> float:
 
     That is the end of its crossfade (or of the fade from black, for the first photo), so a
     still preview shows the photo itself and not a mix with the previous one or a black frame.
+    It is a frame instant (the first frame at or after that end): a shortened crossfade does not
+    end on a frame, and the frame before it would still mix in the previous photo.
     """
     if not timeline.slots:
         return 0.0
@@ -85,7 +87,12 @@ def photo_start(timeline: Timeline, index: int) -> float:
     black = timeline.fade_from_black
     if black is not None and black.end < slot.slot_end:
         start = max(start, black.end)
-    return min(max(start, slot.slot_start), slot.slot_end)
+    start = min(max(start, slot.slot_start), slot.slot_end)
+    frame = time_to_frame(start, timeline.fps)
+    if frame_to_time(frame, timeline.fps) < start:
+        frame += 1
+    on_frame = frame_to_time(frame, timeline.fps)
+    return on_frame if on_frame <= slot.slot_end else start
 
 
 def same_place(old: Timeline, new: Timeline, t: float) -> float | None:

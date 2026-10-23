@@ -10,6 +10,7 @@ import statistics
 
 import pytest
 
+from passimaker.model.commands import SetDefaultDuration
 from passimaker.preview import (
     Delivery,
     PlaybackLoop,
@@ -19,10 +20,11 @@ from passimaker.preview import (
     photo_start,
     same_place,
 )
-from passimaker.timeline import Timeline, frame_to_time, time_to_frame
+from passimaker.timeline import Timeline, compute_timeline, frame_to_time, query, time_to_frame
 from tests.fakes.audio import ToneAudioSource
 from tests.fakes.clock import SimulatedClock
 from tests.fakes.timeline import fixed_timeline
+from tests.ui.helpers import controller_with
 from tests.unit.preview.fakes import FakeAudioOutput, SimulatedClockFactory, SlowFrames
 
 FPS = 30
@@ -378,3 +380,17 @@ def test_same_place_keeps_the_photo_after_a_change_of_duration() -> None:
     )
     # A photo that is gone: no place.
     assert same_place(old, timeline_of(count=2), middle) is None
+
+
+@pytest.mark.parametrize("duration_s", [1.0, 1.5, 2.0, 2.3, 3.0])
+def test_photo_start_is_a_frame_that_shows_only_that_photo(duration_s: float) -> None:
+    """Short photos get a shortened crossfade that does not end on a frame (1.5 s: 0.733 s)."""
+    controller = controller_with(8)
+    controller.execute(SetDefaultDuration(duration_s))
+    timeline = compute_timeline(controller.project)
+    for index, slot in enumerate(timeline.slots):
+        t = photo_start(timeline, index)
+        assert t == frame_to_time(time_to_frame(t, FPS), FPS)
+        visibles = query(timeline, t)
+        # Only that photo is drawn (the black fades of the start and end may still darken it).
+        assert [layer.photo_id for layer in visibles.layers] == [slot.photo_id]
