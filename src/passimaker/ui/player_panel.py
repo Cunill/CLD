@@ -62,6 +62,8 @@ type AudioPreparer = Callable[[Project], AudioSource | None]
 
 MIN_FRAME_SIDE = 16
 CONTROL_ICON = QSize(20, 20)
+AUDIO_JOIN_TIMEOUT_S = 10.0
+"""Closing waits this long at most for the music being prepared (decoding is cached on disk)."""
 RECENT_INTERMEDIATES = 8
 """Intermediates kept in memory by the panel (~6 MB each): see RecentIntermediates."""
 
@@ -193,6 +195,8 @@ class PlayerPanel(QWidget):
         self._prepare_audio = audio_preparer
         self._audio: AudioSource | None = None
         self._audio_generation = 0
+        self._audio_project: Project | None = None
+        """Project version whose music is prepared or being prepared."""
         self._audio_threads: list[threading.Thread] = []
         self._audio_signals = _AudioSignals(self)
         self._audio_signals.ready.connect(self._on_audio_ready)
@@ -297,15 +301,20 @@ class PlayerPanel(QWidget):
                 self.player.seek_photo(slot.index)
                 return
 
-    def reload_audio(self) -> None:
+    def reload_audio(self, *, only_if_changed: bool = False) -> None:
         """Prepares the music again and gives it to the player (for a change of the music).
 
         The panel already does it when the controller reports a change of the music or of the
-        timing; this is for changes the controller cannot see (B11: a song found again on disk).
+        timing. With `only_if_changed` nothing is done if the music of this very project version
+        is already prepared or being prepared (MainWindow.music_changed arrives together with
+        that report); without it, the songs are read again (a song found again on disk).
         """
+        project = self._controller.project
+        if only_if_changed and project is self._audio_project:
+            return
+        self._audio_project = project
         self._audio_generation += 1
         generation = self._audio_generation
-        project = self._controller.project
         if not project.music.songs:
             self._on_audio_ready(generation, None)
             return
@@ -332,9 +341,16 @@ class PlayerPanel(QWidget):
         return self.player.wait_idle(timeout_ms / 1000)
 
     def close_panel(self) -> None:
+        """Stops the player and waits for the music being prepared (it cannot be interrupted).
+
+        Nothing of the panel outlives the window: a preparation left running would keep decoding
+        songs with FFmpeg after the window has closed.
+        """
         self._unsubscribe()
         self._audio_generation += 1
         self.player.close()
+        for thread in self._audio_threads:
+            thread.join(AUDIO_JOIN_TIMEOUT_S)
 
     # --- Reactions -------------------------------------------------------------------------------
 
@@ -345,7 +361,7 @@ class PlayerPanel(QWidget):
         if changes & {Change.MUSIC, Change.TIMING, Change.PHOTOS, Change.SETTINGS} and (
             self._controller.project.music.songs or self._audio is not None
         ):
-            self.reload_audio()
+            self.reload_audio(only_if_changed=True)
 
     def _rebuild(self) -> None:
         project = self._controller.project

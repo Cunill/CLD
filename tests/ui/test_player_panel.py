@@ -6,6 +6,7 @@ music). The tests that need the sound build the panel alone with a simulated sou
 
 from __future__ import annotations
 
+import threading
 import time
 from collections.abc import Iterator
 from pathlib import Path
@@ -392,3 +393,55 @@ def test_closing_the_window_stops_the_player(qtbot: QtBot, window_with_photos: M
     qtbot.wait(100)
     window_with_photos.close()
     assert not panel.player._thread.is_alive()  # pyright: ignore[reportPrivateUsage]
+
+
+def test_the_music_is_prepared_once_per_change_and_again_when_asked(qtbot: QtBot) -> None:
+    controller = controller_with(3)
+    prepared: list[Project] = []
+
+    def preparer(project: Project) -> AudioSource | None:
+        prepared.append(project)
+        return ToneAudioSource(30.0)
+
+    panel = PlayerPanel(controller, images(), output=FakeAudioOutput(), audio_preparer=preparer)
+    qtbot.addWidget(panel)
+    try:
+        controller.execute(AddSongs((song(1),)))
+        panel.reload_audio(only_if_changed=True)  # MainWindow.music_changed, right after the change
+        panel.wait(TIMEOUT_MS)
+        assert prepared == [controller.project]
+        panel.reload_audio()  # a song found again on disk: read again
+        panel.wait(TIMEOUT_MS)
+        assert len(prepared) == 2
+    finally:
+        panel.close_panel()
+
+
+def test_the_window_connects_music_changed_to_the_player(qtbot: QtBot, window: MainWindow) -> None:
+    calls: list[bool] = []
+    original = window.player_panel.reload_audio
+
+    def spy(*, only_if_changed: bool = False) -> None:
+        calls.append(only_if_changed)
+        original(only_if_changed=only_if_changed)
+
+    window.player_panel.reload_audio = spy  # type: ignore[method-assign]
+    window.music_changed.emit()
+    assert calls == [True]
+
+
+def test_closing_waits_for_the_music_being_prepared(qtbot: QtBot) -> None:
+    controller = controller_with(2)
+    controller.execute(AddSongs((song(1),)))
+    release = threading.Event()
+
+    def slow_preparer(project: Project) -> AudioSource | None:
+        release.wait(5.0)
+        return ToneAudioSource(10.0)
+
+    panel = PlayerPanel(controller, images(), output=FakeAudioOutput(), audio_preparer=slow_preparer)
+    qtbot.addWidget(panel)
+    assert any(t.name == "passimaker-preview-audio" and t.is_alive() for t in threading.enumerate())
+    threading.Timer(0.2, release.set).start()
+    panel.close_panel()
+    assert not any(t.name == "passimaker-preview-audio" and t.is_alive() for t in threading.enumerate())
