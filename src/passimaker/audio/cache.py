@@ -4,6 +4,10 @@ Each song is decoded whole (not trimmed): changing the trim, the fades or the vo
 decode it again. The key is the absolute path, the size and the modification time of the file;
 if the file changes, it gets a new key. Files are written under a temporary name and renamed,
 so another thread or process never reads a half-written file.
+
+The folder stays under ``CACHE_LIMIT_BYTES``: after a song is decoded, the songs used least
+recently (modification time, refreshed on every use) are deleted, except the ones this process
+has in use.
 """
 
 from __future__ import annotations
@@ -11,6 +15,7 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import json
+import logging
 import os
 import threading
 from dataclasses import dataclass
@@ -18,7 +23,7 @@ from pathlib import Path
 
 import numpy as np
 
-from passimaker.audio.params import CACHE_VERSION, CHANNELS
+from passimaker.audio.params import CACHE_LIMIT_BYTES, CACHE_VERSION, CHANNELS
 from passimaker.common import AudioBlock
 from passimaker.ffmpeg import (
     ERROR_FILE_NOT_FOUND,
@@ -34,6 +39,9 @@ FRAME_BYTES = CHANNELS * 4
 
 _locks: dict[str, threading.Lock] = {}
 _locks_guard = threading.Lock()
+_in_use: set[Path] = set()
+"""Decoded songs this process has handed out: never deleted to make room (a preview may be reading them)."""
+_log = logging.getLogger(__name__)
 
 
 def _lock(key: str) -> threading.Lock:
@@ -91,11 +99,49 @@ def decoded_song(path: Path, cache_dir: Path) -> DecodedSong:
     key = song_key(path)
     final = cache_dir / f"{key}{PCM_SUFFIX}"
     with _lock(key):
-        if not final.is_file():
+        decoded = not final.is_file()
+        if decoded:
             temporary = _temporary(final)
             decode_audio(path, temporary)
             _publish(temporary, final)
-        return DecodedSong(final, final.stat().st_size // FRAME_BYTES)
+        else:
+            with contextlib.suppress(OSError):
+                os.utime(final)  # recently used: the last to go
+        with _locks_guard:
+            _in_use.add(final)
+        song = DecodedSong(final, final.stat().st_size // FRAME_BYTES)
+    if decoded:
+        prune(cache_dir, CACHE_LIMIT_BYTES)
+    return song
+
+
+def prune(cache_dir: Path, limit_bytes: int) -> None:
+    """Deletes the least recently used decoded songs (and their loudness) until the folder is
+    under limit_bytes. Never raises: a file another process holds open is left for later."""
+    entries: list[tuple[float, int, Path]] = []
+    try:
+        for path in cache_dir.glob(f"*{PCM_SUFFIX}"):
+            with contextlib.suppress(OSError):
+                stat = path.stat()
+                entries.append((stat.st_mtime, stat.st_size, path))
+    except OSError:
+        return
+    total = sum(size for _, size, _ in entries)
+    with _locks_guard:
+        in_use = set(_in_use)
+    for _, size, path in sorted(entries, key=lambda entry: entry[0]):
+        if total <= limit_bytes:
+            break
+        if path in in_use:
+            continue
+        try:
+            path.unlink()
+        except OSError:
+            continue
+        with contextlib.suppress(OSError):
+            path.with_name(path.name.removesuffix(PCM_SUFFIX) + LOUDNESS_SUFFIX).unlink()
+        total -= size
+        _log.info("Audio cache over its limit, deleted %s (%d MB)", path.name, size // 2**20)
 
 
 def song_loudness(path: Path, cache_dir: Path) -> Loudness:

@@ -36,3 +36,7 @@ RENDER_BLOCK_FRAMES = 1 << 18
 
 CACHE_VERSION = 1
 """Part of every cache key: increase it when the decoded format changes."""
+
+CACHE_LIMIT_BYTES = 2 * 1024**3
+"""The decoded songs kept on disk (23 MB a minute) stay under this size, least recently used first
+(B15; the same limit as the thumbnails of B5). The songs in use by the program are never dropped."""
