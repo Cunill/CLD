@@ -1,0 +1,37 @@
+PassiMaker
+==========
+
+Programa per fer passis de fotos (moviment de càmera, fosa encadenada i música) i
+exportar-los a vídeo MP4 Full HD. No cal instal·lar res.
+
+Com començar
+------------
+1. Descomprimeix tot el ZIP en una carpeta (per exemple, Documents\PassiMaker).
+   No l'obris des de dins del ZIP: no funcionaria.
+2. Fes doble clic a PassiMaker.exe.
+
+La primera vegada, Windows pot mostrar "Windows ha protegit l'ordinador".
+El programa no està signat; és normal. Fes clic a "Més informació" i després a
+"Executa igualment".
+
+Obrir un projecte
+-----------------
+Els projectes són fitxers .pmk. Es poden obrir des del programa (Fitxer > Obrir),
+arrossegant-los a la finestra o sobre PassiMaker.exe, o amb "Obre amb..." de Windows.
+
+On desa les dades
+-----------------
+- Configuració i projectes recents: %APPDATA%\PassiMaker
+- Memòries cau (miniatures, àudio) i còpia de recuperació: %LOCALAPPDATA%\PassiMaker
+El programa no escriu mai res a la seva carpeta. Per desinstal·lar-lo, esborra la
+carpeta del programa i, si vols, aquestes dues carpetes.
+
+Comprovar que funciona
+----------------------
+Des d'una finestra d'ordres, a la carpeta del programa:
+    PassiMaker.exe --autoprova --informe autoprova.txt
+Exporta un vídeo de prova de 5 segons sense obrir la finestra (triga uns segons)
+i escriu el resultat a autoprova.txt. Ha d'acabar amb "Autoprova correcta".
+
+La carpeta bin conté les peces del programa i FFmpeg (llicència a bin\llicencies).
+No n'esborris res.

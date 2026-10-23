@@ -1,8 +1,10 @@
-"""Command-line tools (block B9): `passimaker-nou` and `passimaker-render`; `--autoprova` in B12.
+"""Command-line tools (block B9): `passimaker-nou` and `passimaker-render`; `--autoprova` (B12).
 
 passimaker-nou creates a project from a folder with the default values (the same steps as the
 interface: import, automatic order, motions drawn by the controller); passimaker-render exports
 it. Both write their messages in Catalan to stderr; Ctrl+C cancels an export cleanly.
+`PassiMaker.exe --autoprova` (packaging/launcher.py) runs `main_selftest`: it builds a project of
+its own and exports 5 s of video without opening the window.
 """
 
 from __future__ import annotations
@@ -10,13 +12,20 @@ from __future__ import annotations
 import argparse
 import logging
 import secrets
+import shutil
 import sys
+import tempfile
 import threading
 import time
+import wave
 from collections.abc import Sequence
 from pathlib import Path
-from typing import TextIO
+from typing import TextIO, cast
 
+import numpy as np
+from PIL import Image
+
+from passimaker import __version__
 from passimaker.common import CancelToken, PassiMakerError
 from passimaker.export import (
     ERROR_DISK_FULL,
@@ -29,7 +38,7 @@ from passimaker.export import (
     export_project,
     missing_files,
 )
-from passimaker.ffmpeg import probe
+from passimaker.ffmpeg import locate, probe
 from passimaker.i18n import message
 from passimaker.importer import FailedFile, ImportFailure, PhotoCandidate, import_paths, sort_candidates
 from passimaker.model import OutputFormat, Photo, Project, ProjectController, Song
@@ -285,6 +294,146 @@ def main_render(argv: list[str] | None = None) -> int:
     args = build_render_parser().parse_args(argv)
     _configure_logging()
     return render(args.project, args.output, sentinel=args.sentinella)
+
+
+# --- --autoprova -----------------------------------------------------------------------------------
+
+SELF_TEST_PHOTOS = ((1600, 1200), (1200, 1600), (1920, 1080), (1500, 1500))
+"""Landscape, portrait and square, so every fit of the compositor runs."""
+SELF_TEST_DURATION_S = 5.0
+"""The length the plan asks for (B12): the photos are fitted to a song of exactly 5 s."""
+SELF_TEST_TOLERANCE_S = 0.1
+SELF_TEST_SEED = 12
+"""Fixed: the self-test always makes the same video (rule 5)."""
+SELF_TEST_TONE_HZ = 440.0
+_SELF_TEST_SAMPLE_RATE = 48_000
+_SELF_TEST_NAME = "autoprova"
+
+
+def build_selftest_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="PassiMaker.exe --autoprova",
+        description="Comprova que el programa funciona: exporta un vídeo de 5 s sense obrir la finestra.",
+    )
+    parser.add_argument(
+        "--conservar",
+        type=Path,
+        default=None,
+        help="Carpeta on es deixen les fotos, la música, el projecte i el vídeo de la prova",
+    )
+    parser.add_argument("--informe", type=Path, default=None, help="Fitxer on s'escriu també l'informe")
+    return parser
+
+
+def write_selftest_files(folder: Path) -> tuple[Path, Path]:
+    """The photos (gradients, JPEG) and the song (a 440 Hz tone, WAV) of the self-test, generated here:
+    the packaged program carries no test data. Returns (photo folder, song)."""
+    photos = folder / "fotos"
+    photos.mkdir(parents=True, exist_ok=True)
+    for index, (width, height) in enumerate(SELF_TEST_PHOTOS, start=1):
+        x = np.linspace(0.0, 1.0, width, dtype=np.float32)[None, :]
+        y = np.linspace(0.0, 1.0, height, dtype=np.float32)[:, None]
+        hue = index / len(SELF_TEST_PHOTOS)
+        rgb = np.stack(
+            np.broadcast_arrays(40 + 180 * x, 40 + 180 * y, np.full_like(x, 60 + 150 * hue)), axis=-1
+        )
+        Image.fromarray(rgb.astype(np.uint8)).save(photos / f"foto_{index}.jpg", quality=90)
+    song = folder / "to_440.wav"
+    frames = round(SELF_TEST_DURATION_S * _SELF_TEST_SAMPLE_RATE)
+    t = np.arange(frames, dtype=np.float64) / _SELF_TEST_SAMPLE_RATE
+    tone = (0.3 * 32767 * np.sin(2 * np.pi * SELF_TEST_TONE_HZ * t)).astype("<i2")
+    with wave.open(str(song), "wb") as out:
+        out.setnchannels(2)
+        out.setsampwidth(2)
+        out.setframerate(_SELF_TEST_SAMPLE_RATE)
+        out.writeframes(np.repeat(tone[:, None], 2, axis=1).tobytes())
+    return photos, song
+
+
+def self_test(work_dir: Path, *, err: TextIO | None = None) -> int:
+    """Creates a project in work_dir (photos, song, .pmk), exports it and checks the video with
+    ffprobe. Returns the exit code; every step is reported in Catalan."""
+    out = err if err is not None else sys.stderr
+    print(f"Autoprova de PassiMaker {__version__}", file=out)
+    try:
+        paths = locate()
+        print(f"  FFmpeg: {paths.ffmpeg}", file=out)
+        photos, song = write_selftest_files(work_dir)
+        project = new_project(
+            photos, [song], name=_SELF_TEST_NAME, fit_to_music=True, seed=SELF_TEST_SEED, err=out
+        )
+        project_path = work_dir / f"{_SELF_TEST_NAME}{EXTENSION}"
+        save_project(project, project_path)
+        print(f"  Projecte: {project_path} ({len(project.photos)} fotos, 1 cançó)", file=out)
+    except PassiMakerError as error:
+        print(_error_text(error.message_key, error.detail), file=out)
+        return EXIT_ERROR
+    video = work_dir / f"{_SELF_TEST_NAME}.mp4"
+    if render(project_path, video, err=out) != EXIT_OK:
+        return EXIT_ERROR
+    try:
+        info = probe(video)
+    except PassiMakerError as error:
+        print(_error_text(error.message_key, error.detail), file=out)
+        return EXIT_ERROR
+    problems: list[str] = []
+    if (info.width, info.height) != OutputFormat.HORIZONTAL.size or not info.has_video:
+        problems.append(f"la imatge és de {info.width}×{info.height}")
+    if not info.has_audio:
+        problems.append("no té so")
+    if abs(info.duration_s - SELF_TEST_DURATION_S) > SELF_TEST_TOLERANCE_S:
+        problems.append(f"dura {info.duration_s:.2f} s en lloc de {SELF_TEST_DURATION_S:.0f} s")
+    if problems:
+        print(f"Autoprova incorrecta: el vídeo {', '.join(problems)}.", file=out)
+        return EXIT_ERROR
+    print(
+        f"Autoprova correcta: {info.width}×{info.height}, {info.duration_s:.2f} s, amb so.",
+        file=out,
+    )
+    return EXIT_OK
+
+
+class _Tee:
+    """Writes to stderr (if the program has one: a windowed PassiMaker.exe may not) and to the report."""
+
+    def __init__(self, *streams: TextIO | None) -> None:
+        self._streams = [s for s in streams if s is not None]
+
+    def write(self, text: str) -> int:
+        for stream in self._streams:
+            stream.write(text)
+        return len(text)
+
+    def flush(self) -> None:
+        for stream in self._streams:
+            stream.flush()
+
+    def isatty(self) -> bool:
+        return False
+
+
+def main_selftest(argv: list[str] | None = None) -> int:
+    """`PassiMaker.exe --autoprova [--conservar CARPETA] [--informe FITXER]`: 0 if everything works.
+    Without --conservar the files go to a temporary folder that is deleted at the end."""
+    args = build_selftest_parser().parse_args(argv)
+    report = None
+    if args.informe is not None:
+        args.informe.parent.mkdir(parents=True, exist_ok=True)
+        report = args.informe.open("w", encoding="utf-8")
+    try:
+        out = cast(TextIO, _Tee(sys.stderr, report))
+        logging.basicConfig(level=logging.WARNING, format="Avís: %(message)s", stream=out)
+        if args.conservar is not None:
+            args.conservar.mkdir(parents=True, exist_ok=True)
+            return self_test(args.conservar.absolute(), err=out)
+        work_dir = Path(tempfile.mkdtemp(prefix="passimaker-autoprova-"))
+        try:
+            return self_test(work_dir, err=out)
+        finally:
+            shutil.rmtree(work_dir, ignore_errors=True)
+    finally:
+        if report is not None:
+            report.close()
 
 
 # --- Text -----------------------------------------------------------------------------------------
