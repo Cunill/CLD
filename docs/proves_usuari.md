@@ -5,8 +5,8 @@ Protocol i resultats de les proves de les fites F2, F3 i F5 (docs/PLA.md §4.4).
 ## Llista de millores pendents de les proves
 
 Tancada al B16 (24/10/2026) i reoberta amb la prova manual del B14 (24/10/2026). Les observacions de les proves
-s'anoten aquí i es corregeixen en un bloc de manteniment. L'usuari vol fer el manteniment quan acabi les seves proves
-(abans es pensava esperar la F5, que ja no es fa).
+s'anoten aquí i es corregeixen en un bloc de manteniment. Quan es fa el manteniment està per decidir
+(s'havia d'esperar la F5, que ja no es fa).
 
 | # | Prova | Observació | Estat |
 |---|---|---|---|
