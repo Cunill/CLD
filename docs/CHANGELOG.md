@@ -13,6 +13,8 @@ Versions de PassiMaker. La CI genera el ZIP portable `PassiMaker-<versió>-win64
 - `passimaker-nou` refusa els fitxers de música sense so, com ja feia la finestra.
 
 ### Nou
+- **Escoltar el tros**: una línia vermella sobre la forma d'ona mostra per on va la reproducció (segueix el rellotge
+  del so, com la previsualització) i desapareix en aturar-se.
 - Guia: apartat "Imprevistos".
 
 ### Intern
