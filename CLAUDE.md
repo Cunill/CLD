@@ -17,6 +17,12 @@ Dues menes de sessió (24/10/2026); es fa servir la que convingui a cada tasca:
   programa de veritat a Windows (finestra, so, fotos reals). Cal `git`, `gh` (`gh auth login`), `uv` i
   `pwsh tools/obtenir_ffmpeg.ps1`.
 
+## Comunicació amb l'usuari
+- Les preguntes i les decisions que ha de prendre l'usuari van **al final del missatge**, en un apartat
+  "**Per decidir:**" numerat (una per punt, amb les opcions), i també el que li toca fer ("Pendent de la teva part").
+  No s'amaguen preguntes enmig de l'explicació ni se'n fan dues en una sola frase.
+- Instruccions pas a pas: un pas cada vegada, curt i clar.
+
 ## Pila
 Python 3.12, uv, PySide6-Essentials, NumPy, OpenCV (headless), Pillow + pillow-heif, sounddevice,
 FFmpeg (7.1.1 fixat a Windows a vendor/ffmpeg; FFmpeg ≥ 6 del sistema a Linux), PyInstaller.
