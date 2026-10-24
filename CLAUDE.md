@@ -91,7 +91,8 @@ Fita F1 aprovada (decisions 0004 i 0005). Fita F2: vídeo provat per l'usuari am
 horitzontal) el 21/10/2026, correcte.
 **Decidit el 24/10/2026: no es fan proves amb persones externes** (ni la de la F2, ni la de la F3, ni la F5 amb dues
 persones; PLA §4.4). Les proves pràctiques les fa només l'usuari. Etiquetes `v0.5-mvp` i `v1.0` posades el 24/10/2026.
-Queden: mesures del B15 al PC de referència, revisar la guia i "Quant a", i fotos reals (docs/sessions/B16.md).
+Queden: revisar la guia i "Quant a", i fotos reals (docs/sessions/B16.md); després, el manteniment amb les millores
+de docs/proves_usuari.md (decisió de l'usuari: al final de tot).
 Decisions de l'usuari del 21/10/2026: decisió 0007 (D12, llindar de 5 fotos, textos d'error del B10).
 Decisions del B5 aprovades (docs/sessions/B05.md); la nitidesa de la miniatura EXIF es revisa amb fotos reals
 a Windows (vegeu docs/sessions/B10.md).
@@ -104,7 +105,7 @@ Prova manual del B13 a Windows feta el 23/10/2026: correcta (la fosa amb Bluetoo
 ZIP portable (B12): la CI el genera a cada PR, fusió a main i etiqueta (artefacte PassiMaker-<versió>-win64; vegeu
 docs/sessions/B12.md). Etiqueta `v0.5-mvp` per a la F3: la posa l'usuari al commit `a96edd6` (docs/sessions/B15.md).
 Prova manual del B14 a Windows feta el 24/10/2026: correcta; tres millores a la llista de docs/proves_usuari.md.
-B15: registre a `%LOCALAPPDATA%\PassiMaker\logs`; mesures de 1.000 fotos a docs/RENDIMENT.md, fetes a Linux: falta
-repetir-les al PC de referència (`uv run pytest -m perf tests/perf/test_thousand_photos.py -s`), que és el sobretaula de
-l'usuari (D9, decidit el 24/10/2026: i7-6700K, GTX 960, 40 GB, més de 10 anys; no hi ha cap portàtil).
+B15: registre a `%LOCALAPPDATA%\PassiMaker\logs`. Mesures de 1.000 fotos al PC de referència (el sobretaula de l'usuari,
+D9: i7-6700K, GTX 960, 40 GB) fetes el 24/10/2026 (PR #46): importar 76 s, memòria màxima 835 MB, exportar 1,17 × la
+durada; totes dins dels límits (docs/RENDIMENT.md).
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
