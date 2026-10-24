@@ -1,0 +1,155 @@
+# Publicar una versió: crea l'etiqueta i la versió publicada (Releases) amb el ZIP portable adjunt.
+# Existeix perquè les sessions de Claude Code al núvol no poden crear etiquetes ni versions publicades (el
+# proxy de GitHub ho prohibeix), però sí que poden engegar aquest flux. Es pot engegar també a mà:
+# Actions → Publicar una versió → Run workflow. Vegeu docs/PUBLICAR.md.
+name: Publicar una versió
+
+on:
+  workflow_dispatch:
+    inputs:
+      etiqueta:
+        description: "Etiqueta (per exemple v1.1 o v1.1.0)"
+        required: true
+        type: string
+      commit:
+        description: "Commit o branca que es publica"
+        required: true
+        default: main
+        type: string
+      titol:
+        description: "Títol de la versió (buit: PassiMaker <versió del pyproject>)"
+        required: false
+        type: string
+      principal:
+        description: "Marcar-la com a versió principal (latest)"
+        required: true
+        default: true
+        type: boolean
+      prova:
+        description: "Prova en sec: ho comprova i construeix el ZIP, però no publica res"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publicar
+  cancel-in-progress: false
+
+jobs:
+  comprovar:
+    name: Comprovar
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.dades.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Comprovar l'etiqueta i el commit
+        id: dades
+        env:
+          ETIQUETA: ${{ inputs.etiqueta }}
+          COMMIT: ${{ inputs.commit }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$ETIQUETA" =~ ^v[0-9]+(\.[0-9]+){0,2}(-[A-Za-z0-9.]+)?$ ]]; then
+            echo "::error::L'etiqueta '$ETIQUETA' no té la forma v1, v1.1, v1.1.0 o v1.1.0-algo."
+            exit 1
+          fi
+          if git rev-parse -q --verify "refs/tags/$ETIQUETA" >/dev/null; then
+            echo "::error::L'etiqueta $ETIQUETA ja existeix."
+            exit 1
+          fi
+          if ! sha=$(git rev-parse -q --verify "origin/$COMMIT^{commit}" 2>/dev/null) \
+             && ! sha=$(git rev-parse -q --verify "$COMMIT^{commit}" 2>/dev/null); then
+            echo "::error::No es troba el commit o la branca '$COMMIT'."
+            exit 1
+          fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "Es publicarà $ETIQUETA al commit $sha."
+
+  paquet:
+    name: Paquet (Windows)
+    needs: comprovar
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      PYTHONUTF8: "1"
+    outputs:
+      nom: ${{ steps.zip.outputs.nom }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.comprovar.outputs.sha }}
+
+      - name: Instal·lar uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.32"
+          enable-cache: true
+
+      - name: Memòria cau d'FFmpeg
+        uses: actions/cache@v4
+        with:
+          path: vendor/ffmpeg
+          key: ffmpeg-${{ runner.os }}-${{ hashFiles('tools/obtenir_ffmpeg.ps1') }}
+
+      - name: Construir el ZIP
+        id: zip
+        shell: pwsh
+        run: ./tools/construir_zip.ps1 -Sortida dist
+
+      - name: Provar el ZIP
+        shell: pwsh
+        run: ./packaging/provar_paquet.ps1 -Zip "${{ steps.zip.outputs.zip }}" -Informes _paquet
+
+      - name: Guardar el ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.zip.outputs.nom }}
+          path: ${{ steps.zip.outputs.zip }}
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+
+  publicar:
+    name: Publicar
+    needs: [comprovar, paquet]
+    if: ${{ !inputs.prova }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.comprovar.outputs.sha }}
+
+      - name: Baixar el ZIP
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.paquet.outputs.nom }}
+          path: dist
+
+      - name: Crear l'etiqueta i la versió publicada
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ETIQUETA: ${{ inputs.etiqueta }}
+          SHA: ${{ needs.comprovar.outputs.sha }}
+          TITOL: ${{ inputs.titol }}
+          PRINCIPAL: ${{ inputs.principal }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$TITOL" ]]; then
+            versio=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml | head -n1)
+            TITOL="PassiMaker $versio"
+          fi
+          gh release create "$ETIQUETA" dist/*.zip \
+            --target "$SHA" \
+            --title "$TITOL" \
+            --generate-notes \
+            --latest="$PRINCIPAL"
+          echo "Publicada: $(gh release view "$ETIQUETA" --json url --jq .url)"
