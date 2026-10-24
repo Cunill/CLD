@@ -13,8 +13,10 @@ Dues menes de sessió (24/10/2026); es fa servir la que convingui a cada tasca:
 - **Al núvol**: programar, proves, PR i fusions. No pot crear etiquetes ni versions publicades, esborrar branques
   remotes, fer servir GraphQL (`gh pr`, `gh issue`: cal `gh api` o les eines de GitHub) ni els fitxers o el Windows
   de l'usuari. Per publicar una versió: el flux `publicar.yml` (docs/PUBLICAR.md).
-- **Local** (Claude Code al PC de l'usuari, amb les seves credencials): tot el que el núvol no pot fer, i provar el
-  programa de veritat a Windows (finestra, so, fotos reals). Cal `git`, `gh` (`gh auth login`), `uv` i
+- **Local** (Claude Code al PC de l'usuari, amb les seves credencials): **només el que el núvol no pot fer**
+  (decisió de l'usuari, 24/10/2026): executar coses al PC (el programa, les mesures, fotos reals), etiquetes i
+  versions publicades, i pujar la feina feta al PC. Obrir PR, revisar-les, fusionar-les, documentar i programar es
+  fa des del núvol. Cal `git`, `gh` (`gh auth login`), `uv` i
   `pwsh tools/obtenir_ffmpeg.ps1`.
 
 ## Comunicació amb l'usuari
@@ -91,8 +93,9 @@ Fita F1 aprovada (decisions 0004 i 0005). Fita F2: vídeo provat per l'usuari am
 horitzontal) el 21/10/2026, correcte.
 **Decidit el 24/10/2026: no es fan proves amb persones externes** (ni la de la F2, ni la de la F3, ni la F5 amb dues
 persones; PLA §4.4). Les proves pràctiques les fa només l'usuari. Etiquetes `v0.5-mvp` i `v1.0` posades el 24/10/2026.
-Queden: revisar la guia i "Quant a", i fotos reals (docs/sessions/B16.md); després, el manteniment amb les millores
-de docs/proves_usuari.md (decisió de l'usuari: al final de tot).
+Guia i "Quant a" revisats per l'usuari el 24/10/2026: correctes (s'hi afegeix l'apartat "Imprevistos", a petició seva).
+Queden: fotos reals (docs/sessions/B16.md) i, al final, el manteniment v1.1: les millores de docs/proves_usuari.md i
+una sola còpia de `photo_from_candidate` i `song_from_file` (decidit per Claude amb el vistiplau de l'usuari).
 Decisions de l'usuari del 21/10/2026: decisió 0007 (D12, llindar de 5 fotos, textos d'error del B10).
 Decisions del B5 aprovades (docs/sessions/B05.md); la nitidesa de la miniatura EXIF es revisa amb fotos reals
 a Windows (vegeu docs/sessions/B10.md).
