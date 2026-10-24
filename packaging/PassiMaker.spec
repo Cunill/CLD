@@ -58,6 +58,8 @@ for tool in ("ffmpeg", "ffprobe"):
         raise SystemExit(f"Falta {binary}: executa abans pwsh tools/obtenir_ffmpeg.ps1")
 if (FFMPEG_DIR / "LICENSE.txt").is_file():
     datas.append((str(FFMPEG_DIR / "LICENSE.txt"), "llicencies/FFmpeg"))
+# The window icon, next to passimaker/ui/app.py (passimaker.ui.app.ICON_FILE).
+datas.append((str(ROOT / "src" / "passimaker" / "ui" / "app_icon.png"), "passimaker/ui"))
 
 a = Analysis(
     [str(ROOT / "packaging" / "launcher.py")],
