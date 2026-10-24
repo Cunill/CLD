@@ -360,8 +360,13 @@ class StoryboardPanel(QStackedWidget):
         self.setCurrentWidget(self.view if has_photos else self.empty)
 
 
+STEPS_MIN_WIDTH = 420
+"""The hint of the empty state wraps in two lines, not in a narrow column."""
+
+
 class _EmptyState(QWidget):
-    """ "Arrossega aquí les fotos o la carpeta" and the [Tria fotos…] button (§1.0, step 1)."""
+    """ "Arrossega aquí les fotos o la carpeta", the [Tria fotos…] button (§1.0, step 1) and a hint
+    with the three steps (B16)."""
 
     choose_photos = Signal()
 
@@ -378,6 +383,21 @@ class _EmptyState(QWidget):
         self.button = QPushButton(self.tr("Tria fotos…"))
         self.button.setObjectName("choosePhotos")
         self.button.clicked.connect(self.choose_photos)
+        self.steps = QLabel(
+            self.tr(
+                "Un passi es fa en tres passos: <b>Fotos</b> → <b>Música</b> → <b>Exportar vídeo</b>.<br>"
+                "Tota la resta ja té valors pensats perquè quedi bé.<br>"
+                "Ajuda ▸ Guia d'ús (F1) ho explica tot."
+            )
+        )
+        self.steps.setObjectName("emptySteps")
+        self.steps.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.steps.setWordWrap(True)
+        self.steps.setMinimumWidth(STEPS_MIN_WIDTH)
+        self.steps.setTextFormat(Qt.TextFormat.RichText)
+        self.steps.setEnabled(False)  # the grey of a hint, under the main instruction
         layout.addWidget(self.label)
         layout.addSpacing(12)
         layout.addWidget(self.button, 0, Qt.AlignmentFlag.AlignCenter)
+        layout.addSpacing(16)
+        layout.addWidget(self.steps)

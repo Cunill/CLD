@@ -40,6 +40,7 @@ from PySide6.QtWidgets import (
 from passimaker.audio import AudioSource, prepare
 from passimaker.common import PassiMakerError, RGBImage
 from passimaker.export import cache_root
+from passimaker.i18n import message
 from passimaker.images import ImageSource
 from passimaker.model import Change, Photo, Project, ProjectController
 from passimaker.model.types import Rotation
@@ -170,12 +171,20 @@ class TimeBar(QSlider):
         super().mousePressEvent(event)
 
 
+UNEXPECTED_AUDIO_ERROR = ""
+"""Message key of a failure that is not a PassiMakerError (the log has the traceback)."""
+
+
 class _AudioSignals(QObject):
-    ready = Signal(int, object)
+    ready = Signal(int, object, object)
+    """Generation, the prepared music (or None) and the message key of the failure (or None)."""
 
 
 class PlayerPanel(QWidget):
     """The preview area of §1.0: the frame and the controls of §1.8."""
+
+    audio_problem = Signal(str)
+    """Why the preview plays without music, in Catalan; an empty text when the music is ready again."""
 
     def __init__(
         self,
@@ -316,7 +325,7 @@ class PlayerPanel(QWidget):
         self._audio_generation += 1
         generation = self._audio_generation
         if not project.music.songs:
-            self._on_audio_ready(generation, None)
+            self._on_audio_ready(generation, None, None)
             return
         thread = threading.Thread(
             target=self._prepare_in_background, args=(generation, project), name="passimaker-preview-audio"
@@ -378,23 +387,34 @@ class PlayerPanel(QWidget):
         return Compositor(project, timeline, self._images, self._intermediate)
 
     def _prepare_in_background(self, generation: int, project: Project) -> None:
+        failure: str | None = None
         try:
             audio = self._prepare_audio(project)
         except PassiMakerError as error:
-            # A log line, not a message on screen (B11/B14 show the music errors): no tr().
+            # A log line here; the message on screen is `audio_problem`, in the GUI thread.
             _log.log(logging.WARNING, "No s'ha pogut preparar la música: %s", error.message_key)
             audio = None
+            failure = error.message_key
         except Exception:
             _log.exception("No s'ha pogut preparar la música de la previsualització")
             audio = None
+            failure = UNEXPECTED_AUDIO_ERROR
         with contextlib.suppress(RuntimeError):  # the panel may have been closed meanwhile
-            self._audio_signals.ready.emit(generation, audio)
+            self._audio_signals.ready.emit(generation, audio, failure)
 
-    def _on_audio_ready(self, generation: int, audio: object) -> None:
+    def _on_audio_ready(self, generation: int, audio: object, failure: object) -> None:
         if generation != self._audio_generation:
             return
         self._audio = cast("AudioSource | None", audio)
         self.player.set_scene(self._frames, self._timeline, self._audio)
+        self.audio_problem.emit(self._problem_text(cast("str | None", failure)))
+
+    def _problem_text(self, failure: str | None) -> str:
+        if failure is None:
+            return ""
+        if failure == UNEXPECTED_AUDIO_ERROR:
+            return self.tr("⚠ La previsualització sona sense música per un error inesperat.")
+        return self.tr("⚠ La previsualització sona sense música: {reason}").format(reason=message(failure))
 
     def _go_to_photo(self, index: int) -> None:
         count = len(self._timeline.slots)
