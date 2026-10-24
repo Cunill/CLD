@@ -1483,7 +1483,7 @@ flowchart LR
 | D6 | Ajustar a la música: un botó, i la casella "Mantenir ajustat" desactivada | Aprovar |
 | D7 | Reordenar no torna a sortejar els moviments | Aprovar |
 | D8 | Compte de GitHub i nom del repositori | Privat, `passimaker` |
-| D9 | PC de referència per al rendiment | Un portàtil d'oficina concret de l'estudi |
+| D9 | PC de referència per al rendiment | **Decidit el 24/10/2026: el sobretaula de l'usuari** (i7-6700K, 4 nuclis / 8 fils, NVIDIA GTX 960, 40 GB, Windows; més de 10 anys). No hi ha cap portàtil: totes les proves es fan en aquest PC. Abans es proposava un portàtil d'oficina amb gràfics integrats. |
 | D10 | Fotos i música reals de prova | Carpeta amb 30–50 fotos variades (incloses HEIC d'iPhone, verticals i panoràmiques) i 3 cançons. No es pujaran al repositori. |
 | D11 | Persones per a les proves d'usuari | 1 a F3 i 2 a F5, sense experiència en edició |
 | D12 | Cançó il·legible (malmesa, protegida o inexistent): què passa amb les cançons següents | **Decidit el 21/10/2026 (decisió 0007): el seu lloc queda en silenci i les següents no s'avancen**, com ja fa el B8. Es va descartar avançar-les. |

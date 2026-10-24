@@ -17,6 +17,12 @@ Dues menes de sessió (24/10/2026); es fa servir la que convingui a cada tasca:
   programa de veritat a Windows (finestra, so, fotos reals). Cal `git`, `gh` (`gh auth login`), `uv` i
   `pwsh tools/obtenir_ffmpeg.ps1`.
 
+## Comunicació amb l'usuari
+- Les preguntes i les decisions que ha de prendre l'usuari van **al final del missatge**, en un apartat
+  "**Per decidir:**" numerat (una per punt, amb les opcions), i també el que li toca fer ("Pendent de la teva part").
+  No s'amaguen preguntes enmig de l'explicació ni se'n fan dues en una sola frase.
+- Instruccions pas a pas: un pas cada vegada, curt i clar.
+
 ## Pila
 Python 3.12, uv, PySide6-Essentials, NumPy, OpenCV (headless), Pillow + pillow-heif, sounddevice,
 FFmpeg (7.1.1 fixat a Windows a vendor/ffmpeg; FFmpeg ≥ 6 del sistema a Linux), PyInstaller.
@@ -82,9 +88,10 @@ M02 `SHORT_SONG_FADE_FRACTION` a defaults.py (PR #16, commit `43faaaf`) ·
 M03 extensió `.pmk` (PR #25, commit `66b6e92`, decisió 0009) ·
 M04 arrossegar fotos amb el ratolí i so obert en pausa per al Bluetooth (PR #36, commit `56ccca7`).
 Fita F1 aprovada (decisions 0004 i 0005). Fita F2: vídeo provat per l'usuari amb les seves fotos (vertical i
-horitzontal) el 21/10/2026, correcte; falta ensenyar-lo a una persona externa (PLA §4.4).
-**Només queden proves pràctiques i les etiquetes** (llista a docs/sessions/B16.md, "Pendent"): etiquetes `v0.5-mvp` i
-`v1.0` (les posa l'usuari: la sessió al núvol no pot pujar etiquetes), prova F5 (protocol a docs/proves_usuari.md).
+horitzontal) el 21/10/2026, correcte.
+**Decidit el 24/10/2026: no es fan proves amb persones externes** (ni la de la F2, ni la de la F3, ni la F5 amb dues
+persones; PLA §4.4). Les proves pràctiques les fa només l'usuari. Etiquetes `v0.5-mvp` i `v1.0` posades el 24/10/2026.
+Queden: mesures del B15 al PC de referència, revisar la guia i "Quant a", i fotos reals (docs/sessions/B16.md).
 Decisions de l'usuari del 21/10/2026: decisió 0007 (D12, llindar de 5 fotos, textos d'error del B10).
 Decisions del B5 aprovades (docs/sessions/B05.md); la nitidesa de la miniatura EXIF es revisa amb fotos reals
 a Windows (vegeu docs/sessions/B10.md).
@@ -96,8 +103,8 @@ Windows feta el 23/10/2026 amb el ZIP del B12: correcta.
 Prova manual del B13 a Windows feta el 23/10/2026: correcta (la fosa amb Bluetooth i l'arrossegament de fotos, al M04).
 ZIP portable (B12): la CI el genera a cada PR, fusió a main i etiqueta (artefacte PassiMaker-<versió>-win64; vegeu
 docs/sessions/B12.md). Etiqueta `v0.5-mvp` per a la F3: la posa l'usuari al commit `a96edd6` (docs/sessions/B15.md).
-Prova manual del B14 a Windows ajornada (docs/sessions/B14.md, "Pendent"): escoltar el tros amb altaveus, arrossegar
-les nanses del retall i que els panells càpiguen a la columna.
+Prova manual del B14 a Windows feta el 24/10/2026: correcta; tres millores a la llista de docs/proves_usuari.md.
 B15: registre a `%LOCALAPPDATA%\PassiMaker\logs`; mesures de 1.000 fotos a docs/RENDIMENT.md, fetes a Linux: falta
-repetir-les al PC de referència (`uv run pytest -m perf tests/perf/test_thousand_photos.py -s`).
+repetir-les al PC de referència (`uv run pytest -m perf tests/perf/test_thousand_photos.py -s`), que és el sobretaula de
+l'usuari (D9, decidit el 24/10/2026: i7-6700K, GTX 960, 40 GB, més de 10 anys; no hi ha cap portàtil).
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.

@@ -139,12 +139,15 @@ def test_visible_requests_are_served_first_and_can_be_promoted(
 
 def test_cancel_stops_pending_work_quickly(tmp_path: Path, make_service: ServiceFactory) -> None:
     paths = copies(write_jpeg(tmp_path / "base.jpg", pseudo_photo(300, 200)), tmp_path / "fotos", 300)
+    # The photos are made first: photo_for reads each file's header, and where opening a file is slow
+    # (an antivirus on Windows) the workers used to finish 140 thumbnails while the requests were made.
+    photos = [photo_for(path, photo_id=f"p{i}") for i, path in enumerate(paths)]
     slow = RecordingSource(delay_s=0.02)
     try:
         service = make_service(slow, workers=2)
         collector = Collector()
-        for i, path in enumerate(paths):
-            service.request_thumbnail(photo_for(path, photo_id=f"p{i}"), Priority.NORMAL, collector)
+        for photo in photos:
+            service.request_thumbnail(photo, Priority.NORMAL, collector)
         assert collector.wait(10)
         start = time.perf_counter()
         service.cancel_pending()
