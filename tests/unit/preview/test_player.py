@@ -77,7 +77,10 @@ def test_playing_and_pausing_report_the_state(
     assert blocker.args is not None and blocker.args[0] is True
     assert made.playing and output.playing
     output.clock.advance(5.5)
-    with qtbot.waitSignal(made.state_changed, timeout=TIMEOUT_MS) as blocker:
+    # Playing on, the loop also reports reaching photo 1 (still playing): wait for the pause itself.
+    with qtbot.waitSignal(
+        made.state_changed, timeout=TIMEOUT_MS, check_params_cb=lambda playing, _t, _i: not playing
+    ) as blocker:
         made.toggle()
     assert blocker.args is not None
     playing, t, index = blocker.args
