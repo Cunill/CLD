@@ -222,3 +222,9 @@ def test_the_status_bar_shows_the_music_warning(window: MainWindow) -> None:
     assert "motiu" in window.audio_warning.text()
     window.player_panel.audio_problem.emit("")
     assert not window.audio_warning.isVisibleTo(window)
+
+
+def test_the_guide_ends_with_the_unforeseen_section(window: MainWindow) -> None:
+    text = guide_html()
+    assert text.rindex("Imprevistos") > text.rindex("Dreceres de teclat")
+    assert "tres voltes a la cadira" in text

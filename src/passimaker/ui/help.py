@@ -121,6 +121,12 @@ def guide_html() -> str:
         ),
         QCoreApplication.translate("Help", "<h3>Dreceres de teclat</h3>"),
         shortcuts_html(shortcuts()),
+        QCoreApplication.translate("Help", "<h3>Imprevistos</h3>"),
+        QCoreApplication.translate(
+            "Help",
+            "<p>Si alguna cosa no funciona o es queda encallat, pitja tecles aleatòriament i fes cercles amb "
+            "el ratolí. I si tot i així no s'arregla, aixeca't i fes tres voltes a la cadira.</p>",
+        ),
     ]
     return "".join(parts)
 

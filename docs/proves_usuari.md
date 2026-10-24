@@ -13,6 +13,7 @@ s'anoten aquí i es corregeixen en un bloc de manteniment. Quan es fa el manteni
 | 1 | B14 (usuari, 24/10/2026) | Mentre sona [Escoltar el tros], la forma d'ona no mostra per on va la reproducció. Afegir-hi una línia que avanci. | Pendent ("més endavant", decisió de l'usuari) |
 | 2 | B14 (usuari, 24/10/2026) | "Tornar a sortejar" no s'entén. El botó de la foto ha de dir **"Nou moviment a l'atzar"** (🎲). | Pendent |
 | 3 | B14 (usuari, 24/10/2026) | "Nou moviment a l'atzar" no s'ha de desactivar quan la foto té el moviment triat a mà: s'ha de poder aplicar sempre (la foto torna a automàtic amb un moviment nou). | Pendent |
+| 4 | Fotos reals (usuari, 24/10/2026) | La durada de cada foto ha d'admetre de **0,4 a 24 s** (ara 1–3 s, `defaults.PHOTO_DURATION_RANGE`). Cal revisar-ho amb la fosa (0,5–1,5 s, més llarga que 0,4 s) i els límits de velocitat del moviment (decisions 0004 i 0005). | Pendent |
 
 ## Resultats
 
@@ -24,6 +25,11 @@ s'anoten aquí i es corregeixen en un bloc de manteniment. Quan es fa el manteni
 ### F3 · primera prova d'ús real
 - Prova manual del B11 i del B13 a Windows feta per l'usuari el 23/10/2026: correctes. No s'ha anotat cap prova amb
   una persona sense experiència.
+
+### Fotos reals (usuari, 24/10/2026)
+- Carpeta de fotos de càmera i de mòbil, sense HEIC, al PC de referència: les miniatures surten de seguida i es veuen
+  nítides (cap de borrosa o pixelada). La nitidesa de la miniatura EXIF (B5, B10) queda comprovada.
+- Sense provar: fotos HEIC d'iPhone.
 
 ### F5 · prova final
 - **No es fa** (decisió de l'usuari, 24/10/2026: cap prova amb persones externes). El protocol es queda per si mai
