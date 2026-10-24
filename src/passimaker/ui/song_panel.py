@@ -217,6 +217,13 @@ class SongPanel(QWidget):
         self.listen = QPushButton()
         self.volume = percent_box(defaults.SONG_VOLUME_RANGE, self.tr(" %"))
 
+        self.fade_in_enabled.setToolTip(self.tr("La cançó comença baixet i puja fins al volum normal"))
+        self.fade_out_enabled.setToolTip(self.tr("La cançó s'apaga a poc a poc en lloc de tallar-se"))
+        self.trim_start.setToolTip(self.tr("D'on comença a sonar la cançó"))
+        self.trim_end.setToolTip(self.tr("On deixa de sonar la cançó"))
+        self.listen.setToolTip(self.tr("Escolta el tros triat tal com sonarà al vídeo"))
+        self.volume.setToolTip(self.tr("Volum d'aquesta cançó respecte de les altres"))
+
         fades = QFormLayout()
         fades.addRow(self.fade_in_enabled, self.fade_in)
         fades.addRow(self.fade_out_enabled, self.fade_out)

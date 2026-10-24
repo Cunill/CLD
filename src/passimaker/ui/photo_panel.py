@@ -88,6 +88,16 @@ class PhotoPanel(QWidget):
         self.rotate_left = QPushButton(self.tr("Girar a l'esquerra"))
         self.rotate_right = QPushButton(self.tr("Girar a la dreta"))
 
+        self.duration.setToolTip(self.tr("Durada de les fotos seleccionades"))
+        self.reset_duration.setToolTip(self.tr("Torna a fer servir la durada general del projecte"))
+        self.motion.setToolTip(self.tr("Moviment de càmera de les fotos seleccionades"))
+        self.fit.setToolTip(
+            self.tr(
+                "Omplir retalla la foto perquè ocupi tota la pantalla; encaixar la mostra sencera, amb "
+                "un fons al voltant"
+            )
+        )
+
         for box in (self.motion, self.fit):  # the panel must fit in a narrow column
             box.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
             box.setMinimumContentsLength(COMBO_MIN_CHARACTERS)

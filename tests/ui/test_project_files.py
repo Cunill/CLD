@@ -336,7 +336,7 @@ def test_missing_files_stay_marked_until_found(
     assert questions.asked_relink == [1]
     assert window.files.missing_ids() == {"p0002"}
     assert window.missing_bar.isVisible()
-    assert window.missing_bar.label.text() == "No es troben 1 fitxers."
+    assert window.missing_bar.label.text() == "No es troba 1 fitxer."
     assert window.find_missing_action.isEnabled()
 
     write_photos(tmp_path / "copia", ["foto_02.jpg"])

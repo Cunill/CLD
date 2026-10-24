@@ -535,5 +535,9 @@ class MissingFilesBar(QWidget):
 
     def refresh(self) -> None:
         count = len(self._files.missing_ids())
-        self.label.setText(self.tr("No es troben {n} fitxers.").format(n=count))
+        self.label.setText(
+            self.tr("No es troba 1 fitxer.")
+            if count == 1
+            else self.tr("No es troben {n} fitxers.").format(n=count)
+        )
         self.setVisible(count > 0)

@@ -62,7 +62,11 @@ class DialogQuestions(QWidget):
         answer = QMessageBox.question(
             self.parentWidget(),
             self.tr("Subcarpetes"),
-            self.tr("Vols incloure també les subcarpetes ({n} fotos més)?").format(n=count),
+            (
+                self.tr("Vols incloure també les subcarpetes (1 foto més)?")
+                if count == 1
+                else self.tr("Vols incloure també les subcarpetes ({n} fotos més)?").format(n=count)
+            ),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.Yes,
         )
@@ -72,7 +76,11 @@ class DialogQuestions(QWidget):
         answer = QMessageBox.question(
             self.parentWidget(),
             self.tr("Fotos repetides"),
-            self.tr("{n} fotos ja hi són. Les vols afegir igualment?").format(n=count),
+            (
+                self.tr("1 foto ja hi és. La vols afegir igualment?")
+                if count == 1
+                else self.tr("{n} fotos ja hi són. Les vols afegir igualment?").format(n=count)
+            ),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
@@ -82,7 +90,11 @@ class DialogQuestions(QWidget):
         box = QMessageBox(self.parentWidget())
         box.setIcon(QMessageBox.Icon.Warning)
         box.setWindowTitle(self.tr("Importació"))
-        box.setText(self.tr("{n} fitxers no s'han pogut afegir.").format(n=len(failures)))
+        box.setText(
+            self.tr("1 fitxer no s'ha pogut afegir.")
+            if len(failures) == 1
+            else self.tr("{n} fitxers no s'han pogut afegir.").format(n=len(failures))
+        )
         box.setDetailedText(failure_details(failures))
         box.exec()
 
@@ -125,7 +137,11 @@ class DialogQuestions(QWidget):
         box = QMessageBox(self.parentWidget())
         box.setIcon(QMessageBox.Icon.Warning)
         box.setWindowTitle(self.tr("Música"))
-        box.setText(self.tr("{n} cançons no s'han pogut afegir.").format(n=len(failures)))
+        box.setText(
+            self.tr("1 cançó no s'ha pogut afegir.")
+            if len(failures) == 1
+            else self.tr("{n} cançons no s'han pogut afegir.").format(n=len(failures))
+        )
         box.setDetailedText(
             "\n".join(f"{failure.path.name}: {message(failure.message_key)}" for failure in failures)
         )
@@ -161,7 +177,11 @@ class DialogQuestions(QWidget):
         box = QMessageBox(self.parentWidget())
         box.setIcon(QMessageBox.Icon.Warning)
         box.setWindowTitle(self.tr("Exportar vídeo"))
-        box.setText(self.tr("No es pot exportar: no es troben {n} fitxers.").format(n=len(paths)))
+        box.setText(
+            self.tr("No es pot exportar: no es troba 1 fitxer.")
+            if len(paths) == 1
+            else self.tr("No es pot exportar: no es troben {n} fitxers.").format(n=len(paths))
+        )
         box.setDetailedText(path_list(paths))
         box.exec()
 
@@ -223,7 +243,11 @@ class DialogQuestions(QWidget):
         box = QMessageBox(self.parentWidget())
         box.setIcon(QMessageBox.Icon.Warning)
         box.setWindowTitle(self.tr("Fitxers que no es troben"))
-        box.setText(self.tr("No es troben {n} fitxers.").format(n=count))
+        box.setText(
+            self.tr("No es troba 1 fitxer.")
+            if count == 1
+            else self.tr("No es troben {n} fitxers.").format(n=count)
+        )
         search = box.addButton(self.tr("Cercar en una carpeta…"), QMessageBox.ButtonRole.AcceptRole)
         box.addButton(self.tr("Ara no"), QMessageBox.ButtonRole.RejectRole)
         box.setDefaultButton(search)
@@ -231,9 +255,20 @@ class DialogQuestions(QWidget):
 
     def report_relinked(self, found: int, still_missing: int) -> None:
         if still_missing:
-            text = self.tr("S'han trobat {found} fitxers. Encara en falten {missing}.").format(
-                found=found, missing=still_missing
+            if found == 0:
+                first = self.tr("No s'ha trobat cap fitxer.")
+            elif found == 1:
+                first = self.tr("S'ha trobat 1 fitxer.")
+            else:
+                first = self.tr("S'han trobat {found} fitxers.").format(found=found)
+            rest = (
+                self.tr("Encara en falta 1.")
+                if still_missing == 1
+                else self.tr("Encara en falten {missing}.").format(missing=still_missing)
             )
+            text = f"{first} {rest}"
+        elif found == 1:
+            text = self.tr("S'ha trobat el fitxer.")
         else:
             text = self.tr("S'han trobat tots els fitxers ({found}).").format(found=found)
         QMessageBox.information(self.parentWidget(), self.tr("Fitxers que no es troben"), text)

@@ -27,6 +27,7 @@ from PySide6.QtWidgets import (
 )
 
 from passimaker.images import ImageSource
+from passimaker.logs import log_dir
 from passimaker.model import Change, OutputFormat, ProjectController
 from passimaker.model.commands import (
     DuplicatePhotos,
@@ -46,6 +47,7 @@ from passimaker.ui.drops import sort_dropped
 from passimaker.ui.duration_status import DurationStatus, fit_problem
 from passimaker.ui.export_dialog import VideoExport
 from passimaker.ui.formatting import clock
+from passimaker.ui.help import HelpWindows
 from passimaker.ui.importing import PhotoImporter
 from passimaker.ui.music_strip import MusicStrip, SongLoader
 from passimaker.ui.photo_panel import PhotoPanel
@@ -89,6 +91,7 @@ class MainWindow(QMainWindow):
         self.songs = SongLoader(controller, self.questions, self)
         self.files = ProjectFiles(controller, self.questions, parent=self)
         self.video_export = VideoExport(self.questions, self)
+        self.help = HelpWindows(self, log_dir())
 
         self.setWindowTitle(self.tr("PassiMaker"))
         self.resize(WINDOW_SIZE)
@@ -150,6 +153,9 @@ class MainWindow(QMainWindow):
         bar.addWidget(self.duration_status)
         self.missing_bar = MissingFilesBar(self.files)
         bar.addWidget(self.missing_bar)
+        self.audio_warning = QLabel()
+        self.audio_warning.setVisible(False)
+        bar.addWidget(self.audio_warning)
         self.progress_widget = QWidget()
         progress_layout = QHBoxLayout(self.progress_widget)
         progress_layout.setContentsMargins(0, 0, 0, 0)
@@ -168,15 +174,25 @@ class MainWindow(QMainWindow):
 
     def _build_actions(self) -> None:
         self.add_photos_action = QAction(self.tr("+ Fotos"), self)
+        self.add_photos_action.setToolTip(
+            self.tr("Afegeix fotos al passi (també les pots arrossegar a la finestra)")
+        )
         self.add_photos_action.triggered.connect(self.choose_photos)
         self.add_folder_action = QAction(self.tr("Afegir una carpeta…"), self)
         self.add_folder_action.triggered.connect(self.choose_folder)
         self.add_music_action = QAction(self.tr("+ Música"), self)
+        self.add_music_action.setToolTip(
+            self.tr("Afegeix cançons (també les pots arrossegar a la franja de música)")
+        )
         self.add_music_action.triggered.connect(self.choose_music)
         self.fit_to_music_action = QAction(self.tr("Ajustar a la música"), self)
+        self.fit_to_music_action.setToolTip(
+            self.tr("Canvia la durada de les fotos perquè el passi acabi alhora que la música")
+        )
         self.fit_to_music_action.triggered.connect(self.fit_to_music)
         self.export_action = QAction(self.tr("Exportar vídeo"), self)
         self.export_action.setShortcut(QKeySequence("Ctrl+E"))
+        self.export_action.setToolTip(self.tr("Desa el passi com a vídeo MP4 (Ctrl+E)"))
         self.export_action.triggered.connect(self.export_video)
 
         self.open_action = QAction(self.tr("Obrir…"), self)
@@ -192,13 +208,18 @@ class MainWindow(QMainWindow):
         self.find_missing_action.triggered.connect(lambda: self.files.find_missing())
         self.recent_menu = QMenu(self.tr("Projectes recents"), self)
         self.recent_menu.aboutToShow.connect(self._fill_recent_menu)
+        self.quit_action = QAction(self.tr("Sortir"), self)
+        self.quit_action.setShortcut(QKeySequence("Ctrl+Q"))
+        self.quit_action.triggered.connect(self.close)
 
         self.undo_action = QAction(self.tr("Desfer"), self)
         self.undo_action.setShortcut(QKeySequence.StandardKey.Undo)
         self.undo_action.triggered.connect(self.undo)
+        self.undo_action.setToolTip(self.tr("Desfà l'últim canvi (Ctrl+Z)"))
         self.redo_action = QAction(self.tr("Refer"), self)
         self.redo_action.setShortcuts([QKeySequence(QKeySequence.StandardKey.Redo), QKeySequence("Ctrl+Y")])
         self.redo_action.triggered.connect(self.redo)
+        self.redo_action.setToolTip(self.tr("Torna a fer el canvi desfet (Ctrl+Y)"))
 
         self.delete_action = QAction(self.tr("Eliminar"), self)
         self.delete_action.setShortcut(QKeySequence.StandardKey.Delete)
@@ -235,6 +256,13 @@ class MainWindow(QMainWindow):
         self.format_action = QAction(self.tr("Format vertical"), self)
         self.format_action.setCheckable(True)
         self.format_action.toggled.connect(self._on_format_toggled)
+        self.format_action.setToolTip(self.tr("Vídeo vertical 9:16, per veure'l al mòbil"))
+
+        self.guide_action = QAction(self.tr("Guia d'ús"), self)
+        self.guide_action.setShortcut(QKeySequence.StandardKey.HelpContents)
+        self.guide_action.triggered.connect(self.help.show_guide)
+        self.about_action = QAction(self.tr("Quant a PassiMaker"), self)
+        self.about_action.triggered.connect(self.help.show_about)
 
         self.size_actions = self._build_size_actions()
         self._build_menus()
@@ -273,6 +301,8 @@ class MainWindow(QMainWindow):
         file_menu.addAction(self.find_missing_action)
         file_menu.addSeparator()
         file_menu.addAction(self.export_action)
+        file_menu.addSeparator()
+        file_menu.addAction(self.quit_action)
         edit_menu = bar.addMenu(self.tr("Edita"))
         edit_menu.addAction(self.undo_action)
         edit_menu.addAction(self.redo_action)
@@ -295,6 +325,10 @@ class MainWindow(QMainWindow):
         size_menu = view_menu.addMenu(self.tr("Mida de les miniatures"))
         for action in self.size_actions.values():
             size_menu.addAction(action)
+        self.help_menu = bar.addMenu(self.tr("Ajuda"))
+        self.help_menu.addAction(self.guide_action)
+        self.help_menu.addSeparator()
+        self.help_menu.addAction(self.about_action)
 
     def _build_toolbar(self) -> None:
         self.toolbar = QToolBar(self.tr("Principal"), self)
@@ -351,6 +385,7 @@ class MainWindow(QMainWindow):
         self.music_strip.model.modelReset.connect(self._on_song_selection)
         self.song_panel.listening_started.connect(self.player_panel.player.pause)
         self.player_panel.player.state_changed.connect(self._on_player_state)
+        self.player_panel.audio_problem.connect(self._on_audio_problem)
 
     # --- Commands --------------------------------------------------------------------------------
 
@@ -511,6 +546,12 @@ class MainWindow(QMainWindow):
         if started:
             self.song_panel.listening.stop()
 
+    def _on_audio_problem(self, text: str) -> None:
+        """B13/B14 note: the preview could not prepare the music, so it plays without sound."""
+        self.audio_warning.setText(text)
+        self.audio_warning.setToolTip(text)
+        self.audio_warning.setVisible(bool(text))
+
     def _on_files_dropped(self, paths: Sequence[Path], row: int) -> None:
         self.receive_files(paths, photo_index=None if row < 0 else row)
 
@@ -602,9 +643,9 @@ class MainWindow(QMainWindow):
         """ "124 fotos · 4:30" (§1.3): the total is the sum of the photo durations."""
         project = self.controller.project
         total = sum(project.photo_duration(photo) for photo in project.photos)
-        self.status_label.setText(
-            self.tr("{photos} fotos · {duration}").format(photos=len(project.photos), duration=clock(total))
-        )
+        count = len(project.photos)
+        text = self.tr("1 foto · {duration}") if count == 1 else self.tr("{photos} fotos · {duration}")
+        self.status_label.setText(text.format(photos=count, duration=clock(total)))
         self.duration_status.refresh(project)
 
     # --- Window ----------------------------------------------------------------------------------
@@ -632,6 +673,7 @@ class MainWindow(QMainWindow):
         self.importer.cancel()
         self.importer.wait(5_000)
         self.player_panel.close_panel()
+        self.help.close()
         self.model.close()
         self.panel.close_panel()
         self.photo_panel.close_panel()
