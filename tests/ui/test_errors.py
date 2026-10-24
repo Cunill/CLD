@@ -90,3 +90,13 @@ def test_errors_while_the_message_is_open_are_not_stacked(qtbot: QtBot, log_file
 def test_without_a_log_the_message_does_not_name_a_file() -> None:
     reporter = ErrorReporter(None)
     assert "registre" not in reporter.text()
+
+
+def test_every_message_is_shown_over_the_window(qtbot: QtBot, log_file: Path, window: MainWindow) -> None:
+    parents: list[object] = []
+    reporter = ErrorReporter(log_file, show=lambda _title, _text: parents.append(reporter.window))
+    reporter.window = window
+    reporter.report(ValueError("primer"))
+    reporter.report(ValueError("segon"))
+    qtbot.waitUntil(lambda: len(parents) == 2, timeout=5_000)
+    assert parents == [window, window]

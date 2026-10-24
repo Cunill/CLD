@@ -47,8 +47,6 @@ class ErrorReporter(QObject):
             self._show(self.title(), self.text())
         finally:
             self._showing = False
-        self.window: QWidget | None = None
-        """The window the message is shown over; not the parent, so the reporter outlives it."""
 
     def title(self) -> str:
         return self.tr("Error inesperat")

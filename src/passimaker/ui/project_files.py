@@ -63,10 +63,10 @@ WINDOW_FOLDER_PREFIX = "finestra-"
 """One folder per open window inside the recovery folder (decision 0010)."""
 LOCK_FILE_NAME = "oberta.lock"
 """Held by the window that owns the folder; free once it closes or crashes."""
-
-_log = logging.getLogger(__name__)
 ORGANISATION = "PassiMaker"
 APPLICATION = "PassiMaker"
+
+_log = logging.getLogger(__name__)
 
 
 class SaveAnswer(Enum):
