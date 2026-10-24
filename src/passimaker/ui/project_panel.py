@@ -105,6 +105,17 @@ class ProjectPanel(QWidget):
             self.tr("Iguala el volum percebut de totes les cançons perquè cap no soni molt més forta")
         )
 
+        self.duration.setToolTip(self.tr("Quant dura cada foto, si no n'hi has posat una de pròpia"))
+        self.crossfade.setToolTip(self.tr("Quant dura la fosa entre una foto i la següent"))
+        self.motion_enabled.setToolTip(self.tr("Apropa, allunya o desplaça suaument cada foto mentre es veu"))
+        self.intensity.setToolTip(self.tr("Com de marcat és el moviment de les fotos"))
+        self.output_format.setToolTip(self.tr("Horitzontal per al televisor; vertical per al mòbil"))
+        self.fade_from_black.setToolTip(self.tr("Fosa des de negre al principi del vídeo"))
+        self.fade_to_black.setToolTip(self.tr("Fosa cap a negre al final del vídeo"))
+        self.zoom_amount.setToolTip(self.tr("Quant s'apropa o s'allunya cada foto"))
+        self.pan_amount.setToolTip(self.tr("Quant es desplaça cada foto"))
+        self.master_volume.setToolTip(self.tr("Volum de tota la música del vídeo"))
+
         layout = QVBoxLayout(self)
         form = QFormLayout()
         form.addRow(self.tr("Durada per foto"), self.duration)
