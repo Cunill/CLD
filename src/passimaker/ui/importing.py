@@ -114,13 +114,14 @@ class PhotoImporter(QObject):
     """Drives an import from the dropped paths to the AddPhotos command.
 
     ``started``/``progress``/``finished`` drive the progress bar of the status bar; ``cancel``
-    stops the scan and keeps nothing (§1.1: the import can be cancelled).
+    stops the scan and adds the photos already read, without asking anything else (§1.1, decision
+    0010: with a thousand photos, cancelling must not throw away minutes of work).
     """
 
     started = Signal()
     progress = Signal(int, int)
     finished = Signal(int)
-    """How many photos were added (0 if it was cancelled or everything failed)."""
+    """How many photos were added (0 if everything failed or nothing was read before cancelling)."""
 
     def __init__(
         self, controller: ProjectController, questions: ImportQuestions, parent: QObject | None = None
@@ -174,7 +175,7 @@ class PhotoImporter(QObject):
         if state is None or not isinstance(result, ImportResult):
             return
         if result.cancelled:
-            self._end(0)
+            self._add(result, state)
             return
         if result.subfolder_photo_count and not state.asked_subfolders:
             state.asked_subfolders = True

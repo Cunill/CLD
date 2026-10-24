@@ -9,6 +9,7 @@ import tempfile
 import threading
 import time
 from collections import deque
+from collections.abc import Sequence
 from concurrent.futures import Future, ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FutureTimeout
 from dataclasses import dataclass
@@ -20,14 +21,14 @@ from passimaker.common import CancelToken, PassiMakerError, RGBImage
 from passimaker.export.checks import estimated_video_bytes, has_room, missing_files, wav_bytes
 from passimaker.export.files import long_path, remove_quietly, replace
 from passimaker.export.locations import audio_cache_dir
-from passimaker.export.params import CANCEL_POLL_S, FRAMES_IN_FLIGHT, RENDER_THREADS
+from passimaker.export.params import CANCEL_POLL_S, FRAMES_IN_FLIGHT, IMAGE_MEMORY_BYTES, RENDER_THREADS
 from passimaker.export.power import keep_awake
 from passimaker.export.progress import ExportProgress, ProgressTracker
 from passimaker.ffmpeg import ERROR_DISK_FULL as FFMPEG_DISK_FULL
 from passimaker.ffmpeg import ERROR_WRITE as FFMPEG_WRITE
 from passimaker.ffmpeg import FfmpegError, VideoWriter, locate, open_encoder
-from passimaker.images import CachedImageSource
-from passimaker.model.types import Project
+from passimaker.images import CachedImageSource, ImageDecodeError, ImageSource
+from passimaker.model.types import Photo, Project
 from passimaker.render import Compositor
 from passimaker.timeline import Timeline, compute_timeline, frame_to_time
 
@@ -42,6 +43,8 @@ ERROR_WRITE = "export.write_error"
 """The video cannot be written there (missing folder, no permission, read-only drive...)."""
 ERROR_FAILED = "export.failed"
 """Unexpected failure (details in the log)."""
+ERROR_OUT_OF_MEMORY = "images.out_of_memory"
+"""Not enough memory to open a photo (B15): the export stops instead of drawing it grey."""
 
 PARTIAL_SUFFIX = ".part"
 """The video is written as "<name>.mp4.part" next to the destination and renamed at the end (§1.9)."""
@@ -68,6 +71,29 @@ class _ExportError(Exception):
     def __init__(self, key: str, detail: str = "") -> None:
         super().__init__(f"{key}: {detail}" if detail else key)
         self.key = key
+
+
+class _NoMemoryForPhotoError(Exception):
+    """Not a PassiMakerError on purpose: the compositor draws a photo it cannot read as a grey
+    canvas, which is right for a damaged file but would hide a lack of memory in the video."""
+
+
+class _ExportImages:
+    """The image source of the export: a photo that fails for lack of memory stops the export."""
+
+    def __init__(self, images: ImageSource) -> None:
+        self._images = images
+
+    def get_image(self, photo: Photo, min_long_side: int) -> RGBImage:
+        try:
+            return self._images.get_image(photo, min_long_side)
+        except ImageDecodeError as error:
+            if error.message_key == ERROR_OUT_OF_MEMORY:
+                raise _NoMemoryForPhotoError(str(error)) from error
+            raise
+
+    def prefetch(self, photos: Sequence[Photo], min_long_side: int) -> None:
+        self._images.prefetch(photos, min_long_side)
 
 
 def export_project(
@@ -119,6 +145,8 @@ def export_project(
         return _error(error.message_key, error)
     except OSError as error:
         return _error(ERROR_DISK_FULL if error.errno == errno.ENOSPC else ERROR_WRITE, error)
+    except (_NoMemoryForPhotoError, MemoryError) as error:
+        return _error(ERROR_OUT_OF_MEMORY, error)
     except Exception as error:
         _log.exception("Error inesperat en exportar %s", dest)
         return _error(ERROR_FAILED, error)
@@ -177,10 +205,10 @@ def _export(
         audio.render_wav(wav, tracker.audio, cancel)
         if cancel.cancelled:
             return False
-        images = CachedImageSource()
+        images = CachedImageSource(memory_budget_bytes=IMAGE_MEMORY_BYTES)
         completed = False
         try:
-            compositor = Compositor(project, timeline, images)
+            compositor = Compositor(project, timeline, _ExportImages(images))
             width, height = project.output_format.size
             writer = open_encoder(partial, width, height, wav)
             try:

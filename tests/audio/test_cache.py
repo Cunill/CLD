@@ -134,3 +134,56 @@ def test_songs_after_the_end_of_the_show_are_not_decoded(songs: dict[str, Path],
     mix = mixer(project(4.0, [song(songs, "440"), song(songs, "corrupt")]))
     assert mix.failures == {}
     assert mix.measured_gains_db.keys() == {"440"}
+
+
+# --- Size limit (B15) -----------------------------------------------------------------------------
+
+
+def _stale_entry(folder: Path, name: str, size: int, age_s: float) -> Path:
+    path = folder / f"{name}{cache.PCM_SUFFIX}"
+    path.write_bytes(b"\0" * size)
+    (folder / f"{name}{cache.LOUDNESS_SUFFIX}").write_text("{}", encoding="utf-8")
+    when = path.stat().st_mtime - age_s
+    os.utime(path, (when, when))
+    return path
+
+
+def test_the_cache_keeps_under_its_limit_dropping_the_least_recently_used(
+    songs: dict[str, Path], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A decoded song takes 23 MB a minute: without a limit the folder only grows."""
+    folder = tmp_path / "memòria cau"
+    folder.mkdir()
+    oldest = _stale_entry(folder, "a" * 32, 2_000_000, 3_000)
+    older = _stale_entry(folder, "b" * 32, 2_000_000, 2_000)
+    recent = _stale_entry(folder, "c" * 32, 2_000_000, 1_000)
+    monkeypatch.setattr(cache, "CACHE_LIMIT_BYTES", 6_000_000)
+    decoded = cache.decoded_song(songs["440"], folder)  # 8 s: ~3 MB
+    assert decoded.path.is_file()
+    assert not oldest.exists() and not oldest.with_name("a" * 32 + cache.LOUDNESS_SUFFIX).exists()
+    assert not older.exists()
+    assert recent.exists()
+    total = sum(p.stat().st_size for p in folder.iterdir() if p.suffix == cache.PCM_SUFFIX)
+    assert total <= 6_000_000
+
+
+def test_songs_in_use_are_never_dropped(
+    songs: dict[str, Path], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    folder = tmp_path / "memòria cau"
+    folder.mkdir()
+    first = cache.decoded_song(songs["440"], folder)
+    os.utime(first.path, (1_000_000_000, 1_000_000_000))  # the least recently used, but in use
+    monkeypatch.setattr(cache, "CACHE_LIMIT_BYTES", 1)
+    second = cache.decoded_song(songs["660"], folder)
+    assert first.path.exists() and second.path.exists()
+    assert first.read(0, 10).shape == (10, 2)
+
+
+def test_using_a_song_again_marks_it_as_recent(songs: dict[str, Path], tmp_path: Path) -> None:
+    folder = tmp_path / "memòria cau"
+    folder.mkdir()
+    first = cache.decoded_song(songs["440"], folder)
+    os.utime(first.path, (1_000_000_000, 1_000_000_000))
+    cache.decoded_song(songs["440"], folder)
+    assert first.path.stat().st_mtime > 1_000_000_000
