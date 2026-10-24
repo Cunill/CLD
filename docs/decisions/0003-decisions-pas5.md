@@ -19,3 +19,6 @@
 > **Actualització (M01, 20/10/2026):** D1 ha canviat. El programa es diu **PassiMaker** i els projectes fan servir l'extensió `.passimaker`. Vegeu la decisió 0006.
 
 > **Actualització (24/10/2026):** D9 decidida. El PC de referència és el sobretaula de l'usuari, no un portàtil d'oficina: Windows 10 Pro, Intel Core i7-6700K (4 nuclis, 8 fils, 4 GHz), 40 GB de memòria i gràfica dedicada NVIDIA GeForce GTX 960. Les mesures del B15 en aquest PC són a `docs/RENDIMENT.md`.
+
+> **Actualització (24/10/2026):** D11 ha canviat. No es fan proves amb persones externes (ni a F3 ni a F5): les proves
+> pràctiques les fa només l'usuari (vegeu `docs/proves_usuari.md`).
