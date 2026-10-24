@@ -80,12 +80,11 @@ def peak_memory_bytes() -> int:
     """Peak resident memory of this process (Windows: peak working set)."""
     if sys.platform == "win32":
         import ctypes
-        from ctypes import wintypes
 
         class Counters(ctypes.Structure):
             _fields_ = [
-                ("cb", wintypes.DWORD),
-                ("PageFaultCount", wintypes.DWORD),
+                ("cb", ctypes.c_ulong),
+                ("PageFaultCount", ctypes.c_ulong),
                 ("PeakWorkingSetSize", ctypes.c_size_t),
                 ("WorkingSetSize", ctypes.c_size_t),
                 ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
@@ -98,8 +97,16 @@ def peak_memory_bytes() -> int:
 
         counters = Counters()
         counters.cb = ctypes.sizeof(Counters)
-        process = ctypes.windll.kernel32.GetCurrentProcess()
-        ctypes.windll.psapi.GetProcessMemoryInfo(process, ctypes.byref(counters), counters.cb)
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # type: ignore[attr-defined]
+        # Types declared: without them ctypes passes the 64-bit process handle as a 32-bit int.
+        current = kernel32.GetCurrentProcess
+        current.restype = ctypes.c_void_p
+        current.argtypes = []
+        info = kernel32.K32GetProcessMemoryInfo
+        info.restype = ctypes.c_int
+        info.argtypes = [ctypes.c_void_p, ctypes.POINTER(Counters), ctypes.c_ulong]
+        if not info(current(), ctypes.byref(counters), counters.cb):
+            raise ctypes.WinError(ctypes.get_last_error())  # type: ignore[attr-defined]
         return int(counters.PeakWorkingSetSize)
     import resource
 
