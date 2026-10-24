@@ -9,6 +9,13 @@ Decisions: docs/decisions/ · Estat de cada bloc: docs/sessions/
 ## On es desenvolupa
 Sessions de Claude Code al núvol (Linux) i CI a GitHub Actions sobre Windows (decisió 0002).
 El producte és només per a Windows; el nucli i la interfície (sense pantalla) es proven també a Linux.
+Dues menes de sessió (24/10/2026); es fa servir la que convingui a cada tasca:
+- **Al núvol**: programar, proves, PR i fusions. No pot crear etiquetes ni versions publicades, esborrar branques
+  remotes, fer servir GraphQL (`gh pr`, `gh issue`: cal `gh api` o les eines de GitHub) ni els fitxers o el Windows
+  de l'usuari. Per publicar una versió: el flux `publicar.yml` (docs/PUBLICAR.md).
+- **Local** (Claude Code al PC de l'usuari, amb les seves credencials): tot el que el núvol no pot fer, i provar el
+  programa de veritat a Windows (finestra, so, fotos reals). Cal `git`, `gh` (`gh auth login`), `uv` i
+  `pwsh tools/obtenir_ffmpeg.ps1`.
 
 ## Pila
 Python 3.12, uv, PySide6-Essentials, NumPy, OpenCV (headless), Pillow + pillow-heif, sounddevice,
