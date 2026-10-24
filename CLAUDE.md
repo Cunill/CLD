@@ -68,24 +68,26 @@ B2 (PR #6, commit `d24243a`) · B1 (PR #5, commit `defb833`) · B7 (PR #11, comm
 B4 (PR #12, commit `f56b8d4`) · B8 (PR #14, commit `311bed0`) · B6 (PR #15, commit `e4da3fa`) ·
 B5 (PR #20, commit `d23f58e`) · B9 (PR #21, commit `dd3aaa0`) · B10 (PR #27, commit `b4a524b`) ·
 B11 (PR #30, commit `427301e`) · B13 (PR #31, commit `0ced4ec`) · B12 (PR #33, commit `a71e22e`) ·
-B14 (PR #37, commit `8368028`).
+B14 (PR #37, commit `8368028`) · B15 (PR #40, commit `a96edd6`).
 Manteniment: M01 canvi de nom a PassiMaker (PR #9, commit `72341ff`, decisió 0006) ·
 M02 `SHORT_SONG_FADE_FRACTION` a defaults.py (PR #16, commit `43faaaf`) ·
 M03 extensió `.pmk` (PR #25, commit `66b6e92`, decisió 0009) ·
 M04 arrossegar fotos amb el ratolí i so obert en pausa per al Bluetooth (PR #36, commit `56ccca7`).
 Fita F1 aprovada (decisions 0004 i 0005). Fita F2: vídeo provat per l'usuari amb les seves fotos (vertical i
-horitzontal) el 21/10/2026, correcte; falta ensenyar-lo a una persona externa (PLA §4.4). Pendents: B15–B16.
+horitzontal) el 21/10/2026, correcte; falta ensenyar-lo a una persona externa (PLA §4.4). Pendent: B16.
 Decisions de l'usuari del 21/10/2026: decisió 0007 (D12, llindar de 5 fotos, textos d'error del B10).
 Decisions del B5 aprovades (docs/sessions/B05.md); la nitidesa de la miniatura EXIF es revisa amb fotos reals
 a Windows (vegeu docs/sessions/B10.md).
-Pendent de decidir del B10: si cancel·lar una importació ha de conservar les fotos ja llegides
-(ara no n'afegeix cap).
+Decidit el 23/10/2026 (decisió 0010, aplicat al B15): cancel·lar una importació conserva les fotos ja llegides, una
+còpia de recuperació per finestra, versió 0.5.0 i els `.pmk` sense doble clic (la P6 continua fora del pla).
 Decidit el 23/10/2026 (pendent del B11 i desviacions del B14): la interfície pot fer servir `timeline`, `audio` i
 `ffmpeg` (CONTRACTES §13, ampliat), i el pas del retall de les cançons és `defaults.SONG_TRIM_STEP_S`. Prova manual del B11 a
 Windows feta el 23/10/2026 amb el ZIP del B12: correcta.
 Prova manual del B13 a Windows feta el 23/10/2026: correcta (la fosa amb Bluetooth i l'arrossegament de fotos, al M04).
 ZIP portable (B12): la CI el genera a cada PR, fusió a main i etiqueta (artefacte PassiMaker-<versió>-win64; vegeu
-docs/sessions/B12.md). Pendent de decidir: la versió de l'MVP (avui 0.0.1; el pla diu v0.5-mvp) i l'etiqueta per a la F3.
+docs/sessions/B12.md). Etiqueta `v0.5-mvp` per a la F3: la posa l'usuari al commit `a96edd6` (docs/sessions/B15.md).
 Prova manual del B14 a Windows ajornada (docs/sessions/B14.md, "Pendent"): escoltar el tros amb altaveus, arrossegar
 les nanses del retall i que els panells càpiguen a la columna.
+B15: registre a `%LOCALAPPDATA%\PassiMaker\logs`; mesures de 1.000 fotos a docs/RENDIMENT.md, fetes a Linux: falta
+repetir-les al PC de referència (`uv run pytest -m perf tests/perf/test_thousand_photos.py -s`).
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
