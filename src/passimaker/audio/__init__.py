@@ -21,7 +21,14 @@ from passimaker.audio.params import (
     SILENCE_LUFS,
 )
 from passimaker.common import AudioBlock, CancelToken, PassiMakerError, ProgressCallback
-from passimaker.ffmpeg import ERROR_DISK_FULL, ERROR_NOT_FOUND, ERROR_WRITE, FfmpegError
+from passimaker.ffmpeg import (
+    ERROR_DISK_FULL,
+    ERROR_NO_AUDIO,
+    ERROR_NOT_FOUND,
+    ERROR_WRITE,
+    FfmpegError,
+    probe,
+)
 from passimaker.model import defaults
 from passimaker.model.types import Project, Song
 from passimaker.timeline import AudioPlan, compute_timeline
@@ -35,6 +42,7 @@ __all__ = [
     "Track",
     "normalisation_gain_db",
     "prepare",
+    "song_from_file",
 ]
 
 ENVIRONMENT_ERRORS = frozenset({ERROR_NOT_FOUND, ERROR_DISK_FULL, ERROR_WRITE})
@@ -55,6 +63,19 @@ class AudioSource(Protocol):
     ) -> None:
         """Writes the whole mix (duration of the show) as 16-bit PCM WAV, block by block."""
         ...
+
+
+def song_from_file(path: Path, song_id: str) -> Song:
+    """A new song with the default settings of §1.7 (shared by the interface and the command line).
+
+    Raises FfmpegError if the file cannot be read, and with ERROR_NO_AUDIO if it has no sound.
+    """
+    info = probe(path)
+    if not info.has_audio or info.duration_s <= 0:
+        raise FfmpegError(ERROR_NO_AUDIO, str(path))
+    return Song(
+        id=song_id, path=Path(path).absolute(), relative_path=None, original_duration_s=info.duration_s
+    )
 
 
 def normalisation_gain_db(integrated_lufs: float) -> float:

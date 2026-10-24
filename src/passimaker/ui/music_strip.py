@@ -40,8 +40,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from passimaker.audio import song_from_file
 from passimaker.common import PassiMakerError
-from passimaker.ffmpeg import probe
 from passimaker.model import Change, ProjectController, Song
 from passimaker.model.commands import AddSongs, MoveSongs, RemoveSongs, SetMusicSettings
 from passimaker.model.editing import song_duration
@@ -62,7 +62,6 @@ MISSING_COLOUR = QColor(200, 40, 40)
 
 STRIP_HEIGHT = 40
 ADD_BUTTON_WIDTH = 36
-NO_AUDIO_KEY = "ffmpeg.no_audio"
 
 type AnyIndex = QModelIndex | QPersistentModelIndex
 
@@ -102,17 +101,9 @@ class LoadedSongs:
 def read_song(path: Path) -> Song | FailedSong:
     """A new song with the default settings of §1.7, or why it cannot be used."""
     try:
-        info = probe(path)
+        return song_from_file(path, f"s{next(_ids):05d}")
     except PassiMakerError as error:
         return FailedSong(path, error.message_key)
-    if not info.has_audio or info.duration_s <= 0:
-        return FailedSong(path, NO_AUDIO_KEY)
-    return Song(
-        id=f"s{next(_ids):05d}",
-        path=Path(path).absolute(),
-        relative_path=None,
-        original_duration_s=info.duration_s,
-    )
 
 
 class _Signals(QObject):

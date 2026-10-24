@@ -104,7 +104,7 @@ def guide_html() -> str:
             "<li><b>Tot el passi</b>: pestanya <i>Projecte</i> (durada de les fotos, fosa, intensitat del "
             "moviment). Les opcions menys habituals són a <i>Avançat</i>.</li>"
             "<li><b>Una foto</b>: selecciona-la i fes servir la pestanya <i>Foto</i> (durada, moviment, "
-            "encaix i gir). Si un moviment no t'agrada, <b>🎲 Tornar a sortejar</b>.</li>"
+            "encaix i gir). Si un moviment no t'agrada, <b>🎲 Nou moviment a l'atzar</b>.</li>"
             "<li><b>Una cançó</b>: selecciona-la a la franja de música i fes servir la pestanya "
             "<i>Cançó</i> (retall, foses i volum). <b>▶ Escoltar el tros</b> la fa sonar tal com "
             "quedarà.</li>"

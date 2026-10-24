@@ -58,7 +58,8 @@ Ordres (`passimaker.model.commands`): `AddPhotos`, `RemovePhotos`, `MovePhotos`,
 `RerollMotions`, `RotatePhotos`, `SetProjectSettings`, `AddSongs`, `RemoveSongs`, `MoveSongs`,
 `UpdateSong`, `SetMusicSettings`, `FitToMusic`. Són dades; la lògica és al controlador (B1). Les
 ordres que afecten el moviment (afegir, duplicar, girar, canviar format o encaix, tornar a sortejar)
-fan servir `passimaker.motion` per resoldre l'encaix i sortejar.
+fan servir `passimaker.motion` per resoldre l'encaix i sortejar. `RerollMotions(ids)` torna a sortejar aquestes fotos
+i, si tenien el moviment fixat a mà, les torna a automàtic (M05); `RerollMotions(None)`, només les automàtiques.
 
 ## 2. Importació (`passimaker.importer`) · B4
 
@@ -66,6 +67,7 @@ fan servir `passimaker.motion` per resoldre l'encaix i sortejar.
 |---|---|---|
 | `import_paths(rutes, existing, include_subfolders, progress, cancel)` | fitxers i carpetes | `ImportResult(candidates, failures, duplicates, subfolder_photo_count, cancelled)` |
 | `sort_candidates(candidats, by_date)` | `by_date=None` aplica la regla automàtica del §1.1 | llista ordenada |
+| `photo_from_candidate(candidat, id, format)` | un `PhotoCandidate` (M05) | `Photo` nova amb els valors per defecte (marca de baixa resolució del §1.1); la fan servir la interfície i les ordres de línia |
 
 `PhotoCandidate`: `path`, `width`, `height` (orientades), `exif_orientation`, `capture_time`,
 `file_time`, `color_profile`. `FailedFile(path, reason)` amb `ImportFailure` (UNSUPPORTED, RAW,
@@ -162,6 +164,8 @@ d'aquest color. Les dades de prova no contenen mai píxels semblants al magenta
 ## 9. Àudio (`passimaker.audio`) · B8
 
 `prepare(projecte, pla_àudio, cache_dir) -> AudioSource`.
+`song_from_file(ruta, id) -> Song` (M05): cançó nova amb els valors per defecte; `FfmpegError` si no es pot llegir, amb
+`ffmpeg.no_audio` si no té so. La fan servir la interfície i les ordres de línia.
 `AudioSource` (protocol): `duration_s`, `read(t_s, frames) -> AudioBlock` (zeros fora de rang; prou
 ràpid per al temps real), `render_wav(destí, progress, cancel)` (WAV PCM 16 bits, per trossos).
 

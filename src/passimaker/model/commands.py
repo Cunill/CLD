@@ -89,7 +89,8 @@ class SetPhotoMotion:
 @dataclass(frozen=True, slots=True)
 class RerollMotions:
     photo_ids: frozenset[str] | None
-    """Photos to draw again; None means every photo in automatic mode."""
+    """Photos to draw again, back in automatic mode if their motion was fixed by hand (M05: "Nou moviment a
+    l'atzar"); None means every photo already in automatic mode (the manual ones are kept)."""
 
 
 @dataclass(frozen=True, slots=True)
