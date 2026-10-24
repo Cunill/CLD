@@ -27,6 +27,7 @@ import numpy as np
 from PIL import Image
 
 from passimaker import __version__
+from passimaker.audio import song_from_file
 from passimaker.common import CancelToken, PassiMakerError
 from passimaker.export import (
     ERROR_DISK_FULL,
@@ -41,8 +42,8 @@ from passimaker.export import (
 )
 from passimaker.ffmpeg import locate, probe
 from passimaker.i18n import message
-from passimaker.importer import FailedFile, ImportFailure, PhotoCandidate, import_paths, sort_candidates
-from passimaker.model import OutputFormat, Photo, Project, ProjectController, Song
+from passimaker.importer import FailedFile, ImportFailure, import_paths, photo_from_candidate, sort_candidates
+from passimaker.model import OutputFormat, Project, ProjectController
 from passimaker.model.commands import AddPhotos, AddSongs, FitToMusic
 from passimaker.projectio import EXTENSION, open_project, save_project
 from passimaker.timeline import compute_timeline
@@ -117,28 +118,6 @@ def build_render_parser() -> argparse.ArgumentParser:
 
 
 # --- passimaker-nou -------------------------------------------------------------------------------
-
-
-def photo_from_candidate(candidate: PhotoCandidate, photo_id: str, output_format: OutputFormat) -> Photo:
-    """A new photo with the default settings (its motion is drawn by the controller)."""
-    return Photo(
-        id=photo_id,
-        path=candidate.path,
-        relative_path=None,
-        width=candidate.width,
-        height=candidate.height,
-        exif_orientation=candidate.exif_orientation,
-        capture_time=candidate.capture_time,
-        # §1.1: short side under half the video's (540 px in 1080p) -> "low resolution" icon.
-        low_resolution=2 * min(candidate.width, candidate.height) < min(output_format.size),
-    )
-
-
-def song_from_file(path: Path, song_id: str) -> Song:
-    """A new song with the default settings; raises FfmpegError if it cannot be read."""
-    return Song(
-        id=song_id, path=path.absolute(), relative_path=None, original_duration_s=probe(path).duration_s
-    )
 
 
 def new_project(

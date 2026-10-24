@@ -82,7 +82,7 @@ def test_repeated_ids_are_made_unique() -> None:
 def test_added_photo_durations_are_clamped() -> None:
     controller = controller_with(0)
     controller.execute(AddPhotos((photo("a", duration=0.2), photo("b", duration=99))))
-    assert [p.duration_s for p in controller.project.photos] == [1.0, 3.0]
+    assert [p.duration_s for p in controller.project.photos] == [0.4, 24.0]
 
 
 def test_remove_photos() -> None:
@@ -166,20 +166,20 @@ def test_sort_by_date_puts_undated_photos_last() -> None:
 def test_default_duration_is_clamped_and_affects_photos_without_their_own() -> None:
     controller = controller_with(3)
     controller.execute(SetPhotoDuration(frozenset({"p000"}), 2.5))
-    assert controller.execute(SetDefaultDuration(7.0)) >= {Change.TIMING}
+    assert controller.execute(SetDefaultDuration(70.0)) >= {Change.TIMING}
     project = controller.project
-    assert project.default_duration_s == 3.0
-    assert [project.photo_duration(p) for p in project.photos] == [2.5, 3.0, 3.0]
+    assert project.default_duration_s == 24.0
+    assert [project.photo_duration(p) for p in project.photos] == [2.5, 24.0, 24.0]
     controller.execute(SetDefaultDuration(0.0))
-    assert controller.project.default_duration_s == 1.0
+    assert controller.project.default_duration_s == 0.4
 
 
 def test_photo_duration_is_clamped_and_can_be_reset() -> None:
     controller = controller_with(2)
     controller.execute(SetPhotoDuration(frozenset({"p000", "p001"}), 0.1))
-    assert [p.duration_s for p in controller.project.photos] == [1.0, 1.0]
+    assert [p.duration_s for p in controller.project.photos] == [0.4, 0.4]
     controller.execute(SetPhotoDuration(frozenset({"p001"}), None))
-    assert [p.duration_s for p in controller.project.photos] == [1.0, None]
+    assert [p.duration_s for p in controller.project.photos] == [0.4, None]
 
 
 def test_duration_change_keeps_the_motion_types() -> None:
@@ -253,6 +253,23 @@ def test_reroll_all_respects_manual_photos() -> None:
     project = controller.project
     assert next(p for p in project.photos if p.id == "p003").motion == manual
     assert all(p.motion.draw_count == 1 for p in project.photos if p.id != "p003")
+
+
+def test_a_new_random_motion_also_frees_a_manual_photo() -> None:
+    """M05 ("Nou moviment a l'atzar"): the chosen photos get a new motion even if it was fixed by hand."""
+    controller = controller_with(6)
+    controller.execute(SetPhotoMotion(frozenset({"p003"}), MotionType.ZOOM_OUT))
+    before = {p.id: p.motion for p in controller.project.photos}
+    undo_steps = len(controller._undo)  # pyright: ignore[reportPrivateUsage]
+    controller.execute(RerollMotions(frozenset({"p003"})))
+    after = {p.id: p.motion for p in controller.project.photos}
+    assert after["p003"].mode is MotionMode.AUTO
+    assert after["p003"].draw_count == before["p003"].draw_count + 1
+    assert after["p003"].type != MotionType.ZOOM_OUT
+    assert all(after[pid] == m for pid, m in before.items() if pid != "p003")
+    assert len(controller._undo) == undo_steps + 1  # pyright: ignore[reportPrivateUsage]
+    controller.undo()
+    assert next(p for p in controller.project.photos if p.id == "p003").motion == before["p003"]
 
 
 def test_rotation_is_relative_and_swaps_the_size() -> None:

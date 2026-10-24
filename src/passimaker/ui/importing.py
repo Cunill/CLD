@@ -16,32 +16,18 @@ from typing import Protocol
 from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal
 
 from passimaker.common import CancelToken
-from passimaker.importer import FailedFile, ImportResult, PhotoCandidate, import_paths, sort_candidates
-from passimaker.model import OutputFormat, Photo, ProjectController, defaults
+from passimaker.importer import (
+    FailedFile,
+    ImportResult,
+    import_paths,
+    photo_from_candidate,
+    sort_candidates,
+)
+from passimaker.model import ProjectController, defaults
 from passimaker.model.commands import AddPhotos
 
 _ids = itertools.count(1)
 """Photo ids are only unique inside a project; the controller renames a repeated one."""
-
-
-def photo_from_candidate(candidate: PhotoCandidate, photo_id: str, output_format: OutputFormat) -> Photo:
-    """A new photo with the default settings; its motion is drawn by the controller.
-
-    Same rule as ``passimaker.cli.photo_from_candidate`` (the command line creates projects with
-    the same steps as the interface); the shared helper belongs to a module both can import,
-    which would change a contract and is proposed for a later block.
-    """
-    return Photo(
-        id=photo_id,
-        path=candidate.path,
-        relative_path=None,
-        width=candidate.width,
-        height=candidate.height,
-        exif_orientation=candidate.exif_orientation,
-        capture_time=candidate.capture_time,
-        # §1.1: short side under half the video's (540 px in 1080p) -> "low resolution" icon.
-        low_resolution=2 * min(candidate.width, candidate.height) < min(output_format.size),
-    )
 
 
 class ImportQuestions(Protocol):

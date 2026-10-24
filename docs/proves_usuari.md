@@ -10,10 +10,10 @@ s'anoten aquí i es corregeixen en un bloc de manteniment. Quan es fa el manteni
 
 | # | Prova | Observació | Estat |
 |---|---|---|---|
-| 1 | B14 (usuari, 24/10/2026) | Mentre sona [Escoltar el tros], la forma d'ona no mostra per on va la reproducció. Afegir-hi una línia que avanci. | Pendent ("més endavant", decisió de l'usuari) |
-| 2 | B14 (usuari, 24/10/2026) | "Tornar a sortejar" no s'entén. El botó de la foto ha de dir **"Nou moviment a l'atzar"** (🎲). | Pendent |
-| 3 | B14 (usuari, 24/10/2026) | "Nou moviment a l'atzar" no s'ha de desactivar quan la foto té el moviment triat a mà: s'ha de poder aplicar sempre (la foto torna a automàtic amb un moviment nou). | Pendent |
-| 4 | Fotos reals (usuari, 24/10/2026) | La durada de cada foto ha d'admetre de **0,4 a 24 s** (ara 1–3 s, `defaults.PHOTO_DURATION_RANGE`). Cal revisar-ho amb la fosa (0,5–1,5 s, més llarga que 0,4 s) i els límits de velocitat del moviment (decisions 0004 i 0005). | Pendent |
+| 1 | B14 (usuari, 24/10/2026) | Mentre sona [Escoltar el tros], la forma d'ona no mostra per on va la reproducció. Afegir-hi una línia que avanci. | **Fet** (M05, v1.1): línia vermella que segueix el rellotge del so |
+| 2 | B14 (usuari, 24/10/2026) | "Tornar a sortejar" no s'entén. El botó de la foto ha de dir **"Nou moviment a l'atzar"** (🎲). | **Fet** (M05, v1.1) |
+| 3 | B14 (usuari, 24/10/2026) | "Nou moviment a l'atzar" no s'ha de desactivar quan la foto té el moviment triat a mà: s'ha de poder aplicar sempre (la foto torna a automàtic amb un moviment nou). | **Fet** (M05, v1.1) |
+| 4 | Fotos reals (usuari, 24/10/2026) | La durada de cada foto ha d'admetre de **0,4 a 24 s** (ara 1–3 s, `defaults.PHOTO_DURATION_RANGE`). Cal revisar-ho amb la fosa (0,5–1,5 s, més llarga que 0,4 s) i els límits de velocitat del moviment (decisions 0004 i 0005). | **Fet** (M05, v1.1; decisió 0011) |
 
 ## Resultats
 

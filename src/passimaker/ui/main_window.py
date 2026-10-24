@@ -242,7 +242,7 @@ class MainWindow(QMainWindow):
         self.rotate_left_action = QAction(self.tr("Girar a l'esquerra"), self)
         self.rotate_left_action.setShortcut(QKeySequence("Ctrl+Shift+R"))
         self.rotate_left_action.triggered.connect(lambda: self.rotate_selected(Rotation.R270))
-        self.reroll_action = QAction(self.tr("Sortejar un altre moviment"), self)
+        self.reroll_action = QAction(self.tr("Nou moviment a l'atzar"), self)
         self.reroll_action.triggered.connect(self.reroll_selected)
         self.reroll_all_action = QAction(self.tr("Tornar a sortejar tots"), self)
         self.reroll_all_action.triggered.connect(self.reroll_all)

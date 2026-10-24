@@ -418,3 +418,41 @@ def test_editing_one_control_does_not_round_the_others(window_with_song: MainWin
     assert song(window).trim_end_s == 5.25  # not 5,2 or 5,3
     panel.fade_out_enabled.setChecked(not panel.fade_out_enabled.isChecked())
     assert song(window).fade_in.seconds == 2.25
+
+
+class _SetClock:
+    def __init__(self) -> None:
+        self.t = 0.0
+
+    def now(self) -> float:
+        return self.t
+
+
+class ClockedOutput(FakeOutput):
+    """A sound device whose clock the test moves by hand."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.clock = _SetClock()
+
+    def start(self, source: AudioSource, from_s: float) -> Clock:
+        super().start(source, from_s)
+        return self.clock
+
+
+def test_a_red_line_follows_the_part_being_heard(qtbot: QtBot, window_with_song: MainWindow) -> None:
+    """Improvement 1 of docs/proves_usuari.md (M05): the waveform shows what is being heard."""
+    window = window_with_song
+    output = ClockedOutput()
+    panel = window.song_panel
+    panel.listening.output_factory = lambda: output
+    select_song(window)
+    panel.trim_start.setValue(1.5)
+    assert panel.trim_bar.playhead is None
+    with qtbot.waitSignal(panel.listening.started, timeout=TIMEOUT_MS):
+        panel.listen.click()
+    output.clock.t = 0.75  # three quarters of a second into the part
+    qtbot.waitUntil(lambda: panel.trim_bar.playhead == pytest.approx(1.5 + 0.75), timeout=2000)
+    with qtbot.waitSignal(panel.listening.stopped, timeout=TIMEOUT_MS):
+        panel.listen.click()
+    assert panel.trim_bar.playhead is None
