@@ -68,13 +68,16 @@ B2 (PR #6, commit `d24243a`) · B1 (PR #5, commit `defb833`) · B7 (PR #11, comm
 B4 (PR #12, commit `f56b8d4`) · B8 (PR #14, commit `311bed0`) · B6 (PR #15, commit `e4da3fa`) ·
 B5 (PR #20, commit `d23f58e`) · B9 (PR #21, commit `dd3aaa0`) · B10 (PR #27, commit `b4a524b`) ·
 B11 (PR #30, commit `427301e`) · B13 (PR #31, commit `0ced4ec`) · B12 (PR #33, commit `a71e22e`) ·
-B14 (PR #37, commit `8368028`) · B15 (PR #40, commit `a96edd6`).
+B14 (PR #37, commit `8368028`) · B15 (PR #40, commit `a96edd6`) · B16 (PR #42, commit `47d7d34`).
+**Tots els blocs del pla són a `main`: versió 1.0.0** (docs/CHANGELOG.md).
 Manteniment: M01 canvi de nom a PassiMaker (PR #9, commit `72341ff`, decisió 0006) ·
 M02 `SHORT_SONG_FADE_FRACTION` a defaults.py (PR #16, commit `43faaaf`) ·
 M03 extensió `.pmk` (PR #25, commit `66b6e92`, decisió 0009) ·
 M04 arrossegar fotos amb el ratolí i so obert en pausa per al Bluetooth (PR #36, commit `56ccca7`).
 Fita F1 aprovada (decisions 0004 i 0005). Fita F2: vídeo provat per l'usuari amb les seves fotos (vertical i
-horitzontal) el 21/10/2026, correcte; falta ensenyar-lo a una persona externa (PLA §4.4). Pendent: B16.
+horitzontal) el 21/10/2026, correcte; falta ensenyar-lo a una persona externa (PLA §4.4).
+**Només queden proves pràctiques i les etiquetes** (llista a docs/sessions/B16.md, "Pendent"): etiquetes `v0.5-mvp` i
+`v1.0` (les posa l'usuari: la sessió al núvol no pot pujar etiquetes), prova F5 (protocol a docs/proves_usuari.md).
 Decisions de l'usuari del 21/10/2026: decisió 0007 (D12, llindar de 5 fotos, textos d'error del B10).
 Decisions del B5 aprovades (docs/sessions/B05.md); la nitidesa de la miniatura EXIF es revisa amb fotos reals
 a Windows (vegeu docs/sessions/B10.md).
