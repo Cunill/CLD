@@ -5,7 +5,8 @@ Protocol i resultats de les proves de les fites F2, F3 i F5 (docs/PLA.md §4.4).
 ## Llista de millores pendents de les proves
 
 Tancada al B16 (24/10/2026) i reoberta amb la prova manual del B14 (24/10/2026). Les observacions de les proves
-s'anoten aquí i es corregeixen en un bloc de manteniment.
+s'anoten aquí i es corregeixen en un bloc de manteniment. L'usuari vol fer el manteniment quan acabi les seves proves
+(abans es pensava esperar la F5, que ja no es fa).
 
 | # | Prova | Observació | Estat |
 |---|---|---|---|
@@ -18,14 +19,15 @@ s'anoten aquí i es corregeixen en un bloc de manteniment.
 ### F2 · prova del resultat
 - **21/10/2026**: l'usuari ha provat el vídeo amb les seves fotos, vertical i horitzontal: correcte (vegeu
   `docs/sessions/B09.md`, "Fita F2").
-- **Pendent**: ensenyar el vídeo a una persona que no hi hagi participat ("Queda bé? Marejà? La música acaba bé?").
+- ~~Ensenyar el vídeo a una persona que no hi hagi participat~~: **no es fa** (decisió de l'usuari, 24/10/2026).
 
 ### F3 · primera prova d'ús real
 - Prova manual del B11 i del B13 a Windows feta per l'usuari el 23/10/2026: correctes. No s'ha anotat cap prova amb
   una persona sense experiència.
 
 ### F5 · prova final
-- **Pendent** (amb el ZIP de la v1.0).
+- **No es fa** (decisió de l'usuari, 24/10/2026: cap prova amb persones externes). El protocol es queda per si mai
+  es vol fer.
 
 ## Protocol de la prova F5
 

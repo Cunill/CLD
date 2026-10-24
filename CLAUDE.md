@@ -88,9 +88,10 @@ M02 `SHORT_SONG_FADE_FRACTION` a defaults.py (PR #16, commit `43faaaf`) ·
 M03 extensió `.pmk` (PR #25, commit `66b6e92`, decisió 0009) ·
 M04 arrossegar fotos amb el ratolí i so obert en pausa per al Bluetooth (PR #36, commit `56ccca7`).
 Fita F1 aprovada (decisions 0004 i 0005). Fita F2: vídeo provat per l'usuari amb les seves fotos (vertical i
-horitzontal) el 21/10/2026, correcte; falta ensenyar-lo a una persona externa (PLA §4.4).
-**Només queden proves pràctiques i les etiquetes** (llista a docs/sessions/B16.md, "Pendent"): etiquetes `v0.5-mvp` i
-`v1.0` (les posa l'usuari: la sessió al núvol no pot pujar etiquetes), prova F5 (protocol a docs/proves_usuari.md).
+horitzontal) el 21/10/2026, correcte.
+**Decidit el 24/10/2026: no es fan proves amb persones externes** (ni la de la F2, ni la de la F3, ni la F5 amb dues
+persones; PLA §4.4). Les proves pràctiques les fa només l'usuari. Etiquetes `v0.5-mvp` i `v1.0` posades el 24/10/2026.
+Queden: mesures del B15 al PC de referència, revisar la guia i "Quant a", i fotos reals (docs/sessions/B16.md).
 Decisions de l'usuari del 21/10/2026: decisió 0007 (D12, llindar de 5 fotos, textos d'error del B10).
 Decisions del B5 aprovades (docs/sessions/B05.md); la nitidesa de la miniatura EXIF es revisa amb fotos reals
 a Windows (vegeu docs/sessions/B10.md).
