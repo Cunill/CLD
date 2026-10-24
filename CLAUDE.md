@@ -94,7 +94,8 @@ horitzontal) el 21/10/2026, correcte.
 **Decidit el 24/10/2026: no es fan proves amb persones externes** (ni la de la F2, ni la de la F3, ni la F5 amb dues
 persones; PLA §4.4). Les proves pràctiques les fa només l'usuari. Etiquetes `v0.5-mvp` i `v1.0` posades el 24/10/2026.
 Guia i "Quant a" revisats per l'usuari el 24/10/2026: correctes (s'hi afegeix l'apartat "Imprevistos", a petició seva).
-Queden: fotos reals (docs/sessions/B16.md) i, al final, el manteniment v1.1: les millores de docs/proves_usuari.md i
+Fotos reals provades per l'usuari el 24/10/2026 (D:\TEMP_PM, càmera i mòbil, sense HEIC): miniatures instantànies i
+nítides. Sense provar amb HEIC d'iPhone (no en té a mà). Queda, al final, el manteniment v1.1: les millores de docs/proves_usuari.md i
 una sola còpia de `photo_from_candidate` i `song_from_file` (decidit per Claude amb el vistiplau de l'usuari).
 Decisions de l'usuari del 21/10/2026: decisió 0007 (D12, llindar de 5 fotos, textos d'error del B10).
 Decisions del B5 aprovades (docs/sessions/B05.md); la nitidesa de la miniatura EXIF es revisa amb fotos reals

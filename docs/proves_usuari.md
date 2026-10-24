@@ -26,6 +26,11 @@ s'anoten aquí i es corregeixen en un bloc de manteniment. Quan es fa el manteni
 - Prova manual del B11 i del B13 a Windows feta per l'usuari el 23/10/2026: correctes. No s'ha anotat cap prova amb
   una persona sense experiència.
 
+### Fotos reals (usuari, 24/10/2026)
+- Carpeta de fotos de càmera i de mòbil, sense HEIC, al PC de referència: les miniatures surten de seguida i es veuen
+  nítides (cap de borrosa o pixelada). La nitidesa de la miniatura EXIF (B5, B10) queda comprovada.
+- Sense provar: fotos HEIC d'iPhone.
+
 ### F5 · prova final
 - **No es fa** (decisió de l'usuari, 24/10/2026: cap prova amb persones externes). El protocol es queda per si mai
   es vol fer.
