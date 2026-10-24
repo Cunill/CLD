@@ -105,5 +105,6 @@ docs/sessions/B12.md). Etiqueta `v0.5-mvp` per a la F3: la posa l'usuari al comm
 Prova manual del B14 a Windows ajornada (docs/sessions/B14.md, "Pendent"): escoltar el tros amb altaveus, arrossegar
 les nanses del retall i que els panells càpiguen a la columna.
 B15: registre a `%LOCALAPPDATA%\PassiMaker\logs`; mesures de 1.000 fotos a docs/RENDIMENT.md, fetes a Linux: falta
-repetir-les al PC de referència (`uv run pytest -m perf tests/perf/test_thousand_photos.py -s`).
+repetir-les al PC de referència (`uv run pytest -m perf tests/perf/test_thousand_photos.py -s`), que és el sobretaula de
+l'usuari (D9, decidit el 24/10/2026: i7-6700K, GTX 960, 40 GB, més de 10 anys; no hi ha cap portàtil).
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
