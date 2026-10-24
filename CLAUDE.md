@@ -102,8 +102,7 @@ Windows feta el 23/10/2026 amb el ZIP del B12: correcta.
 Prova manual del B13 a Windows feta el 23/10/2026: correcta (la fosa amb Bluetooth i l'arrossegament de fotos, al M04).
 ZIP portable (B12): la CI el genera a cada PR, fusió a main i etiqueta (artefacte PassiMaker-<versió>-win64; vegeu
 docs/sessions/B12.md). Etiqueta `v0.5-mvp` per a la F3: la posa l'usuari al commit `a96edd6` (docs/sessions/B15.md).
-Prova manual del B14 a Windows ajornada (docs/sessions/B14.md, "Pendent"): escoltar el tros amb altaveus, arrossegar
-les nanses del retall i que els panells càpiguen a la columna.
+Prova manual del B14 a Windows feta el 24/10/2026: correcta; tres millores a la llista de docs/proves_usuari.md.
 B15: registre a `%LOCALAPPDATA%\PassiMaker\logs`; mesures de 1.000 fotos a docs/RENDIMENT.md, fetes a Linux: falta
 repetir-les al PC de referència (`uv run pytest -m perf tests/perf/test_thousand_photos.py -s`), que és el sobretaula de
 l'usuari (D9, decidit el 24/10/2026: i7-6700K, GTX 960, 40 GB, més de 10 anys; no hi ha cap portàtil).

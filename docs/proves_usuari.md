@@ -4,14 +4,14 @@ Protocol i resultats de les proves de les fites F2, F3 i F5 (docs/PLA.md §4.4).
 
 ## Llista de millores pendents de les proves
 
-**Tancada al B16 (24/10/2026): buida.** Fins ara no s'hi ha anotat cap observació d'una prova amb usuaris (vegeu
-els resultats de més avall). El B16 hi ha aplicat el poliment que demanaven les notes dels blocs anteriors (vegeu
-`docs/sessions/B16.md`). Les observacions de la prova F5 s'anoten aquí; si n'hi ha, es corregeixen en un bloc de
-manteniment.
+Tancada al B16 (24/10/2026) i reoberta amb la prova manual del B14 (24/10/2026). Les observacions de les proves
+s'anoten aquí i es corregeixen en un bloc de manteniment.
 
 | # | Prova | Observació | Estat |
 |---|---|---|---|
-| — | — | Cap observació anotada | — |
+| 1 | B14 (usuari, 24/10/2026) | Mentre sona [Escoltar el tros], la forma d'ona no mostra per on va la reproducció. Afegir-hi una línia que avanci. | Pendent ("més endavant", decisió de l'usuari) |
+| 2 | B14 (usuari, 24/10/2026) | "Tornar a sortejar" no s'entén. El botó de la foto ha de dir **"Nou moviment a l'atzar"** (🎲). | Pendent |
+| 3 | B14 (usuari, 24/10/2026) | "Nou moviment a l'atzar" no s'ha de desactivar quan la foto té el moviment triat a mà: s'ha de poder aplicar sempre (la foto torna a automàtic amb un moviment nou). | Pendent |
 
 ## Resultats
 
