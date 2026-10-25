@@ -199,3 +199,83 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
+
+  prova-gravacio-windows:
+    # C08 (prova de viabilitat de la gravació del so; docs/sessions/C08.md): ZIP de prova ProvaGravacio-win64, amb
+    # soundcard i FFmpeg. Aquí no hi ha targeta de so: només es comprova que s'obre i ho troba tot (--sense-dispositiu);
+    # la gravació la prova l'usuari al seu PC (Actions → CI → l'execució → Artifacts → ProvaGravacio-win64).
+    name: Prova de gravació (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instal·lar uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.32"
+          enable-cache: true
+
+      - name: Memòria cau d'FFmpeg
+        uses: actions/cache@v4
+        with:
+          path: vendor/ffmpeg
+          key: ffmpeg-${{ runner.os }}-${{ hashFiles('tools/obtenir_ffmpeg.ps1') }}
+
+      - name: Obtenir FFmpeg
+        shell: pwsh
+        run: ./tools/obtenir_ffmpeg.ps1
+
+      - name: Construir el ZIP de prova
+        id: zip
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          uv sync --locked --group packaging
+          if ($LASTEXITCODE -ne 0) { throw "uv sync ha fallat" }
+          uv run --group packaging pyinstaller packaging/ProvaGravacio.spec --noconfirm --clean `
+            --distpath build/prova-gravacio/dist --workpath build/prova-gravacio/work
+          if ($LASTEXITCODE -ne 0) { throw "PyInstaller ha fallat" }
+          $App = 'build/prova-gravacio/dist/ProvaGravacio'
+          foreach ($File in @('ProvaGravacio.exe', 'bin/ffmpeg.exe', 'bin/ffprobe.exe',
+                              'bin/soundcard/mediafoundation.py.h')) {
+            if (-not (Test-Path (Join-Path $App $File))) { throw "Falta $File a la carpeta de la prova" }
+          }
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $Zip = Join-Path (Resolve-Path dist) 'ProvaGravacio-win64.zip'
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          [System.IO.Compression.ZipFile]::CreateFromDirectory(
+            (Resolve-Path $App), $Zip, [System.IO.Compression.CompressionLevel]::Optimal, $true)
+          $FolderMB = (Get-ChildItem -Recurse -File $App | Measure-Object -Sum Length).Sum / 1MB
+          Write-Host ('Carpeta: {0:N1} MB · ZIP: {1:N1} MB' -f $FolderMB, ((Get-Item $Zip).Length / 1MB))
+          Write-Host 'Els 10 fitxers més grans:'
+          Get-ChildItem -Recurse -File $App | Sort-Object Length -Descending | Select-Object -First 10 |
+            ForEach-Object { Write-Host ('  {0,6:N1} MB  {1}' -f ($_.Length / 1MB), $_.Name) }
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "zip=$Zip"
+
+      - name: Provar el ZIP sense dispositiu
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $Work = Join-Path $env:RUNNER_TEMP 'Prova gravació àèòç'
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          [System.IO.Compression.ZipFile]::ExtractToDirectory('${{ steps.zip.outputs.zip }}', $Work)
+          $Report = Join-Path $Work 'informe.txt'
+          $Run = Start-Process -FilePath (Join-Path $Work 'ProvaGravacio/ProvaGravacio.exe') -Wait -PassThru `
+            -WorkingDirectory $Work -ArgumentList @('--sense-dispositiu', '--sense-avis', '--informe', """$Report""")
+          Get-Content $Report -Encoding utf8 | ForEach-Object { Write-Host "  | $_" }
+          if ($Run.ExitCode -ne 0) { throw "ProvaGravacio.exe acaba amb el codi $($Run.ExitCode)" }
+          if (-not (Select-String -Path $Report -Pattern 'soundcard: 0.4.6' -SimpleMatch -Quiet)) {
+            throw "L'informe no diu la versió de soundcard"
+          }
+
+      - name: Publicar el ZIP de prova
+        uses: actions/upload-artifact@v4
+        with:
+          name: ProvaGravacio-win64
+          path: ${{ steps.zip.outputs.zip }}
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30

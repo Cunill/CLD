@@ -241,7 +241,7 @@ les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escen
 | C05 Diàleg | C03, C04 | **C08** o **C09** | T4 | 1 / 2 / 2 | 1,0 | ✅ tancat el 25/10/2026; prova manual de l'usuari a Windows pendent (`docs/sessions/C05.md`) | 1 | — | PR #65 · `9bda982` |
 | C06 Empaquetat i versió (YouTube i gravació) | C05, C10 | — | T6 | 1 / 1 / 2 | 1,25 | ⏳ pendent | — | — | — |
 | C07 Gravació: decisió i contracte | C01 | **C08**, **C03** | T3 | 1 / 1 / 1 | 0,5 | ✅ tancat el 25/10/2026 (`docs/sessions/C07.md`) | 1 | — | PR #63 · `fb7f244` |
-| C08 Gravació: prova de viabilitat | C01 | **C07**, **C03** o **C05** | T3 | 1 / 1 / 2 | 1,0 | ⛔ aturat (sessió "C08 mp3"): sounddevice no serveix; `soundcard` 0.4.6 aprovada per l'usuari (G10), pendent de continuar | — | — | branca `claude/confident-ritchie-rk3iju` (nota pujada) |
+| C08 Gravació: prova de viabilitat | C01 | **C07**, **C03** o **C05** | T3 | 1 / 1 / 2 | 1,0 | 🔧 fusionat a `main` el 25/10/2026 sense la prova al PC: sounddevice no serveix; `soundcard` 0.4.6 aprovada (G10); ZIP `ProvaGravacio-win64` (83,2 MB) a la CI; **pendent de la prova al PC de l'usuari** i la recomanació final (`docs/sessions/C08.md`) | 1 | — | PR #64 |
 | C09 Nucli `recorder` | C07, C08 (i C03) | **C05** | T4 | 1 / 2 / 2 | 0,5 | ⏳ pendent | — | — | — |
 | C10 Finestra de gravació | C05, C09 | — | T5 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
 | **Subtotal dels blocs** |  |  |  | **10 / 13 / 17** | **7,5** | | **4** | **—** | |

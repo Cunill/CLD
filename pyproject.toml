@@ -14,6 +14,7 @@ dependencies = [
     "yt-dlp==2026.10.21",
     "yt-dlp-ejs==0.8.0",
     "deno==2.9.8",
+    "soundcard==0.4.6",
 ]
 
 [project.scripts]
