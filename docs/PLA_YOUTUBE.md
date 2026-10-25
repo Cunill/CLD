@@ -142,6 +142,7 @@ per comprovar si hi ha internet. Es garanteix així:
 | Vídeo privat, esborrat, amb restricció d'edat o de país | "Aquest vídeo no es pot descarregar (és privat, s'ha esborrat o té restriccions)." |
 | Directe en curs | "No es poden descarregar directes." |
 | YouTube ha canviat i yt-dlp no funciona | "YouTube ha canviat i aquesta versió de PassiMaker ja no pot descarregar. Cal una versió nova del programa." (+ detall al registre) |
+| YouTube bloqueja la xarxa ("confirma que no ets un robot", massa peticions) | "YouTube no deixa descarregar des d'aquesta xarxa ara mateix. Torna-ho a provar més tard o des d'una altra connexió." (el detall, al registre) |
 | Massa llarg | "Aquest vídeo dura més de 20 minuts." |
 
 ### 2.4 Fora d'aquest pla
@@ -228,7 +229,7 @@ les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escen
 | Pla (aquest document) | — | — | — | — | — | ✅ aprovat el 25/10/2026 | 1 | — | branca `ccr-08701f22-8ayer4` (sense PR, decisió 6) |
 | C01 Decisió i contracte | aprovació del pla | — (és la base de tots) | T1 | 1 / 1 / 1 | 0,5 | ✅ tancat el 25/10/2026 | 1 | — | PR #52 · `7f1bc0b` |
 | C02 Prova de viabilitat | C01 | **C04** | T2 | 1 / 1 / 2 | 1,0 | ✅ tancat el 25/10/2026; prova al PC correcta (xarxa de casa; a la de l'estudi no es prova, decisió de l'usuari) (`docs/sessions/C02.md`) | 1 | — | PR #57 · `1599fb7` |
-| C03 Nucli `youtube` | C01, C02 | **C04** (si encara no s'ha fet) | T3 | 1 / 1 / 2 | 0,5 | ⏳ pendent | — | — | — |
+| C03 Nucli `youtube` | C01, C02 | **C04** (si encara no s'ha fet) | T3 | 1 / 1 / 2 | 0,5 | 🔧 en curs (PR #58, pendent de revisió) | 1 | — | PR #58 · branca `ccr-d5f017cf-dlrecs` |
 | C04 Conversió a MP3 | C01 | **C02** o **C03** | T2 (o T3) | 1 / 1 / 1 | 0,25 | ✅ tancat el 25/10/2026 | 1 | — | PR #54 · `5c2129b` |
 | C05 Diàleg | C03, C04 | — | T4 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
 | C06 Empaquetat i versió | C05 | — | T5 | 1 / 1 / 2 | 1,0 | ⏳ pendent | — | — | — |

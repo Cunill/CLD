@@ -122,5 +122,8 @@ especificació (§1.7 bis) (PR #52, commit `7f1bc0b`) · C04 conversió a MP3, `
 `5c2129b`) · C02 viabilitat (PR #57, commit `1599fb7`, docs/sessions/C02.md): yt-dlp 2026.10.21, `yt-dlp-ejs` 0.8.0 i Deno 2.9.8
 (paquet `deno` de PyPI) a `uv.lock`, ZIP de prova `ProvaYoutube-win64` (128,9 MB) a la CI; prova al PC de l'usuari
 el 25/10/2026, a la xarxa de casa: correcta, sense consola ni avisos de l'antivirus; a la xarxa de l'estudi no es
-prova (decisió de l'usuari, 25/10/2026). Al C03, preferir l'àudio estèreo (yt-dlp tria un 5.1 amb Deno). Següent: C03. Tota la xarxa, només a `passimaker.youtube` i mai abans de l'avís.
+prova (decisió de l'usuari, 25/10/2026). C03 nucli `passimaker.youtube` (PR #58, docs/sessions/C03.md): cerca, enllaç,
+miniatura, baixada (àudio estèreo abans que el 5.1), noms de fitxer i errors (`youtube.blocked` nou), amb backend
+injectable (`tests/fakes/youtube.py`) i marca `xarxa` (`PASSIMAKER_XARXA=1`, només al PC).
+Següent: C05. Tota la xarxa, només a `passimaker.youtube` i mai abans de l'avís.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
