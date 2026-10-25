@@ -29,6 +29,8 @@ Dues menes de sessió (24/10/2026); es fa servir la que convingui a cada tasca:
   abans de prompts, taules o explicacions (decisió de l'usuari, 25/10/2026).
 - La taula de seguiment d'un pla es mostra sempre **sencera** (totes les files i columnes), mai retallada (decisió de
   l'usuari, 25/10/2026).
+- Les hores, sempre amb el rellotge oficial de l'usuari (ara UTC+1; UTC+2 a l'estiu), mai en temps universal (UTC)
+  (decisió de l'usuari, 25/10/2026).
 
 ## Pila
 Python 3.12, uv, PySide6-Essentials, NumPy, OpenCV (headless), Pillow + pillow-heif, sounddevice,
