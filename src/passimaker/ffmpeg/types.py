@@ -99,3 +99,13 @@ class VideoWriter(Protocol):
     def abort(self) -> None:
         """Stops ffmpeg and deletes the partial output (< 2 s)."""
         ...
+
+
+@dataclass(frozen=True, slots=True)
+class Mp3Tags:
+    """ID3 tags of a song converted with convert_to_mp3 (music from YouTube, decision 0012)."""
+
+    title: str = ""
+    artist: str = ""
+    comment: str = ""
+    """For a song from YouTube, the URL it came from."""
