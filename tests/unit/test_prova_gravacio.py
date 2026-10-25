@@ -223,3 +223,10 @@ def test_report_falls_back_to_the_temporary_folder(tmp_path: Path, monkeypatch: 
     monkeypatch.setattr(prova.tempfile, "gettempdir", lambda: str(tmp_path))
     written = prova.write_report(prova.Report(["hola"]), tmp_path / "no_hi_és" / "informe.txt")
     assert written == tmp_path / "informe.txt"
+
+
+def test_each_run_is_added_to_the_report(tmp_path: Path) -> None:
+    _run(tmp_path, FakeBackend(), "--llista")
+    _code, text = _run(tmp_path, FakeBackend(), "--origen", "9")
+    assert text.count("Prova de gravació del so de PassiMaker") == 2
+    assert text.index("Opcions: --llista") < text.index("Opcions: --origen 9")

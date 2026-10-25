@@ -4,7 +4,7 @@ ProvaGravacio.exe (packaging/ProvaGravacio.spec, no console) lists every source 
 loopback, and inputs: microphone, line in), records the default output (or --origen N) for 20 s to a
 temporary float32 WAV while it measures the level and peaks per channel, counts lost blocks and watches
 the default output, then checks the WAV with passimaker.ffmpeg.probe and converts it with
-passimaker.ffmpeg.convert_to_mp3. Everything goes to a text report next to the executable.
+passimaker.ffmpeg.convert_to_mp3. Everything is added at the end of a text report next to the executable.
 
 Capture goes through soundcard (approved by the user on 25/10/2026: sounddevice's PortAudio 19.7.0 has no
 loopback). Two things the program will depend on (block C09) are measured too:
@@ -551,14 +551,17 @@ def default_backend() -> Backend:
 
 
 def write_report(report: Report, path: Path) -> Path:
-    """Next to the program; in the temporary folder if that folder cannot be written."""
-    try:
-        path.write_text(report.text(), encoding="utf-8")
-        return path
-    except OSError:
-        fallback = Path(tempfile.gettempdir()) / path.name
-        fallback.write_text(report.text(), encoding="utf-8")
-        return fallback
+    """Added at the end of the report next to the program (the user makes several runs and sends them all
+    at once); in the temporary folder if that folder cannot be written."""
+    text = report.text() + "\n" + "=" * 80 + "\n\n"
+    for target in (path, Path(tempfile.gettempdir()) / path.name):
+        try:
+            with target.open("a", encoding="utf-8") as out:
+                out.write(text)
+            return target
+        except OSError:
+            continue
+    raise OSError(f"No s'ha pogut escriure l'informe ({path})")
 
 
 def ask(text: str) -> bool:

@@ -241,7 +241,7 @@ les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escen
 | C05 Diàleg | C03, C04 | **C08** o **C09** | T4 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
 | C06 Empaquetat i versió (YouTube i gravació) | C05, C10 | — | T6 | 1 / 1 / 2 | 1,25 | ⏳ pendent | — | — | — |
 | C07 Gravació: decisió i contracte | C01 | **C08**, **C03** | T3 | 1 / 1 / 1 | 0,5 | ⛔ aturat per l'usuari (sessió "C07 mp3"); la feina feta encara no s'ha pujat | — | — | branca `claude/keen-pascal-io3h1f` (no pujada) |
-| C08 Gravació: prova de viabilitat | C01 | **C07**, **C03** o **C05** | T3 | 1 / 1 / 2 | 1,0 | ⛔ aturat (sessió "C08 mp3"): sounddevice no serveix; espera que l'usuari aprovi `soundcard` 0.4.6 | — | — | branca `claude/confident-ritchie-rk3iju` (nota pujada) |
+| C08 Gravació: prova de viabilitat | C01 | **C07**, **C03** o **C05** | T3 | 1 / 1 / 2 | 1,0 | 🔧 en curs: sounddevice no serveix; `soundcard` 0.4.6 aprovada; ZIP `ProvaGravacio-win64` a la CI; pendent de la prova al PC de l'usuari (`docs/sessions/C08.md`) | 1 | — | PR #64 (esborrany) · branca `claude/confident-ritchie-rk3iju` |
 | C09 Nucli `recorder` | C07, C08 (i C03) | **C05** | T4 | 1 / 2 / 2 | 0,5 | ⏳ pendent | — | — | — |
 | C10 Finestra de gravació | C05, C09 | — | T5 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
 | **Subtotal dels blocs** |  |  |  | **10 / 13 / 17** | **7,5** | | **4** | **—** | |
