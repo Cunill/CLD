@@ -17,6 +17,8 @@
 | 4 | Carpeta de destinació | **Es pregunta cada vegada** (§2.2) |
 | 5 | Escoltar abans de descarregar | **Botó "Obre a YouTube"** que obre el navegador |
 | 6 | PR d'aquest pla | **No**: el document es queda a la branca fins al C01 |
+| 7 | Validesa de la conformitat | **Una vegada per cada sessió del programa**: no es desa enlloc i es torna a demanar cada vegada que s'obre PassiMaker (§2.0) |
+| 8 | Començar el C01 | **En una sessió nova**, branca `bloc/C01-decisio-youtube` (prompt al §4) |
 
 ---
 
@@ -72,17 +74,19 @@ Aquesta funció xoca amb tres decisions preses i amb dues regles del CLAUDE.md. 
 
 - La casella **no** està marcada mai d'entrada. [Accepta i continua] està **desactivat** fins que es marca.
 - [Cancel·la], Esc o tancar la finestra: no s'obre la funció i no es desa res.
-- En acceptar, es desa la conformitat a la configuració de l'usuari (`QSettings`): data i hora i **versió del text**
-  (`defaults.YOUTUBE_NOTICE_VERSION`). L'avís torna a sortir si canvia el text (versió nova) o si l'usuari retira la
-  conformitat des de la mateixa finestra de YouTube (enllaç "Retira la conformitat", que tanca la finestra).
-  Mentre la conformitat és vigent, no es torna a mostrar.
+- **La conformitat val per a la sessió del programa** (decisió 7): es guarda només a la memòria i **no es desa
+  enlloc** (ni `QSettings`, ni registre, ni el `.pmk`). Mentre PassiMaker continua obert, tornar a obrir la finestra
+  de YouTube no torna a mostrar l'avís; en tancar el programa es perd i la propera vegada es torna a demanar.
+- Es pot retirar abans d'hora des de la finestra de YouTube (enllaç "Retira la conformitat", que la tanca i
+  cancel·la les descàrregues en curs). La conformitat és del programa, no de cada finestra principal: totes les
+  finestres obertes del mateix PassiMaker la comparteixen.
 
 **Garantia de no-connexió prèvia.** Abans de l'acceptació, el programa **no obre cap connexió de xarxa**, ni tan sols
 per comprovar si hi ha internet. Es garanteix així:
 
 1. **Una sola porta d'entrada.** Tota la xarxa de la funció passa per `passimaker.youtube`, i totes les funcions
    públiques que poden connectar-se reben un objecte `ConsentToken`. Només el pot crear `consent.grant(...)`, que es
-   crida en acceptar l'avís (o en llegir una conformitat vigent). Sense testimoni, la funció llança
+   crida en acceptar l'avís i que només viu a la memòria. Sense testimoni, la funció llança
    `YoutubeConsentError` **abans** de fer res.
 2. **yt-dlp no es carrega abans d'hora.** `import yt_dlp` es fa dins de les funcions, mai a nivell de mòdul ni a
    l'arrencada; tampoc no s'importa des de `ui/` (yt-dlp no fa connexions en importar-lo, però així ni tan sols és a
@@ -93,9 +97,10 @@ per comprovar si hi ha internet. Es garanteix així:
    i `socket.getaddrinfo` substituïts per una funció que fa fallar la prova):
    - arrencar el programa, obrir i desar un projecte i exportar: cap intent de connexió;
    - obrir l'avís, marcar i desmarcar la casella, cancel·lar: cap intent de connexió, `yt_dlp` no és a `sys.modules`,
-     i no s'ha desat cap conformitat;
+     i no hi ha cap testimoni;
    - cridar `search`, `resolve` i `download_audio` sense testimoni: `YoutubeConsentError` i cap intent de connexió;
-   - conformitat amb una versió antiga del text: torna a sortir l'avís.
+   - acceptar, tancar el programa (simulat amb un estat nou) i tornar a obrir YouTube: torna a sortir l'avís; i
+     cap clau de conformitat a `QSettings` ni a cap fitxer.
    - Prova estàtica: cap mòdul fora de `passimaker.youtube` importa `yt_dlp`, `urllib.request`, `http.client` o
      `socket` (com la prova actual de PySide6 i de subprocess).
 
@@ -103,7 +108,7 @@ per comprovar si hi ha internet. Es garanteix així:
 
 | # | Acció de l'usuari | Què passa |
 |---|---|---|
-| 1 | Franja de música → [+ Música ▾] → **"Des de YouTube…"** | S'obre el diàleg "Música de YouTube" (no modal: es pot continuar treballant). Si no hi ha conformitat vigent, abans surt l'avís del §2.0. |
+| 1 | Franja de música → [+ Música ▾] → **"Des de YouTube…"** | S'obre el diàleg "Música de YouTube" (no modal: es pot continuar treballant). Si encara no s'ha acceptat en aquesta sessió del programa, abans surt l'avís del §2.0. |
 | 2a | Escriu "Ludovico Einaudi Nuvole Bianche" i prem Retorn | Llista de 10 resultats: miniatura, títol, canal, durada. Es poden carregar 10 més ("Més resultats"). |
 | 2b | O bé enganxa un enllaç (`youtube.com/watch?v=…`, `youtu.be/…`, `music.youtube.com/…`, `shorts/…`) | El camp el reconeix sol i mostra un únic resultat amb les dades del vídeo. |
 | 3 | Selecciona un o diversos resultats i prem **[Descarrega en MP3]** | Cada fila mostra el progrés (descarregant → convertint → fet). Es pot cancel·lar cada descàrrega. |
@@ -187,7 +192,7 @@ Decisions de disseny:
 | `ffmpeg.convert_to_mp3(origen, destí, kbps, metadades, progress, cancel)` | — | `None` (escriu a un fitxer temporal i el reanomena en acabar) |
 | `safe_target_path(carpeta, títol)` | — | `Path` lliure, vàlid a Windows |
 | `fetch_thumbnail(testimoni, url, cancel)` | — | `bytes` de la imatge (la UI la converteix) |
-| `consent.grant(versió)` / `consent.current(config)` / `consent.revoke(config)` | — | `ConsentToken` o `None` (§2.0) |
+| `consent.grant()` / `consent.current()` / `consent.revoke()` | — | `ConsentToken` o `None`; estat només a la memòria del procés (§2.0) |
 
 `SearchResult`: `video_id`, `title`, `channel`, `duration_s` (`float | None`), `thumbnail_url`, `is_live`,
 `url`. Errors (hereten de `PassiMakerError`): `YoutubeOfflineError`, `YoutubeUnavailableError`,
@@ -243,6 +248,39 @@ Llegenda de l'estat: ⏳ pendent · 🔧 en curs · ✅ tancat (fusionat a `main
   `defaults.py`; tipus i signatures sense implementació a `src/passimaker/youtube/`.
 - **Acceptació:** documents aprovats per l'usuari; ruff i pyright nets; la prova de "Qt fora del nucli" cobreix el
   mòdul nou.
+- **No fa:** cap dependència nova (yt-dlp entra al C02, quan s'hagi comprovat que funciona) ni cap implementació.
+
+```text
+Bloc C01: Música de YouTube, decisió, contracte i especificació. Model: Sonnet.
+Context: PassiMaker 1.1.0 és a main. El pla d'aquesta funció és a docs/PLA_YOUTUBE.md de la branca
+ccr-08701f22-8ayer4 (no és a main): porta'l amb `git fetch origin ccr-08701f22-8ayer4` i
+`git checkout origin/ccr-08701f22-8ayer4 -- docs/PLA_YOUTUBE.md`. Llegeix-ne el §0, el §1, el §2, el §3 i la fitxa del
+C01; i docs/CONTRACTES.md.
+Branca: bloc/C01-decisio-youtube (des de main actualitzat).
+Objectiu: deixar decidit i definit tot el que els blocs C02–C06 necessiten, sense implementar-ho.
+Fes:
+1. docs/decisions/0012-musica-de-youtube.md: xarxa només a la funció de YouTube i mai abans de l'avís, dependències
+   yt-dlp (i Deno, a confirmar al C02), regla 7 (yt-dlp llança Deno per dins), aspectes legals, conformitat per
+   sessió del programa, manteniment (§6 del pla). Les decisions 1–8 del §0, amb data 25/10/2026.
+2. docs/ESPECIFICACIO.md: apartat nou de la música de YouTube a partir del §2 del pla (avís, recorregut, valors,
+   errors, fora d'abast).
+3. docs/CONTRACTES.md: §15 nou (`passimaker.youtube`, §3.1 del pla), §8 ampliat amb `convert_to_mp3`, §13 (la
+   interfície pot fer servir `youtube`).
+4. src/passimaker/model/defaults.py: els valors del §2.2 del pla (resultats per pàgina, durada màxima, kbps,
+   descàrregues simultànies).
+5. src/passimaker/youtube/: tipus, errors (amb les claus de missatge a passimaker.i18n), ConsentToken i signatures
+   sense implementació (les funcions avisen que no estan implementades). `convert_to_mp3` igual a
+   src/passimaker/ffmpeg.
+6. tests/unit/test_architecture.py: el mòdul nou sense Qt; cap mòdul fora de passimaker.youtube importa yt_dlp,
+   urllib.request, http.client ni socket.
+7. docs/PLA_YOUTUBE.md: posa al dia la taula del §4.1 (C01 tancat, sessions i PR).
+8. CLAUDE.md, apartat Estat: una línia sobre la funció de YouTube i el pla.
+Criteris d'acceptació: decisió, especificació i contractes coherents amb el pla; tots els tipus i signatures del §3.1
+existeixen; suite ràpida, ruff i pyright en verd; cap dependència nova.
+Fitxers permesos: els dels punts 1–8, docs/sessions/C01.md i tests/unit/youtube/ (proves dels tipus i de
+parse_link si el vols deixar fet; és pur i sense xarxa).
+Condició d'aturada: la del CLAUDE.md. A docs/sessions/C01.md, anota les decisions que hagis pres.
+```
 
 ### C02 · Prova de viabilitat (spike)
 Bloc curt per eliminar els riscos grossos abans d'invertir-hi més.
@@ -273,7 +311,7 @@ Bloc curt per eliminar els riscos grossos abans d'invertir-hi més.
 - **Fa:** `ui/youtube_dialog.py` i l'entrada al menú de [+ Música]. Camp únic de cerca/enllaç, llista de resultats
   amb miniatures, cua de descàrregues amb progrés per fila, carpeta de destinació, casella "Afegeix al projecte", botó
   [Obre a YouTube], selector de carpeta a cada descàrrega i **avís de conformitat del §2.0** (casella obligatòria,
-  botó desactivat fins que es marca, versió del text, retirar la conformitat). Tot fora del fil de la interfície. En tancar el diàleg amb descàrregues actives, pregunta.
+  botó desactivat fins que es marca, conformitat per sessió del programa, retirar-la). Tot fora del fil de la interfície. En tancar el diàleg amb descàrregues actives, pregunta.
 - **Proves:** pytest-qt amb el backend substitut: cerca, enllaç, selecció múltiple, cancel·lació, error de xarxa,
   afegir al projecte (comprova l'ordre `AddSongs` al controlador), textos traduïbles.
 - **Acceptació:** cap operació de més de 50 ms al fil de la interfície; el programa sense xarxa s'obre i funciona igual.
@@ -312,9 +350,6 @@ yt-dlp publica versions noves sovint. Proposta:
 
 ## Per decidir
 
-1. **Validesa de la conformitat:** (a) un cop acceptada val fins que canviï el text de l'avís o es retiri (recomanat);
-   (b) es demana cada vegada que s'obre la finestra de YouTube; (c) es demana un cop per cada sessió del programa.
-2. **Començar el C01:** (a) ara, en aquesta mateixa branca; (b) en una sessió nova amb la branca `bloc/C01-decisio-youtube`
-   (el que diu el protocol del CLAUDE.md).
+Res pendent: el pla està aprovat (decisions 1–8 del §0).
 
-**Pendent de la teva part:** respondre els dos punts anteriors.
+**Pendent de la teva part:** obrir una sessió nova al núvol i enganxar-hi el prompt del C01 (§4, fitxa del C01).
