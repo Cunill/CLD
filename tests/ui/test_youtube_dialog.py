@@ -18,7 +18,7 @@ from typing import Any
 
 import pytest
 from PIL import Image
-from PySide6.QtCore import QUrl
+from PySide6.QtCore import QStandardPaths, QUrl
 from PySide6.QtWidgets import QLabel, QToolButton
 from pytestqt.qtbot import QtBot
 
@@ -29,7 +29,6 @@ from passimaker.model import defaults
 from passimaker.ui.main_window import MainWindow
 from passimaker.ui.project_files import user_settings
 from passimaker.ui.youtube_dialog import (
-    LAST_FOLDER_KEY,
     DownloadJob,
     DownloadRow,
     NoticeDialog,
@@ -507,14 +506,15 @@ def test_download_asks_the_folder_converts_and_adds_to_the_project(
     assert tags.artist == "Canal" and tags.comment.startswith("https://www.youtube.com/watch?v=")
     assert dest.parent == folder
     assert list(isolated_temp.iterdir()) == []  # the original audio is gone
-    assert user_settings().value(LAST_FOLDER_KEY) == str(folder)
-    assert window.suggested_folder() == folder
+    assert questions.suggested == [window.suggested_folder()]  # Downloads, not the last folder
+    assert window.suggested_folder() != folder
+    assert not [key for key in user_settings().allKeys() if "youtube" in key.lower()]
 
 
-def test_first_suggested_folder_is_documents(qtbot: QtBot, added: list[list[Path]]) -> None:
+def test_suggested_folder_is_always_downloads(qtbot: QtBot, added: list[list[Path]]) -> None:
     window = make_window(qtbot, FakeYoutubeBackend(), FakeQuestions(), added)
-    assert window.suggested_folder().is_absolute()
-    assert user_settings().value(LAST_FOLDER_KEY) is None
+    expected = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DownloadLocation)
+    assert window.suggested_folder() == (Path(expected) if expected else Path.home())
 
 
 def test_cancelling_the_folder_downloads_nothing(qtbot: QtBot, added: list[list[Path]]) -> None:
