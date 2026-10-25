@@ -11,12 +11,12 @@
 
 | # | Tema | Decisió |
 |---|---|---|
-| 1 | Seguir endavant | **Sí, amb tot el pla** (Y0–Y5) |
+| 1 | Seguir endavant | **Sí, amb tot el pla** (C01–C06) |
 | 2 | Aspectes legals | **Només l'avís**, sense filtre Creative Commons. L'avís té una **casella de conformitat obligatòria** i **cap connexió a internet abans d'acceptar-lo** (§2.0) |
 | 3 | Format | **MP3 de 192 kbps** |
 | 4 | Carpeta de destinació | **Es pregunta cada vegada** (§2.2) |
 | 5 | Escoltar abans de descarregar | **Botó "Obre a YouTube"** que obre el navegador |
-| 6 | PR d'aquest pla | **No**: el document es queda a la branca fins al Y0 |
+| 6 | PR d'aquest pla | **No**: el document es queda a la branca fins al C01 |
 
 ---
 
@@ -28,8 +28,8 @@ Aquesta funció xoca amb tres decisions preses i amb dues regles del CLAUDE.md. 
 | Què | Ara | Amb aquesta funció |
 |---|---|---|
 | Xarxa (PLA, Pas 0) | Totalment fora de línia | Connexió a internet **només** quan l'usuari obre "Música de YouTube". La resta del programa continua funcionant sense xarxa. |
-| Regla 10 (dependències) | — | Dependència nova: **yt-dlp** (llicència Unlicense, domini públic). Probablement també **Deno** (entorn JavaScript que yt-dlp necessita per a YouTube des de finals del 2025; es confirma al Y1). |
-| Regla 7 (subprocess) | Només `passimaker.ffmpeg` llança processos | yt-dlp llança Deno per dins. El nostre codi no crida subprocess; cal comprovar que no s'obren finestres de consola i, si cal, ajustar la prova de la regla 7 (Y1). |
+| Regla 10 (dependències) | — | Dependència nova: **yt-dlp** (llicència Unlicense, domini públic). Probablement també **Deno** (entorn JavaScript que yt-dlp necessita per a YouTube des de finals del 2025; es confirma al C02). |
+| Regla 7 (subprocess) | Només `passimaker.ffmpeg` llança processos | yt-dlp llança Deno per dins. El nostre codi no crida subprocess; cal comprovar que no s'obren finestres de consola i, si cal, ajustar la prova de la regla 7 (C02). |
 | Mida del ZIP | ~150 MB (FFmpeg + Qt) | +~5 MB (yt-dlp) i, si cal Deno, +~40 MB comprimits |
 | Manteniment | Versió estable, sense actualitzacions obligatòries | YouTube canvia sovint i trenca yt-dlp cada poques setmanes o mesos: cal publicar versions noves de PassiMaker amb yt-dlp actualitzat (§6). |
 
@@ -89,7 +89,7 @@ per comprovar si hi ha internet. Es garanteix així:
    memòria).
 3. **Res automàtic.** La finestra de YouTube no fa cap cerca, ni baixa miniatures, ni comprova versions en obrir-se: la
    primera connexió és la primera cerca o enllaç que l'usuari demana.
-4. **Proves que ho demostren** (Y2 i Y4), amb la xarxa bloquejada (`socket.socket.connect`, `socket.create_connection`
+4. **Proves que ho demostren** (C03 i C05), amb la xarxa bloquejada (`socket.socket.connect`, `socket.create_connection`
    i `socket.getaddrinfo` substituïts per una funció que fa fallar la prova):
    - arrencar el programa, obrir i desar un projecte i exportar: cap intent de connexió;
    - obrir l'avís, marcar i desmarcar la casella, cancel·lar: cap intent de connexió, `yt_dlp` no és a `sys.modules`,
@@ -197,37 +197,64 @@ Decisions de disseny:
 
 ## 4. Blocs de desenvolupament
 
-Mateix protocol que la resta (CLAUDE.md): un bloc per sessió, branca `bloc/YNN-nom`, nota a `docs/sessions/YNN.md`.
+Mateix protocol que la resta (CLAUDE.md): un bloc per sessió, branca `bloc/CNN-nom`, nota a `docs/sessions/CNN.md`.
 
-| Bloc | Nom | Mida | Depèn de | On |
-|---|---|---|---|---|
-| Y0 | Decisió 0012, contracte i especificació | Petit (0,5 s.) | aprovació | Núvol |
-| Y1 | Prova de viabilitat a Windows | Petit (0,5 s.) | Y0 | Núvol + **local** |
-| Y2 | Nucli `passimaker.youtube` | Mitjà (1 s.) | Y1 | Núvol |
-| Y3 | Conversió a MP3 al pont FFmpeg | Petit (0,5 s.) | Y0 (en paral·lel amb Y2) | Núvol |
-| Y4 | Diàleg "Música de YouTube" | Gran (1,5 s.) | Y2, Y3 | Núvol |
-| Y5 | Empaquetat, guia i versió 1.2.0 | Mitjà (1 s.) | Y4 | Núvol + **local** |
+| Bloc | Nom | Mòduls | Mida | Depèn de | Model | On |
+|---|---|---|---|---|---|---|
+| C01 | Decisió 0012, contracte i especificació | documentació, esquelet de `youtube` | Petit | aprovació | Sonnet | Núvol |
+| C02 | Prova de viabilitat a Windows | script de prova, paquet | Petit | C01 | Opus | Núvol + **local** |
+| C03 | Nucli `passimaker.youtube` | `youtube` (nou) | Mitjà | C02 | Opus | Núvol |
+| C04 | Conversió a MP3 al pont FFmpeg | `ffmpeg` | Petit | C01 (en paral·lel amb C03) | Sonnet | Núvol |
+| C05 | Diàleg "Música de YouTube" | `ui` | Gran | C03, C04 | Sonnet | Núvol |
+| C06 | Empaquetat, guia i versió 1.2.0 | paquet, `ui/help.py`, documentació | Mitjà | C05 | Sonnet | Núvol + **local** |
 
-**Total: ~5 sessions ≈ 5 setmanes** a 4 h/setmana (més la prova de l'usuari).
+### 4.1 Seguiment: estimació i consum
 
-### Y0 · Decisió, contracte i especificació
+Es posa al dia en tancar cada bloc (a la mateixa PR del bloc). "Sessions" són sessions de Claude Code; "temps teu" són
+les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escenaris: optimista / probable / pessimista.
+
+| Bloc | Sessions estimades (opt. / prob. / pes.) | Temps teu estimat (h) | Estat | Sessions consumides | Temps teu consumit (h) | PR · commit |
+|---|---|---|---|---|---|---|
+| Pla (aquest document) | — | — | ✅ aprovat el 25/10/2026 | 1 | — | branca `ccr-08701f22-8ayer4` (sense PR, decisió 6) |
+| C01 Decisió i contracte | 1 / 1 / 1 | 0,5 | ⏳ pendent | — | — | — |
+| C02 Prova de viabilitat | 1 / 1 / 2 | 1,0 | ⏳ pendent | — | — | — |
+| C03 Nucli `youtube` | 1 / 1 / 2 | 0,5 | ⏳ pendent | — | — | — |
+| C04 Conversió a MP3 | 1 / 1 / 1 | 0,25 | ⏳ pendent | — | — | — |
+| C05 Diàleg | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
+| C06 Empaquetat i versió | 1 / 1 / 2 | 1,0 | ⏳ pendent | — | — | — |
+| **Subtotal dels blocs** | **6 / 7 / 10** | **4,25** | | **0** | **0** | |
+| Sessions de correcció després de la prova de l'usuari | 0 / 1 / 2 | inclòs a sota | ⏳ pendent | — | — | — |
+| Revisió de les PR i prova final de l'usuari | — | 1,5 / 3 / 6 | ⏳ pendent | — | — | — |
+| **Total** | **6 / 8 / 12 sessions** | **6 / 7 / 10 h** | | **1** (el pla) | **—** | |
+
+Llegenda de l'estat: ⏳ pendent · 🔧 en curs · ✅ tancat (fusionat a `main`) · ⛔ aturat (vegeu `docs/sessions/CNN.md`).
+
+**Calendari** (a 4 h/setmana del teu temps, començant quan s'aprovi el C01):
+
+| Escenari | Sessions | Hores teves | Setmanes |
+|---|---|---|---|
+| Optimista | 6 | 6 h | 1,5 |
+| **Probable** | **8** | **7 h** | **2** |
+| Pessimista | 12 | 10 h | 2,5–3 |
+
+### C01 · Decisió, contracte i especificació
 - **Fa:** `docs/decisions/0012-musica-de-youtube.md` (xarxa, dependències, regla 7, aspectes legals, manteniment);
   CONTRACTES §15 i ampliació del §8 (`convert_to_mp3`); ESPECIFICACIO §1.7 bis (el §2 d'aquest pla); valors nous a
   `defaults.py`; tipus i signatures sense implementació a `src/passimaker/youtube/`.
 - **Acceptació:** documents aprovats per l'usuari; ruff i pyright nets; la prova de "Qt fora del nucli" cobreix el
   mòdul nou.
 
-### Y1 · Prova de viabilitat (spike)
+### C02 · Prova de viabilitat (spike)
 Bloc curt per eliminar els riscos grossos abans d'invertir-hi més.
 - **Fa:** una branca amb un script mínim que, des del ZIP de PyInstaller a Windows, cerca, baixa un àudio i el
   converteix. Comprova: (1) si yt-dlp necessita Deno i com s'empaqueta; (2) que no s'obre cap finestra de consola des
   d'una aplicació sense consola; (3) que l'antivirus (Windows Defender) no bloqueja res; (4) que funciona darrere de la
   xarxa de l'estudi (servidor intermediari?); (5) mida final del ZIP.
 - **Local:** l'usuari executa el ZIP de prova al seu PC (un pas cada vegada).
-- **Acceptació:** informe a `docs/sessions/Y01.md` amb el resultat de cada punt i la recomanació final (seguir, canviar
+- **Acceptació:** informe a `docs/sessions/C02.md` amb el resultat de cada punt i la recomanació final (seguir, canviar
   d'enfocament o abandonar).
 
-### Y2 · Nucli `passimaker.youtube`
+### C03 · Nucli `passimaker.youtube`
 - **Fa:** `links.py`, `search.py`, `download.py`, `files.py` amb el backend injectable i el substitut de proves.
   Cancel·lació i progrés amb `CancelToken` i `ProgressCallback`. Traducció dels errors de yt-dlp als errors propis.
 - **Proves:** enllaços (Hypothesis: formats vàlids i no vàlids, paràmetres extra com `&t=30s`, `&list=…`), noms de
@@ -236,13 +263,13 @@ Bloc curt per eliminar els riscos grossos abans d'invertir-hi més.
   la prova estàtica d'imports de xarxa. Una prova `xarxa` amb un vídeo Creative Commons estable.
 - **Acceptació:** cobertura de totes les files de la taula d'errors del §2.3; cap import de PySide6; pyright estricte.
 
-### Y3 · Conversió a MP3
+### C04 · Conversió a MP3
 - **Fa:** `passimaker.ffmpeg.convert_to_mp3` (libmp3lame, 48 kHz, estèreo, etiquetes ID3, progrés, cancel·lació,
   escriptura atòmica). Comprova que l'FFmpeg 7.1.1 fixat porta libmp3lame (la build GPL sí).
 - **Proves:** amb els tons de `tests/fixtures` (WAV, M4A): durada conservada (±50 ms), 48 kHz, etiquetes llegibles,
   rutes amb accents i emojis, cancel·lació a mitges sense deixar fitxers.
 
-### Y4 · Diàleg "Música de YouTube"
+### C05 · Diàleg "Música de YouTube"
 - **Fa:** `ui/youtube_dialog.py` i l'entrada al menú de [+ Música]. Camp únic de cerca/enllaç, llista de resultats
   amb miniatures, cua de descàrregues amb progrés per fila, carpeta de destinació, casella "Afegeix al projecte", botó
   [Obre a YouTube], selector de carpeta a cada descàrrega i **avís de conformitat del §2.0** (casella obligatòria,
@@ -251,7 +278,7 @@ Bloc curt per eliminar els riscos grossos abans d'invertir-hi més.
   afegir al projecte (comprova l'ordre `AddSongs` al controlador), textos traduïbles.
 - **Acceptació:** cap operació de més de 50 ms al fil de la interfície; el programa sense xarxa s'obre i funciona igual.
 
-### Y5 · Empaquetat, guia i versió
+### C06 · Empaquetat, guia i versió
 - **Fa:** PyInstaller amb yt-dlp (i Deno si cal); `tools/construir_zip.ps1`; CI; apartat nou a la guia (`ui/help.py`)
   i a "Imprevistos" ("YouTube ha canviat"); CHANGELOG; versió 1.2.0; flux de manteniment del §6.
 - **Local:** prova de l'usuari amb el ZIP: una cerca, un enllaç, una descàrrega afegida a un passi i exportada.
@@ -266,9 +293,9 @@ Bloc curt per eliminar els riscos grossos abans d'invertir-hi més.
 | YouTube canvia i la descarrega deixa de funcionar | **Alta** (diversos cops l'any) | La funció falla fins que es publica una versió nova | Missatge clar (§2.3); flux de manteniment (§6); la resta del programa no es veu afectada |
 | YouTube bloqueja l'adreça IP ("confirma que no ets un robot") | Mitjana | No es pot descarregar des d'aquella xarxa | Missatge clar; poques descàrregues simultànies; no és solucionable des del programa |
 | Problema legal (condicions de YouTube, drets d'autor) | Mitjana | Reclamació o vídeo silenciat si es publica | §1.1 i §2.0: avís amb conformitat obligatòria, fonts de música lliure a la guia |
-| L'antivirus marca Deno o yt-dlp | Baixa–mitjana | El ZIP no s'executa | Es comprova al Y1 |
-| Finestres de consola en llançar Deno | Mitjana | Molèstia visual | Es comprova al Y1; si passa, s'ajusta la configuració o es descarta Deno |
-| El ZIP creix massa | Baixa | Descàrrega més lenta | Es mesura al Y1 |
+| L'antivirus marca Deno o yt-dlp | Baixa–mitjana | El ZIP no s'executa | Es comprova al C02 |
+| Finestres de consola en llançar Deno | Mitjana | Molèstia visual | Es comprova al C02; si passa, s'ajusta la configuració o es descarta Deno |
+| El ZIP creix massa | Baixa | Descàrrega més lenta | Es mesura al C02 |
 
 ## 6. Manteniment
 
@@ -287,7 +314,7 @@ yt-dlp publica versions noves sovint. Proposta:
 
 1. **Validesa de la conformitat:** (a) un cop acceptada val fins que canviï el text de l'avís o es retiri (recomanat);
    (b) es demana cada vegada que s'obre la finestra de YouTube; (c) es demana un cop per cada sessió del programa.
-2. **Començar el Y0:** (a) ara, en aquesta mateixa branca; (b) en una sessió nova amb la branca `bloc/Y00-youtube`
+2. **Començar el C01:** (a) ara, en aquesta mateixa branca; (b) en una sessió nova amb la branca `bloc/C01-decisio-youtube`
    (el que diu el protocol del CLAUDE.md).
 
 **Pendent de la teva part:** respondre els dos punts anteriors.
