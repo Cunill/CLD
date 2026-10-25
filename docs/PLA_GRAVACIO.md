@@ -30,7 +30,7 @@
 |---|---|---|
 | Entrades de música | Fitxers i (pla vigent) YouTube | També **gravació en directe** del so de l'ordinador |
 | Xarxa | Només la funció de YouTube, després del seu avís | **Cap canvi**: gravar no es connecta enlloc. Funciona sense internet. |
-| Dependències | sounddevice (ja hi és, per a la previsualització) | **Probablement cap de nova**: es prova primer amb sounddevice (§3.1). Si no serveix, es proposa `soundcard` (llicència BSD) o `PyAudioWPatch` (MIT); es decideix al C08. |
+| Dependències | sounddevice (ja hi és, per a la previsualització) | **Una de nova**: el C08 ha comprovat que sounddevice no pot gravar el so de l'ordinador (§3.1). Proposta: `soundcard` 0.4.6 (BSD-3); alternativa `PyAudioWPatch` 0.2.12.9 (Apache-2.0). Pendent de la decisió de l'usuari. |
 | Regla 7 (subprocess) | — | Sense canvis: la captura és dins del procés; la conversió a MP3 és el `convert_to_mp3` del C04. |
 | Sistema | Només Windows | Igual. La captura del so del sistema es fa amb **WASAPI loopback**, la manera estàndard de Windows (sense controladors ni programes externs com "Stereo Mix" o VB-Cable). |
 
@@ -161,7 +161,11 @@ passimaker.ffmpeg.convert_to_mp3  (C04, ja fet)  →  model: AddSongs
 |---|---|---|---|
 | **A. sounddevice** (ja és una dependència) | PortAudio amb WASAPI: les versions recents de PortAudio mostren cada sortida també com a entrada "[Loopback]" | Cap dependència nova; ja empaquetat i provat al ZIP | A confirmar que la versió de PortAudio que porta sounddevice 0.5.x té el loopback activat (l'API de Python no en diu res) |
 | B. `soundcard` (BSD-3, cffi) | `get_microphone(id=altaveu, include_loopback=True)` | Loopback documentat i senzill | Dependència nova; menys mantinguda; cal provar-la a PyInstaller |
-| C. `PyAudioWPatch` (MIT) | Fork de PyAudio amb loopback WASAPI | Pensat exactament per a això | Dependència nova amb binaris propis; duplica PortAudio |
+| C. `PyAudioWPatch` (Apache-2.0) | Fork de PyAudio amb loopback WASAPI | Pensat exactament per a això | Dependència nova amb binaris propis; duplica PortAudio |
+
+**Resultat del C08 (25/10/2026, `docs/sessions/C08.md` a la branca `claude/confident-ritchie-rk3iju`): A no
+serveix** (sounddevice 0.5.6 porta PortAudio 19.7.0, sense loopback). Proposta del C08: **B, `soundcard` 0.4.6**
+(BSD-3, 44 KB, sense dependències noves). Pendent de la decisió de l'usuari.
 
 Recomanació: provar **A** primer; si no funciona, **B**. Qualsevol dependència nova es proposa abans (regla 10).
 
