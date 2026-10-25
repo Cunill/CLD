@@ -208,7 +208,7 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 
 **Comportament**
 - Sota el storyboard hi ha la franja "Música", amb les cançons en ordre: nom, durada real (després del retall) i indicadors de fosa. Les cançons s'afegeixen amb [+ Música] o arrossegant fitxers d'àudio a la finestra. Es poden eliminar i reordenar arrossegant-les.
-- Formats: MP3, WAV, M4A/AAC, FLAC, OGG, WMA i OPUS. També es poden descarregar de YouTube (§1.7 bis) o gravar del so de l'ordinador (§1.7 ter).
+- Formats: MP3, WAV, M4A/AAC, FLAC, OGG, WMA i OPUS. També es poden descarregar de YouTube (§1.7 bis) o gravar-les del so de l'ordinador (§1.7 ter).
 - Les cançons sonen una darrere l'altra des del principi del vídeo, sense trepitjar-se.
 - Ajustos de cada cançó (panell de propietats):
   - Fosa d'entrada: ☑ activada, 1,0 s (de 0 a 10 s, en passos de 0,5 s).
