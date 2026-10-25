@@ -226,7 +226,7 @@ les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escen
 | Bloc | Depèn de | En paral·lel amb | Tanda | Sessions estimades (opt. / prob. / pes.) | Temps teu estimat (h) | Estat | Sessions consumides | Temps teu consumit (h) | PR · commit |
 |---|---|---|---|---|---|---|---|---|---|
 | Pla (aquest document) | — | — | — | — | — | ✅ aprovat el 25/10/2026 | 1 | — | branca `ccr-08701f22-8ayer4` (sense PR, decisió 6) |
-| C01 Decisió i contracte | aprovació del pla | — (és la base de tots) | T1 | 1 / 1 / 1 | 0,5 | ✅ tancat (fusionat el 25/10/2026) | 1 | — | PR #52 · `7f1bc0b` |
+| C01 Decisió i contracte | aprovació del pla | — (és la base de tots) | T1 | 1 / 1 / 1 | 0,5 | ✅ tancat el 25/10/2026 | 1 | — | PR #52 · `7f1bc0b` |
 | C02 Prova de viabilitat | C01 | **C04** | T2 | 1 / 1 / 2 | 1,0 | ⏳ pendent | — | — | — |
 | C03 Nucli `youtube` | C01, C02 | **C04** (si encara no s'ha fet) | T3 | 1 / 1 / 2 | 0,5 | ⏳ pendent | — | — | — |
 | C04 Conversió a MP3 | C01 | **C02** o **C03** | T2 (o T3) | 1 / 1 / 1 | 0,25 | 🔧 en curs (fet; pendent de PR i fusió) | 1 | — | branca `ccr-d41b56d3-cne6xi` |
@@ -321,6 +321,43 @@ Bloc curt per eliminar els riscos grossos abans d'invertir-hi més.
 - **Acceptació:** informe a `docs/sessions/C02.md` amb el resultat de cada punt i la recomanació final (seguir, canviar
   d'enfocament o abandonar).
 
+```text
+Bloc C02: Música de YouTube, prova de viabilitat a Windows (spike). Model: Opus.
+Context: el C01 és a main (PR #52, commit 7f1bc0b). Llegeix docs/PLA_YOUTUBE.md (§1, §3, §5 i la fitxa del C02),
+docs/decisions/0012-musica-de-youtube.md, docs/CONTRACTES.md (§8 i §15), packaging/PassiMaker.spec,
+tools/construir_zip.ps1, packaging/provar_paquet.ps1 i .github/workflows/ci.yml.
+Branca: bloc/C02-viabilitat-youtube des de main actualitzat (o la que imposi la sessió al núvol; anota-ho).
+Objectiu: comprovar, abans d'invertir-hi més, que yt-dlp funciona des d'un ZIP de PyInstaller a Windows, i decidir
+seguir, canviar d'enfocament o abandonar. No s'implementa passimaker.youtube (és el C03).
+Fes:
+1. Dependència yt-dlp (aprovada a la decisió 0012) a pyproject.toml i uv.lock, amb la versió fixada. Esbrina si per a
+   YouTube cal un entorn JavaScript (Deno, o el paquet yt-dlp-ejs) i com s'ha d'empaquetar; si cal Deno, NO l'afegeixis
+   sense proposar-ho: explica-ho a docs/sessions/C02.md (mida, llicència, d'on es baixa, suma SHA-256) i atura't.
+2. Un script mínim de prova, tools/prova_youtube.py, sense Qt i sense consola: amb un enllaç i una cerca fixos (un vídeo
+   Creative Commons estable), cerca 3 resultats, baixa el millor àudio a una carpeta temporal sense postprocés de
+   yt-dlp, comprova el fitxer amb passimaker.ffmpeg.probe i escriu un informe de text (versions, temps, mida, errors
+   complets) al costat de l'executable. Ha de funcionar també darrere d'un servidor intermediari (variables
+   HTTPS_PROXY del sistema).
+3. Un .spec propi (packaging/ProvaYoutube.spec, console=False, amb el mateix FFmpeg) i un treball nou a
+   .github/workflows/ci.yml que construeix el ZIP "ProvaYoutube-win64" i el publica com a artefacte. No canviïs el
+   ZIP de PassiMaker ni el treball que ja existeix.
+4. Proves (a Linux, sense xarxa): l'script es pot importar sense connectar-se; la prova d'arquitectura continua
+   passant (tools/ no és dins de src, però cap mòdul de src importa yt_dlp).
+5. docs/sessions/C02.md amb els resultats dels 5 punts de la fitxa del C02: (1) Deno sí o no i com s'empaqueta;
+   (2) cap finestra de consola; (3) Windows Defender no bloqueja res; (4) funciona a la xarxa de l'estudi; (5) mida
+   del ZIP. Els punts 2–4 els comprova l'usuari al seu PC: dona-li les instruccions pas a pas (un pas cada vegada) per
+   baixar l'artefacte, executar-lo i enganxar-te l'informe.
+6. docs/PLA_YOUTUBE.md: només la fila del C02 de la taula del §4.1. CLAUDE.md, apartat Estat: una línia del C02.
+   Si el C04 ja és a main, porta main a la branca (fusió) i resol el conflicte d'aquests dos fitxers.
+Criteris d'acceptació: ZIP de prova generat per la CI; informe de l'usuari amb els 5 punts; recomanació final a
+docs/sessions/C02.md; suite ràpida, ruff i pyright en verd.
+Fitxers permesos: pyproject.toml, uv.lock, tools/prova_youtube.py, packaging/ProvaYoutube.spec,
+.github/workflows/ci.yml (només el treball nou), tests/unit/test_prova_youtube.py, docs/sessions/C02.md, la fila del
+C02 a docs/PLA_YOUTUBE.md i l'apartat Estat del CLAUDE.md. Res de src/passimaker/youtube ni de src/passimaker/ffmpeg.
+Condició d'aturada: la del CLAUDE.md. També t'atures si cal Deno (punt 1) o si la prova a Windows falla dues vegades
+pel mateix motiu: anota-ho a docs/sessions/C02.md amb el pas següent.
+```
+
 ### C03 · Nucli `passimaker.youtube`
 - **Fa:** `links.py`, `search.py`, `download.py`, `files.py` amb el backend injectable i el substitut de proves.
   Cancel·lació i progrés amb `CancelToken` i `ProgressCallback`. Traducció dels errors de yt-dlp als errors propis.
@@ -335,6 +372,39 @@ Bloc curt per eliminar els riscos grossos abans d'invertir-hi més.
   escriptura atòmica). Comprova que l'FFmpeg 7.1.1 fixat porta libmp3lame (la build GPL sí).
 - **Proves:** amb els tons de `tests/fixtures` (WAV, M4A): durada conservada (±50 ms), 48 kHz, etiquetes llegibles,
   rutes amb accents i emojis, cancel·lació a mitges sense deixar fitxers.
+
+```text
+Bloc C04: Música de YouTube, conversió a MP3 al pont FFmpeg. Model: Sonnet.
+Context: el C01 és a main (PR #52, commit 7f1bc0b): hi ha la signatura de passimaker.ffmpeg.convert_to_mp3 i el tipus
+Mp3Tags, sense implementar. Llegeix docs/CONTRACTES.md (§0 i §8), la fitxa del C04 a docs/PLA_YOUTUBE.md,
+docs/sessions/C01.md, src/passimaker/ffmpeg/ (sobretot _mp3.py, _audio.py, _process.py i types.py) i
+tests/integration/ffmpeg/.
+Branca: bloc/C04-mp3 des de main actualitzat (o la que imposi la sessió al núvol; anota-ho).
+Objectiu: implementar convert_to_mp3 tal com diu el contracte §8, sense canviar-ne la signatura.
+Fes:
+1. src/passimaker/ffmpeg/_mp3.py: libmp3lame a bitrate_kbps constant, 48 kHz estèreo (AUDIO_SAMPLE_RATE,
+   AUDIO_CHANNELS), etiquetes ID3 (títol, artista, comentari) amb accents i emojis, sense la imatge de portada.
+   Progrés amb ProgressCallback (a partir de la durada que dona probe) i cancel·lació amb CancelToken que atura FFmpeg
+   en menys de 2 s. Escriptura atòmica: fitxer temporal al costat del destí i reanomenar-lo en acabar; si falla o es
+   cancel·la, no queda cap fitxer (ni el temporal). Sempre a través de _process (sense shell ni consola, rutes Unicode).
+   Errors: FfmpegError amb les claus que ja existeixen (file_not_found, unreadable, no_audio, disk_full, write_error,
+   failed); si en cal una de nova, proposa-la i atura't.
+2. Comprova que l'FFmpeg 7.1.1 fixat a Windows (build "essentials" de Gyan) porta libmp3lame; si no, atura't i
+   proposa una alternativa (no canviïs la build sense permís).
+3. Proves a tests/integration/ffmpeg/test_mp3.py amb els tons de tests/fixtures (WAV, M4A, i mono i 44,1 kHz si n'hi
+   ha): durada conservada (±50 ms), 48 kHz estèreo, bitrate, etiquetes llegibles amb ffprobe, rutes amb accents i
+   emojis, destí que ja existeix (es reemplaça només en acabar bé), fitxer sense so (ffmpeg.no_audio), cancel·lació a
+   mitges sense deixar fitxers, i progrés que no recula. Les proves de més de ~5 s porten la marca "lent".
+4. docs/sessions/C04.md: què s'ha fet, les decisions preses i els resultats.
+5. docs/PLA_YOUTUBE.md: només la fila del C04 de la taula del §4.1. CLAUDE.md, apartat Estat: una línia del C04.
+   Si el C02 ja és a main, porta main a la branca (fusió) i resol el conflicte d'aquests dos fitxers.
+Criteris d'acceptació: contracte §8 complert; proves del bloc, suite ràpida, ruff i pyright (estricte) en verd; CI de
+Windows en verd; cap dependència nova.
+Fitxers permesos: src/passimaker/ffmpeg/_mp3.py (i _process.py només si cal per a la cancel·lació, explicant-ho),
+tests/integration/ffmpeg/test_mp3.py, tests/unit/ffmpeg/, docs/sessions/C04.md, la fila del C04 a
+docs/PLA_YOUTUBE.md i l'apartat Estat del CLAUDE.md.
+Condició d'aturada: la del CLAUDE.md.
+```
 
 ### C05 · Diàleg "Música de YouTube"
 - **Fa:** `ui/youtube_dialog.py` i l'entrada al menú de [+ Música]. Camp únic de cerca/enllaç, llista de resultats
@@ -381,4 +451,4 @@ yt-dlp publica versions noves sovint. Proposta:
 
 Res pendent: el pla està aprovat (decisions 1–8 del §0).
 
-**Pendent de la teva part:** res del C01 (aprovat el 25/10/2026). Següent: tanda T2, C02 i C04 (prompts per escriure).
+**Pendent de la teva part:** obrir dues sessions noves al núvol i enganxar-hi els prompts del C02 i del C04 (fitxes del §4).
