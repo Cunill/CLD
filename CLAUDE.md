@@ -117,7 +117,6 @@ D9: i7-6700K, GTX 960, 40 GB) fetes el 24/10/2026 (PR #46): importar 76 s, memò
 durada; totes dins dels límits (docs/RENDIMENT.md).
 **Música de YouTube (versió 1.2.0 prevista)**: pla aprovat per l'usuari el 25/10/2026 (docs/PLA_YOUTUBE.md, blocs
 C01–C06, seguiment al §4.1; decisió 0012). Blocs integrats a main: C01 decisió, contractes (CONTRACTES §15) i
-especificació (§1.7 bis) (PR #52, commit `7f1bc0b`). Següent: tanda T2, C02 (viabilitat, núvol + local) i C04 (MP3)
-en paral·lel. C04 (`ffmpeg.convert_to_mp3`): fet, pendent de la PR i de la fusió
-(docs/sessions/C04.md). Tota la xarxa, només a `passimaker.youtube` i mai abans de l'avís.
+especificació (§1.7 bis) (PR #52, commit `7f1bc0b`) · C04 conversió a MP3, `ffmpeg.convert_to_mp3` (PR #54, commit
+`5c2129b`). Següent: C02 (viabilitat, núvol + local), que encara és pendent. Tota la xarxa, només a `passimaker.youtube` i mai abans de l'avís.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
