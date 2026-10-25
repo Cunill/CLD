@@ -25,6 +25,10 @@ Dues menes de sessió (24/10/2026); es fa servir la que convingui a cada tasca:
   "**Per decidir:**" numerat (una per punt, amb les opcions), i també el que li toca fer ("Pendent de la teva part").
   No s'amaguen preguntes enmig de l'explicació ni se'n fan dues en una sola frase.
 - Instruccions pas a pas: un pas cada vegada, curt i clar.
+- Els avisos que impedeixen fer alguna cosa (p. ex. "encara no obris aquesta sessió") van **al principi** del missatge,
+  abans de prompts, taules o explicacions (decisió de l'usuari, 25/10/2026).
+- La taula de seguiment d'un pla es mostra sempre **sencera** (totes les files i columnes), mai retallada (decisió de
+  l'usuari, 25/10/2026).
 - Les hores, sempre amb el rellotge oficial de l'usuari (ara UTC+1; UTC+2 a l'estiu), mai en temps universal (UTC)
   (decisió de l'usuari, 25/10/2026).
 
@@ -128,4 +132,7 @@ prova (decisió de l'usuari, 25/10/2026). C03 nucli `passimaker.youtube` (PR #58
 miniatura, baixada (àudio estèreo abans que el 5.1), noms de fitxer i errors (`youtube.blocked` nou), amb backend
 injectable (`tests/fakes/youtube.py`) i marca `xarxa` (`PASSIMAKER_XARXA=1`, només al PC).
 Següent: C05. Tota la xarxa, només a `passimaker.youtube` i mai abans de l'avís.
+**Gravar el so de l'ordinador** (ampliació aprovada el 25/10/2026, també a la versió 1.2.0): annex docs/PLA_GRAVACIO.md
+(decisions G1–G9: sense avís, gravacions interrompudes o de més de 30 min esborrades, ones per canal, micròfon opcional),
+blocs C07–C10 i C06 conjunt al §4 de docs/PLA_YOUTUBE.md. C07 i C08 en curs, en paral·lel (25/10/2026).
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
