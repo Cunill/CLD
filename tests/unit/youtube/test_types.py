@@ -11,7 +11,7 @@ from passimaker.youtube import types
 
 def test_every_error_key_has_a_catalan_message() -> None:
     keys = {v for name, v in vars(types).items() if name.startswith("ERROR_") and isinstance(v, str)}
-    assert len(keys) == 7
+    assert len(keys) == 8
     for key in keys:
         assert key.startswith("youtube.") and key in MESSAGES
         assert message(key) != key
@@ -23,6 +23,7 @@ def test_errors_carry_their_key_and_derive_from_the_base_error() -> None:
         (youtube.YoutubeUnavailableError(), youtube.ERROR_UNAVAILABLE),
         (youtube.YoutubeUnavailableError(youtube.ERROR_LIVE), youtube.ERROR_LIVE),
         (youtube.YoutubeBrokenError("ERROR: Sign in to confirm"), youtube.ERROR_BROKEN),
+        (youtube.YoutubeBlockedError(), youtube.ERROR_BLOCKED),
         (youtube.YoutubeTooLongError(), youtube.ERROR_TOO_LONG),
         (youtube.YoutubeConsentError(), youtube.ERROR_CONSENT),
     ]

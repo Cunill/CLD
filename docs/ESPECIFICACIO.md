@@ -299,6 +299,7 @@ Si es tanca el diàleg amb descàrregues en curs, pregunta si s'han de cancel·l
 | Vídeo privat, esborrat, amb restricció d'edat o de país | "Aquest vídeo no es pot descarregar (és privat, s'ha esborrat o té restriccions)." |
 | Directe en curs | "No es poden descarregar directes." |
 | YouTube ha canviat i yt-dlp ja no funciona | "YouTube ha canviat i aquesta versió de PassiMaker ja no pot descarregar. Cal una versió nova del programa." (el detall, al registre) |
+| YouTube bloqueja la xarxa ("confirma que no ets un robot", massa peticions) | "YouTube no deixa descarregar des d'aquesta xarxa ara mateix. Torna-ho a provar més tard o des d'una altra connexió." (el detall, al registre) |
 | Massa llarg | "Aquest vídeo dura més de 20 minuts." |
 
 **Fora d'abast:** llistes de reproducció senceres, vídeo (només àudio), altres webs que admet yt-dlp, escoltar la

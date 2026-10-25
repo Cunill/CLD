@@ -142,6 +142,7 @@ per comprovar si hi ha internet. Es garanteix així:
 | Vídeo privat, esborrat, amb restricció d'edat o de país | "Aquest vídeo no es pot descarregar (és privat, s'ha esborrat o té restriccions)." |
 | Directe en curs | "No es poden descarregar directes." |
 | YouTube ha canviat i yt-dlp no funciona | "YouTube ha canviat i aquesta versió de PassiMaker ja no pot descarregar. Cal una versió nova del programa." (+ detall al registre) |
+| YouTube bloqueja la xarxa ("confirma que no ets un robot", massa peticions) | "YouTube no deixa descarregar des d'aquesta xarxa ara mateix. Torna-ho a provar més tard o des d'una altra connexió." (el detall, al registre) |
 | Massa llarg | "Aquest vídeo dura més de 20 minuts." |
 
 ### 2.4 Fora d'aquest pla

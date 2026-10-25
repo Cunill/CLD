@@ -267,6 +267,7 @@ Errors (hereten de `YoutubeError`, que hereta de `PassiMakerError`):
 | `YoutubeOfflineError` | `youtube.offline` | sense connexió |
 | `YoutubeUnavailableError` | `youtube.unavailable` · `youtube.live` | privat, esborrat o amb restriccions · directe en curs |
 | `YoutubeBrokenError` | `youtube.broken` | YouTube ha canviat i yt-dlp no funciona (el detall, per al registre); també qualsevol error que no es reconeix |
+| `YoutubeBlockedError` | `youtube.blocked` | YouTube no deixa descarregar des d'aquesta xarxa ("confirma que no ets un robot", HTTP 429) · C03, decisió de l'usuari del 25/10/2026 |
 | `YoutubeTooLongError` | `youtube.too_long` | més de `defaults.YOUTUBE_MAX_DURATION_S` |
 | `YoutubeConsentError` | `youtube.consent` | sense conformitat |
 | — | `youtube.invalid_link` | la interfície, quan `parse_link` no reconeix un enllaç enganxat |

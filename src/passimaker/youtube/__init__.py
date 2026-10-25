@@ -22,6 +22,7 @@ from passimaker.youtube.files import safe_target_path
 from passimaker.youtube.links import parse_link, watch_url
 from passimaker.youtube.search import fetch_thumbnail, resolve, search
 from passimaker.youtube.types import (
+    ERROR_BLOCKED,
     ERROR_BROKEN,
     ERROR_CONSENT,
     ERROR_INVALID_LINK,
@@ -30,6 +31,7 @@ from passimaker.youtube.types import (
     ERROR_TOO_LONG,
     ERROR_UNAVAILABLE,
     SearchResult,
+    YoutubeBlockedError,
     YoutubeBrokenError,
     YoutubeConsentError,
     YoutubeError,
@@ -39,6 +41,7 @@ from passimaker.youtube.types import (
 )
 
 __all__ = [
+    "ERROR_BLOCKED",
     "ERROR_BROKEN",
     "ERROR_CONSENT",
     "ERROR_INVALID_LINK",
@@ -49,6 +52,7 @@ __all__ = [
     "ConsentToken",
     "SearchResult",
     "YoutubeBackend",
+    "YoutubeBlockedError",
     "YoutubeBrokenError",
     "YoutubeConsentError",
     "YoutubeError",

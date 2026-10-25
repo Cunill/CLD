@@ -16,6 +16,7 @@ from concurrent.futures import CancelledError
 from passimaker.common import CancelToken
 from passimaker.youtube.types import (
     ERROR_LIVE,
+    YoutubeBlockedError,
     YoutubeBrokenError,
     YoutubeError,
     YoutubeOfflineError,
@@ -51,6 +52,12 @@ _UNAVAILABLE_MESSAGES = (
     "http error 404",
     "http error 410",
 )
+_BLOCKED_MESSAGES = (
+    "not a bot",
+    "http error 429",
+    "too many requests",
+)
+"""YouTube refuses this IP address for a while (PLA_YOUTUBE §5); not fixable from the program."""
 _OFFLINE_MESSAGES = (
     "getaddrinfo failed",
     "name or service not known",
@@ -109,6 +116,7 @@ def translate(error: BaseException) -> BaseException:
 
     - a YoutubeError anywhere in the chain is returned as is;
     - a live stream, then a private/deleted/restricted video (by yt-dlp's message);
+    - YouTube refusing this network ("confirm you're not a bot", HTTP 429);
     - no connection (socket errors, yt-dlp's TransportError, or their messages);
     - a file system error while writing (disk full, no permission) is returned unchanged;
     - anything else means yt-dlp no longer understands YouTube: YoutubeBrokenError with the detail.
@@ -123,6 +131,8 @@ def translate(error: BaseException) -> BaseException:
         return YoutubeUnavailableError(ERROR_LIVE, detail)
     if any(message in text for message in _UNAVAILABLE_MESSAGES):
         return YoutubeUnavailableError(detail=detail)
+    if any(message in text for message in _BLOCKED_MESSAGES) or any(_status(item) == 429 for item in chain):
+        return YoutubeBlockedError(detail)
     if any(_is_network(item) for item in chain) or any(message in text for message in _OFFLINE_MESSAGES):
         return YoutubeOfflineError(detail)
     for item in chain:
@@ -155,6 +165,12 @@ def _chain(error: BaseException) -> Iterator[BaseException]:
         for wrapped in (item.__cause__, item.__context__):
             if wrapped is not None:
                 pending.append(wrapped)
+
+
+def _status(error: BaseException) -> object:
+    """The HTTP status of yt-dlp's HTTPError (or urllib's), else None."""
+    status: object = getattr(error, "status", None)
+    return status if status is not None else getattr(error, "code", None)
 
 
 def _describe(error: BaseException) -> str:

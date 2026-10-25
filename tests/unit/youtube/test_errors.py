@@ -113,14 +113,43 @@ def test_windows_socket_errors_are_no_connection() -> None:
         "Unable to extract yt initial data",
         "Signature extraction failed: Some formats may be missing",
         "n challenge solving failed: Some formats may be missing.",
-        "Sign in to confirm you're not a bot. Use --cookies-from-browser or --cookies for the "
-        "authentication.",
     ],
 )
 def test_youtube_changed(message: str) -> None:
     error = translate(_extractor(message))
     assert isinstance(error, youtube.YoutubeBrokenError)
     assert message[:30] in error.detail  # the detail goes to the log
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "Sign in to confirm you're not a bot. Use --cookies-from-browser or --cookies for the "
+        "authentication.",
+        "Sign in to confirm you’re not a bot. This helps protect our community. Learn more",
+        "Unable to download API page: HTTP Error 429: Too Many Requests",
+    ],
+)
+def test_youtube_blocks_this_network(message: str) -> None:
+    """PLA_YOUTUBE §5: YouTube refuses the IP address for a while; a new version would not help."""
+    error = translate(_extractor(message))
+    assert isinstance(error, youtube.YoutubeBlockedError) and error.message_key == youtube.ERROR_BLOCKED
+
+
+def _response(code: int) -> object:
+    class Response:
+        status = code
+        reason = "Too Many Requests" if code == 429 else "Forbidden"
+        url = "https://www.youtube.com/youtubei/v1/player"
+        headers: dict[str, str] = {}  # noqa: RUF012
+
+        def close(self) -> None: ...
+
+    return Response()
+
+
+def test_too_many_requests_is_a_block() -> None:
+    assert _key(_wrapped(HTTPError(_response(429)))) == youtube.ERROR_BLOCKED  # type: ignore[arg-type]
 
 
 def test_http_errors_from_youtube() -> None:

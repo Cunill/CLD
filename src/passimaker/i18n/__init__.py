@@ -67,6 +67,10 @@ MESSAGES: Mapping[str, str] = {
         "YouTube ha canviat i aquesta versió de PassiMaker ja no pot descarregar. "
         "Cal una versió nova del programa."
     ),
+    "youtube.blocked": (
+        "YouTube no deixa descarregar des d'aquesta xarxa ara mateix. "
+        "Torna-ho a provar més tard o des d'una altra connexió."
+    ),
     "youtube.too_long": "Aquest vídeo dura més de 20 minuts.",
     "youtube.consent": "Cal acceptar l'avís abans de fer servir YouTube.",
 }
