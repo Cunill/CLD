@@ -25,6 +25,7 @@ CORE_MODULES = [
     "passimaker.i18n",
     "passimaker.cli",
     "passimaker.youtube",
+    "passimaker.recorder",
 ]
 NETWORK_MODULES = {"yt_dlp", "urllib.request", "http.client", "socket"}
 """Only passimaker.youtube may import these (decision 0012: no network anywhere else)."""
@@ -113,3 +114,16 @@ def test_importing_the_program_does_not_load_yt_dlp() -> None:
     )
     out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
     assert out.stdout.strip() == "False"
+
+
+def test_recorder_imports_neither_qt_nor_network_modules() -> None:
+    """Decision 0013: recording works offline and without Qt (the interface is block C10)."""
+    files = sorted((SRC / "recorder").rglob("*.py"))
+    assert files
+    offenders = [
+        f"{path.relative_to(SRC)}: {name}"
+        for path in files
+        for name in sorted(_imported_modules(path.read_text(encoding="utf-8")))
+        if _is_network(name) or name.split(".")[0] in {"PySide6", "shiboken6"}
+    ]
+    assert offenders == []
