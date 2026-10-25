@@ -48,7 +48,10 @@ from passimaker.motion.params import (
     intensity_params,
 )
 
-MIN_VISIBLE_DURATION_S = 0.5
+MIN_VISIBLE_DURATION_S = 0.4
+"""Floor of the time the speed limit is computed over. It must not exceed the shortest photo
+(defaults.PHOTO_DURATION_RANGE.minimum, 0,4 s since M05): a photo visible for less would move faster
+than the limit of decision 0005."""
 
 
 @dataclass(frozen=True, slots=True)

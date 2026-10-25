@@ -47,7 +47,7 @@
 
 | Paràmetre | Per defecte | Rang |
 |---|---|---|
-| Durada per foto | 2,0 s | 1–3 s (en passos de 0,1 s) |
+| Durada per foto | 2,0 s | 0,4–24 s (en passos de 0,1 s; M05). "Ajustar a la música" es queda en 1–3 s |
 | Fosa encadenada | 1,0 s | 0,5–1,5 s |
 | Fosa des de negre a l'inici | 1,0 s | 0–5 s (Avançat) |
 | Fosa a negre al final | 2,0 s | 0–5 s (Avançat) |
@@ -117,7 +117,8 @@
 
 ### 1.3 Durada per foto
 
-- La durada general és de 2,0 s (de 1 a 3 s, en passos de 0,1 s). Si es canvia, afecta totes les fotos que no tenen una durada personalitzada.
+- La durada general és de 2,0 s (de 0,4 a 24 s, en passos de 0,1 s; M05). Una foto més curta que la fosa la té
+  escurçada (la fosa no passa mai de la meitat de la foto més curta). Si es canvia, afecta totes les fotos que no tenen una durada personalitzada.
 - Per a una foto, o per a les fotos seleccionades, hi ha el camp "Durada" al panell de propietats. Si es modifica, la foto queda marcada com a personalitzada (amb una icona) i apareix el botó [Restablir a la general].
 - La durada és l'espai que ocupa la foto a la línia de temps, des de la meitat de la fosa anterior fins a la meitat de la següent. Així, la durada total del passi és exactament la suma de les durades de totes les fotos.
 - La barra d'estat mostra sempre el total ("124 fotos · 10:20").
@@ -178,7 +179,8 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 
 **Control manual**
 - Al panell de la foto hi ha "Moviment: [Automàtic ▾]", amb les opcions Apropar, Allunyar, Desplaçar (4 direccions), Combinat i Cap. Si se'n tria una, el moviment queda fixat (mode manual).
-- El botó [🎲 Tornar a sortejar] torna a sortejar la foto o les fotos seleccionades.
+- El botó [🎲 Nou moviment a l'atzar] tria un moviment nou per a la foto o les fotos seleccionades. Funciona sempre:
+  si una foto tenia el moviment fixat a mà, torna a Automàtic (M05).
 - [Tornar a sortejar tots] torna a sortejar totes les fotos en mode automàtic i respecta les que s'han fixat a mà. Al menú hi ha [Restablir tots a automàtic].
 - També hi ha un interruptor global "Moviment de càmera" (activat per defecte) i el selector d'intensitat.
 

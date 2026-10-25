@@ -16,7 +16,7 @@ from pathlib import Path
 
 import numpy as np
 from numpy.typing import NDArray
-from PySide6.QtCore import QObject, QPointF, QRectF, QRunnable, QSize, Qt, QThreadPool, Signal
+from PySide6.QtCore import QObject, QPointF, QRect, QRectF, QRunnable, QSize, Qt, QThreadPool, Signal
 from PySide6.QtGui import QColor, QMouseEvent, QPainter, QPaintEvent, QPalette, QPen
 from PySide6.QtWidgets import QSizePolicy, QWidget
 
@@ -38,6 +38,8 @@ BAR_HEIGHT = 72
 WAVE_COLOUR = QColor(70, 130, 200)
 HANDLE_COLOUR = QColor(230, 140, 20)
 OUTSIDE_SHADE = QColor(0, 0, 0, 120)
+PLAYHEAD_COLOUR = QColor(220, 40, 40)
+PLAYHEAD_WIDTH = 2
 
 type Peaks = NDArray[np.float32]
 type WaveformReader = Callable[[Path, int], Peaks]
@@ -60,6 +62,7 @@ class TrimBar(QWidget):
         self._message = ""
         self._dragging: str | None = None
         self._before_drag = (0.0, 0.0)
+        self._playhead: float | None = None
         self.setMinimumHeight(BAR_HEIGHT)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.setMouseTracking(True)
@@ -104,6 +107,20 @@ class TrimBar(QWidget):
     @property
     def peaks(self) -> Peaks | None:
         return self._peaks
+
+    @property
+    def playhead(self) -> float | None:
+        """Second of the file being heard while [Escoltar el tros] plays, or None."""
+        return self._playhead
+
+    def set_playhead(self, seconds: float | None) -> None:
+        """Moves the line that shows what is being heard (None hides it)."""
+        if seconds != self._playhead:
+            old, self._playhead = self._playhead, seconds
+            for value in (old, seconds):  # only the two thin strips change, not the whole waveform
+                if value is not None:
+                    x = self.x_of(value)
+                    self.update(QRect(int(x) - PLAYHEAD_WIDTH - 1, 0, 2 * PLAYHEAD_WIDTH + 3, self.height()))
 
     # --- Geometry --------------------------------------------------------------------------------
 
@@ -197,6 +214,11 @@ class TrimBar(QWidget):
                 painter.fillRect(
                     QRectF(x - HANDLE_WIDTH / 2, 0, HANDLE_WIDTH, self.height()),
                     HANDLE_COLOUR,
+                )
+            if self._playhead is not None:
+                x = self.x_of(self._playhead)
+                painter.fillRect(
+                    QRectF(x - PLAYHEAD_WIDTH / 2, 0, PLAYHEAD_WIDTH, self.height()), PLAYHEAD_COLOUR
                 )
         painter.end()
 

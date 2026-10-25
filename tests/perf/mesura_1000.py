@@ -126,11 +126,10 @@ def measure_import(folder: Path) -> dict[str, object]:
     """What the window does: read the headers, add the photos (motions drawn) and ask for every
     thumbnail. The clock stops when the last thumbnail arrives."""
     from passimaker.images import CachedImageSource
-    from passimaker.importer import import_paths, sort_candidates
+    from passimaker.importer import import_paths, photo_from_candidate, sort_candidates
     from passimaker.model import ProjectController
     from passimaker.model.commands import AddPhotos
     from passimaker.thumbs import Priority, ThumbnailService
-    from passimaker.ui.importing import photo_from_candidate
 
     lock = threading.Lock()
     arrived = threading.Event()

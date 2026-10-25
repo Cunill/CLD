@@ -77,7 +77,7 @@ def test_the_ranges_come_from_defaults(window: MainWindow) -> None:
 
 def test_a_value_out_of_range_is_clamped(window_with_photos: MainWindow) -> None:
     window = window_with_photos
-    window.panel.duration.setValue(9.0)
+    window.panel.duration.setValue(99.0)
     assert window.controller.project.default_duration_s == pytest.approx(
         defaults.PHOTO_DURATION_RANGE.maximum
     )

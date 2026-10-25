@@ -1,7 +1,7 @@
 """Photo panel: the settings of the selected photo or photos (§1.3, §1.5, §1.6 and P2).
 
-Duration (and [Restablir a la general]), motion ("Automàtic" or a fixed type), [🎲 Tornar a
-sortejar], fit and the two rotations. With several photos selected every control acts on all of
+Duration (and [Restablir a la general]), motion ("Automàtic" or a fixed type), [🎲 Nou moviment a
+l'atzar], fit and the two rotations. With several photos selected every control acts on all of
 them; a setting on which they differ shows "Diversos" until it is changed.
 
 Like the project panel, every control sends a command to the controller (rule 2) and is refreshed
@@ -75,7 +75,7 @@ class PhotoPanel(QWidget):
         self.motion.setPlaceholderText(self.tr("Diversos"))
         for label in self._motion_labels():
             self.motion.addItem(label)
-        self.reroll = QPushButton(self.tr("🎲 Tornar a sortejar"))
+        self.reroll = QPushButton(self.tr("🎲 Nou moviment a l'atzar"))
         self.fit = QComboBox()
         self.fit.setPlaceholderText(self.tr("Diversos"))
         for label in (
@@ -188,12 +188,10 @@ class PhotoPanel(QWidget):
             fits = {photo.fit for photo in photos}
             self.fit.setCurrentIndex(FIT_CHOICES.index(fits.pop()) if len(fits) == 1 else MIXED)
         self.low_resolution.setVisible(any(photo.low_resolution for photo in photos))
-        automatic = any(photo.motion.mode is MotionMode.AUTO for photo in photos)
-        self.reroll.setEnabled(automatic and project.motion_enabled)
+        # M05: always available; a photo whose motion was fixed by hand goes back to automatic.
+        self.reroll.setEnabled(bool(photos) and project.motion_enabled)
         self.reroll.setToolTip(
-            self.tr("Sorteja un altre moviment")
-            if automatic
-            else self.tr("Només es tornen a sortejar les fotos amb el moviment automàtic")
+            self.tr("Tria a l'atzar un moviment nou per a les fotos seleccionades (tornen a Automàtic)")
         )
         self.motion.setEnabled(project.motion_enabled)
 
@@ -255,7 +253,7 @@ class PhotoPanel(QWidget):
             self._send(SetPhotoMotion(self._selection(), MOTION_CHOICES[index]))
 
     def _on_reroll(self) -> None:
-        """§1.5: only these photos get a new motion; the controller keeps the others as they are."""
+        """§1.5: only these photos get a new motion (back in automatic mode); the others stay as they are."""
         self._send(RerollMotions(self._selection()))
 
     def _on_fit(self, index: int) -> None:

@@ -3,6 +3,25 @@
 Versions de PassiMaker. La CI genera el ZIP portable `PassiMaker-<versió>-win64` quan es posa l'etiqueta a `main`
 (vegeu `docs/sessions/B12.md`).
 
+## 1.1.0 · manteniment M05 (millores de les proves de l'usuari)
+
+### Canviat
+- **Durada de cada foto: de 0,4 a 24 s** (abans, d'1 a 3 s). "Ajustar a la música" continua donant 1–3 s per foto.
+- El botó de la foto **"🎲 Nou moviment a l'atzar"** (abans "Tornar a sortejar") **no es desactiva mai**: si la foto
+  tenia el moviment triat a mà, torna a Automàtic amb un moviment nou. Un sol pas de desfer.
+- Menú Edita: "Nou moviment a l'atzar" (abans "Sortejar un altre moviment").
+- `passimaker-nou` refusa els fitxers de música sense so, com ja feia la finestra.
+
+### Nou
+- **Icona nova** (fotos amb perforacions de pel·lícula), també a la finestra i a la barra de tasques (PR #48).
+- **Escoltar el tros**: una línia vermella sobre la forma d'ona mostra per on va la reproducció (segueix el rellotge
+  del so, com la previsualització) i desapareix en aturar-se.
+- Guia: apartat "Imprevistos".
+
+### Intern
+- `photo_from_candidate` (a `passimaker.importer`) i `song_from_file` (a `passimaker.audio`): una sola còpia per a la
+  interfície i les ordres de línia.
+
 ## 1.0.0 · bloc B16 (poliment)
 
 ### Nou

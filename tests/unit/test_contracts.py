@@ -47,7 +47,8 @@ def test_every_default_is_inside_its_range() -> None:
     for value, allowed in pairs:
         assert allowed.minimum <= value <= allowed.maximum
         assert allowed.clamp(value) == value
-    assert defaults.PHOTO_DURATION_RANGE.clamp(99) == 3.0
+    assert defaults.PHOTO_DURATION_RANGE.clamp(99) == 24.0
+    assert defaults.FIT_TO_MUSIC_DURATION_RANGE.clamp(99) == 3.0  # decision 0005: fitting stays within 1-3 s
 
 
 def test_output_sizes_are_full_hd() -> None:
@@ -79,3 +80,10 @@ def test_cli_parsers_define_the_documented_arguments() -> None:
     args = cli.build_render_parser().parse_args(["p.pmk", "v.mp4"])
     assert args.output == Path("v.mp4")
     assert args.project == Path("p.pmk") and not args.sentinella
+
+
+def test_the_speed_limit_covers_the_shortest_photo() -> None:
+    """M05: with photos of 0,4 s, the floor of the speed limit must not be longer than a photo."""
+    from passimaker.motion.draw import MIN_VISIBLE_DURATION_S
+
+    assert defaults.PHOTO_DURATION_RANGE.minimum >= MIN_VISIBLE_DURATION_S

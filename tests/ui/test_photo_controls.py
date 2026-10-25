@@ -50,15 +50,15 @@ def test_values_out_of_range_cannot_be_entered(qtbot: QtBot, window_with_photos:
     window = window_with_photos
     panel = window.photo_panel
     window.view.select_ids(["p0002"])
-    panel.duration.setValue(9.0)
-    assert photo(window, "p0002").duration_s == pytest.approx(3.0)
-    panel.duration.setValue(0.2)
-    assert photo(window, "p0002").duration_s == pytest.approx(1.0)
-    # Typed: "7" is not accepted by a box from 1 to 3.
+    panel.duration.setValue(99.0)
+    assert photo(window, "p0002").duration_s == pytest.approx(24.0)
+    panel.duration.setValue(0.1)
+    assert photo(window, "p0002").duration_s == pytest.approx(0.4)
+    # Typed: "70" is not accepted by a box from 0,4 to 24.
     panel.duration.lineEdit().selectAll()
-    qtbot.keyClicks(panel.duration.lineEdit(), "7")
+    qtbot.keyClicks(panel.duration.lineEdit(), "70")
     qtbot.keyClick(panel.duration.lineEdit(), Qt.Key.Key_Return)
-    assert 1.0 <= (photo(window, "p0002").duration_s or 0) <= 3.0
+    assert 0.4 <= (photo(window, "p0002").duration_s or 0) <= 24.0
 
 
 def test_the_numbers_use_the_decimal_comma(qtbot: QtBot, window_with_photos: MainWindow) -> None:
@@ -83,10 +83,13 @@ def test_the_motion_box_fixes_the_motion(window_with_photos: MainWindow) -> None
     panel.motion.setCurrentIndex(MOTION_CHOICES.index(MotionType.ZOOM_OUT))
     chosen = photo(window, "p0005").motion
     assert (chosen.mode, chosen.type) == (MotionMode.MANUAL, MotionType.ZOOM_OUT)
-    assert not panel.reroll.isEnabled()  # only automatic photos are drawn again
-    panel.motion.setCurrentIndex(0)
-    assert photo(window, "p0005").motion.mode is MotionMode.AUTO
-    assert panel.reroll.isEnabled()
+    assert panel.reroll.isEnabled()  # M05: also for a motion fixed by hand
+    assert panel.reroll.text() == "🎲 Nou moviment a l'atzar"
+    panel.reroll.click()
+    again = photo(window, "p0005").motion
+    assert again.mode is MotionMode.AUTO
+    assert again.draw_count == chosen.draw_count + 1
+    assert panel.motion.currentIndex() == 0  # Automàtic
 
 
 def test_the_fit_box_changes_the_fit(window_with_photos: MainWindow) -> None:
@@ -220,6 +223,7 @@ def test_without_camera_motion_the_motion_controls_are_disabled(window_with_phot
     assert not window.photo_panel.motion.isEnabled()
     assert not window.photo_panel.reroll.isEnabled()
     assert not window.panel.reroll_all.isEnabled()
+    assert not window.reroll_action.isEnabled()  # M05: the menu entry too (it would free manual photos)
 
 
 def test_enter_gives_the_duration_shown_to_photos_with_different_durations(

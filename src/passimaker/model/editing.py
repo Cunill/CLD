@@ -276,7 +276,7 @@ def fit_to_music(project: Project) -> Project:
         return project
     durations = [project.photo_duration(p) for p in project.photos]
     result = timeline.fit_to_music(durations, target)
-    fitted = [defaults.PHOTO_DURATION_RANGE.clamp(d) for d in result.durations]
+    fitted = [defaults.FIT_TO_MUSIC_DURATION_RANGE.clamp(d) for d in result.durations]
     default_values = {fitted[i] for i, p in enumerate(project.photos) if p.duration_s is None}
     new_default = default_values.pop() if len(default_values) == 1 else None
     photos = tuple(
@@ -388,14 +388,18 @@ def _set_photo_motion(project: Project, command: SetPhotoMotion) -> Project:
 
 
 def _reroll_motions(project: Project, command: RerollMotions) -> Project:
-    ids = [
-        p.id
-        for p in project.photos
-        if p.motion.mode is MotionMode.AUTO and (command.photo_ids is None or p.id in command.photo_ids)
-    ]
-    # The draw count goes up first, so the new draw differs from the previous one (B3 note).
+    if command.photo_ids is None:
+        ids = [p.id for p in project.photos if p.motion.mode is MotionMode.AUTO]
+    else:
+        ids = [p.id for p in project.photos if p.id in command.photo_ids]
+    # The draw count goes up first, so the new draw differs from the previous one (B3 note). A photo whose
+    # motion was fixed by hand goes back to automatic mode: one command, one undo step.
     edited = _map_photos(
-        project, ids, lambda p: replace(p, motion=replace(p.motion, draw_count=p.motion.draw_count + 1))
+        project,
+        ids,
+        lambda p: replace(
+            p, motion=replace(p.motion, mode=MotionMode.AUTO, draw_count=p.motion.draw_count + 1)
+        ),
     )
     chosen = set(ids)
     return _draw(edited, {p.id: p.motion for p in edited.photos if p.id in chosen}, reroll=True)

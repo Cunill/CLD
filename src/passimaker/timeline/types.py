@@ -79,8 +79,8 @@ class Visibles:
 
 @dataclass(frozen=True, slots=True)
 class DurationLimits:
-    minimum: float = defaults.PHOTO_DURATION_RANGE.minimum
-    maximum: float = defaults.PHOTO_DURATION_RANGE.maximum
+    minimum: float = defaults.FIT_TO_MUSIC_DURATION_RANGE.minimum
+    maximum: float = defaults.FIT_TO_MUSIC_DURATION_RANGE.maximum
     warn_below: float = defaults.FIT_TO_MUSIC_MIN_DURATION_WARNING_S
 
 

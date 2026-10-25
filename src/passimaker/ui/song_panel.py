@@ -36,7 +36,7 @@ from passimaker.i18n import message
 from passimaker.model import Change, Fade, Project, ProjectController, Song, defaults
 from passimaker.model.commands import UpdateSong
 from passimaker.model.editing import song_duration
-from passimaker.preview import AudioOutput, SoundDeviceOutput
+from passimaker.preview import AudioOutput, Clock, SoundDeviceOutput
 from passimaker.timeline import build_audio_plan
 from passimaker.ui.formatting import clock
 from passimaker.ui.music_strip import MISSING_COLOUR
@@ -49,6 +49,8 @@ _log = logging.getLogger(__name__)
 
 LISTEN_END_MARGIN_MS = 150
 """After the part has been heard, the device is stopped a little later (its own latency)."""
+PLAYHEAD_INTERVAL_MS = 33
+"""How often the line on the waveform follows the sound while a part is heard (about 30 times a second)."""
 
 
 def listening_source(project: Project, song: Song) -> MixedAudioSource:
@@ -100,6 +102,8 @@ class SongListening(QObject):
         self.output_factory = output_factory
         self._source_factory = source_factory
         self._output: AudioOutput | None = None
+        self._clock: Clock | None = None
+        """Clock of the part being heard (seconds from its start), set by the worker that starts the sound."""
         self._pool = QThreadPool(self)
         self._pool.setMaxThreadCount(1)  # starting and stopping the device never overlap
         self._generation = 0
@@ -129,7 +133,9 @@ class SongListening(QObject):
                     return  # stopped (or another song) while it was being prepared: not a sound
                 if self._output is None:
                     self._output = self.output_factory()
-                self._output.start(source, 0.0)
+                clock = self._output.start(source, 0.0)
+                if generation == self._generation:  # not stopped while the device was opening
+                    self._clock = clock
             except PassiMakerError as error:
                 self._signals.failed.emit(generation, message(error.message_key))
                 return
@@ -142,11 +148,19 @@ class SongListening(QObject):
 
         self._pool.start(_Job(work))
 
+    def position_s(self) -> float | None:
+        """Seconds heard since the start of the part, or None when nothing is heard."""
+        clock = self._clock
+        if self._song_id is None or clock is None:
+            return None
+        return clock.now()
+
     def stop(self) -> None:
         if self._song_id is None:
             return
         self._generation += 1
         self._song_id = None
+        self._clock = None
         self._timer.stop()
         # Queued after the job that may still be starting the sound (one thread), so it stops it too.
         self._pool.start(_Job(self._stop_output))
@@ -176,6 +190,7 @@ class SongListening(QObject):
         if generation != self._generation:
             return
         self._song_id = None
+        self._clock = None
         self.failed.emit(text or self.tr("no s'ha pogut obrir el dispositiu de so."))
         self.stopped.emit()
 
@@ -200,6 +215,11 @@ class SongPanel(QWidget):
         self.waveforms = waveforms if waveforms is not None else WaveformLoader(parent=self)
         self.listening = listening if listening is not None else SongListening(parent=self)
         self._missing: frozenset[str] = frozenset()
+        self._listen_offset = 0.0
+        """Second of the file where the part being heard starts (its trim start)."""
+        self._playhead_timer = QTimer(self)
+        self._playhead_timer.setInterval(PLAYHEAD_INTERVAL_MS)
+        self._playhead_timer.timeout.connect(self._follow_sound)
 
         in_seconds = self.tr(" s")
         self.title = QLabel()
@@ -256,7 +276,9 @@ class SongPanel(QWidget):
         self.waveforms.ready.connect(self._on_waveform)
         self.listening.started.connect(self._refresh_listen)
         self.listening.started.connect(self.listening_started)
+        self.listening.started.connect(self._playhead_timer.start)
         self.listening.stopped.connect(self._refresh_listen)
+        self.listening.stopped.connect(self._hide_playhead)
         self.listening.failed.connect(self._on_listen_failed)
 
         self._unsubscribe = controller.subscribe(self._on_changes)
@@ -432,8 +454,21 @@ class SongPanel(QWidget):
         if self.listening.song_id == song.id:
             self.listening.stop()
         else:
+            self._listen_offset = trim_of(song)[0]
             self.listening.play(self._controller.project, song)
         self._refresh_listen()
+
+    def _follow_sound(self) -> None:
+        """The red line on the waveform: the second of the file being heard (improvement 1, M05)."""
+        position = self.listening.position_s()
+        if position is None or self.listening.song_id != self._song_id:
+            self.trim_bar.set_playhead(None)
+            return
+        self.trim_bar.set_playhead(self._listen_offset + position)
+
+    def _hide_playhead(self) -> None:
+        self._playhead_timer.stop()
+        self.trim_bar.set_playhead(None)
 
     def _on_listen_failed(self, text: str) -> None:
         self.problem.setText(self.tr("No es pot escoltar aquesta cançó: {reason}").format(reason=text))
