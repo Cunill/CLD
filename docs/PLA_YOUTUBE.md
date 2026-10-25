@@ -241,7 +241,7 @@ les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escen
 | C05 Diàleg | C03, C04 | **C08** o **C09** | T4 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
 | C06 Empaquetat i versió (YouTube i gravació) | C05, C10 | — | T6 | 1 / 1 / 2 | 1,25 | ⏳ pendent | — | — | — |
 | C07 Gravació: decisió i contracte | C01 | **C08**, **C03** | T3 | 1 / 1 / 1 | 0,5 | ⛔ aturat per l'usuari (sessió "C07 mp3"); la feina feta encara no s'ha pujat | — | — | branca `claude/keen-pascal-io3h1f` (no pujada) |
-| C08 Gravació: prova de viabilitat | C01 | **C07**, **C03** o **C05** | T3 | 1 / 1 / 2 | 1,0 | 🔧 en curs: sounddevice no serveix; `soundcard` 0.4.6 aprovada; ZIP `ProvaGravacio-win64` a la CI; pendent de la prova al PC de l'usuari (`docs/sessions/C08.md`) | 1 | — | PR #64 (esborrany) · branca `claude/confident-ritchie-rk3iju` |
+| C08 Gravació: prova de viabilitat | C01 | **C07**, **C03** o **C05** | T3 | 1 / 1 / 2 | 1,0 | 🔧 fusionat a `main` el 25/10/2026 sense la prova al PC: sounddevice no serveix; `soundcard` 0.4.6 aprovada (G10); ZIP `ProvaGravacio-win64` (83,2 MB) a la CI; **pendent de la prova al PC de l'usuari** i la recomanació final (`docs/sessions/C08.md`) | 1 | — | PR #64 |
 | C09 Nucli `recorder` | C07, C08 (i C03) | **C05** | T4 | 1 / 2 / 2 | 0,5 | ⏳ pendent | — | — | — |
 | C10 Finestra de gravació | C05, C09 | — | T5 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
 | **Subtotal dels blocs** |  |  |  | **10 / 13 / 17** | **7,5** | | **4** | **—** | |
@@ -434,6 +434,60 @@ Condició d'aturada: la del CLAUDE.md.
 - **Proves:** pytest-qt amb el backend substitut: cerca, enllaç, selecció múltiple, cancel·lació, error de xarxa,
   afegir al projecte (comprova l'ordre `AddSongs` al controlador), textos traduïbles.
 - **Acceptació:** cap operació de més de 50 ms al fil de la interfície; el programa sense xarxa s'obre i funciona igual.
+- **En paral·lel amb el C07 i el C08**: no depèn de la gravació; tot el que fa servir ja és a `main` (comprovat el
+  25/10/2026: fitxers, especificació, contractes, valors i 1.303 proves en verd).
+
+```text
+Bloc C05: Música de YouTube, finestra "Música de YouTube". Model: Sonnet.
+ATENCIÓ, BLOCS EN PARAL·LEL: aquest bloc (C05) es pot fer alhora que el C07 i el C08 (gravació del so), en altres
+sessions. No facis res fora d'aquest bloc: modifica només els fitxers permesos de sota, encara que vegis errors o
+millores en d'altres (anota-les a docs/sessions/C05.md). No toquis src/passimaker/recorder, src/passimaker/youtube,
+src/passimaker/ffmpeg, tools/, packaging/, .github/ ni res del C07 o del C08. A la taula del §4.1 de
+docs/PLA_YOUTUBE.md i a l'apartat Estat del CLAUDE.md, escriu només la fila i la línia del C05, i fes-ho després de
+portar main a la teva branca (fusió, sense reescriure la història). Si en acabar un altre bloc ja és a main, torna a
+portar main i resol el conflicte conservant els canvis de l'altre bloc.
+Context: el C01, el C02, el C03 i el C04 són a main. Llegeix docs/PLA_YOUTUBE.md (§0, §2 i la fitxa del C05),
+docs/ESPECIFICACIO.md §1.7 bis, docs/CONTRACTES.md (§13 i §15), docs/sessions/C03.md (sobretot "Decisions preses en
+aquesta sessió") i docs/sessions/C04.md, src/passimaker/youtube/, src/passimaker/ui/main_window.py (add_music_action,
+choose_music, add_songs), src/passimaker/ui/dialogs.py, src/passimaker/ui/music_strip.py, tests/fakes/youtube.py i
+tests/ui/conftest.py.
+Branca: bloc/C05-dialeg-youtube des de main actualitzat (o la que imposi la sessió al núvol; anota-ho).
+Objectiu: la finestra "Música de YouTube" completa, provada amb el backend substitut, sense xarxa a les proves.
+Fes:
+1. [+ Música] passa a ser un botó amb menú: "Des de fitxers…" (el que fa ara) i "Des de YouTube…". Deixa-ho preparat
+   perquè el C10 hi afegeixi "Grava el que sona…" amb una sola línia.
+2. src/passimaker/ui/youtube_dialog.py (no modal), amb tot el que diu ESPECIFICACIO §1.7 bis:
+   - avís de conformitat (§2.0 del pla): casella obligatòria, botó desactivat fins que es marca, conformitat per
+     sessió del programa (youtube.consent), "Retira la conformitat";
+   - camp únic de cerca o enllaç (parse_link), resultats amb miniatura (fetch_thumbnail), títol, canal i durada; els
+     directes i els massa llargs en gris amb el motiu; [Més resultats]; [Obre a YouTube] amb QDesktopServices.openUrl;
+   - selecció múltiple, [Descarrega en MP3], selector de carpeta a cada descàrrega a través de ui/dialogs.py (proposa
+     la darrera carpeta), cua amb 2 baixades alhora (defaults), progrés per fila (descarregant, convertint, fet),
+     cancel·lació per fila;
+   - download_audio i després ffmpeg.convert_to_mp3, amb safe_target_path demanat just abans de convertir cada cançó
+     (el C03 avisa que no reserva el nom); casella "Afegeix al projecte en acabar" amb MainWindow.add_songs;
+     [Mostrar a la carpeta];
+   - errors amb passimaker.i18n.message: cada error de YouTube, OSError (disc ple, sense permís) com un error
+     d'escriptura; cancel·lar dona CancelledError a youtube però torna normalment a convert_to_mp3 (vegeu C03 i C04);
+   - en tancar amb baixades actives, pregunta; si es confirma, cancel·la i no deixa fitxers a mitges.
+   Tot el que toca la xarxa o el disc, fora del fil de la interfície (regla 6). La finestra rep el backend per
+   paràmetre (per defecte, YtDlpBackend) per poder-la provar amb tests/fakes/youtube.py.
+3. Proves pytest-qt (tests/ui/test_youtube_dialog.py), amb el substitut i la xarxa bloquejada: avís (casella, cancel·lar
+   sense conformitat, conformitat per sessió, retirar-la), cerca, enllaç, més resultats, selecció múltiple, cua de 2,
+   cancel·lació, cada error, afegir al projecte (l'ordre AddSongs arriba al controlador), tancar amb baixades actives,
+   textos traduïbles (tests/ui/test_translations.py continua passant). Cap prova obre connexions.
+4. docs/PLA_YOUTUBE.md: només la fila del C05 de la taula del §4.1. CLAUDE.md, apartat Estat: una línia del C05.
+Criteris d'acceptació: tot el §1.7 bis funciona amb el substitut; cap operació de més de 50 ms al fil de la interfície;
+el programa sense xarxa s'obre i funciona igual; la prova d'arquitectura continua passant; suite ràpida, ruff i
+pyright en verd; cap dependència nova.
+Fitxers permesos: src/passimaker/ui/youtube_dialog.py (nou), src/passimaker/ui/main_window.py (només el menú de
+[+ Música] i obrir la finestra), src/passimaker/ui/dialogs.py (només el selector de carpeta, si cal),
+tests/ui/test_youtube_dialog.py (nou), tests/ui/conftest.py (només si cal un fixture), docs/sessions/C05.md, la fila
+del C05 a docs/PLA_YOUTUBE.md i l'apartat Estat del CLAUDE.md. Si cal tocar-ne cap altre (p. ex. un valor nou a
+defaults.py o un canvi a passimaker.youtube), atura't i proposa-ho.
+Condició d'aturada: la del CLAUDE.md. A docs/sessions/C05.md, anota les decisions que hagis pres i la prova manual
+que l'usuari ha de fer a Windows (un pas cada vegada).
+```
 
 ### C06 · Empaquetat, guia i versió 1.2.0 (YouTube i gravació)
 - **Fa:** PyInstaller amb yt-dlp, `yt-dlp-ejs` i Deno (C02) i, si el C08 en tria una, la dependència de captura;

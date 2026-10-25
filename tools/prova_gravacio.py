@@ -172,7 +172,9 @@ class SoundcardBackend:
         return found
 
     def _source(self, index: int, mic: Any, loopback: bool, is_default: bool) -> Source:
-        return Source(index, mic.id, mic.name, loopback, int(mic.channels), self._mix_rate(mic), is_default)
+        return Source(
+            index, mic.id, mic.name, loopback, device_channels(mic), self._mix_rate(mic), is_default
+        )
 
     def _mix_rate(self, mic: Any) -> int | None:
         """The rate Windows mixes at (soundcard does not tell it): IAudioClient::GetMixFormat."""
@@ -211,6 +213,15 @@ class SoundcardBackend:
             import ctypes
 
             ctypes.windll.ole32.CoUninitialize()
+
+
+def device_channels(mic: Any) -> int:
+    """soundcard reads them with asserts on the device format: a device it cannot read must not stop the
+    whole list (it is then recorded as stereo, which WASAPI converts)."""
+    try:
+        return int(mic.channels)
+    except Exception:
+        return MAX_CHANNELS
 
 
 class _SoundcardStream:

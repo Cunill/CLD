@@ -230,3 +230,16 @@ def test_each_run_is_added_to_the_report(tmp_path: Path) -> None:
     _code, text = _run(tmp_path, FakeBackend(), "--origen", "9")
     assert text.count("Prova de gravació del so de PassiMaker") == 2
     assert text.index("Opcions: --llista") < text.index("Opcions: --origen 9")
+
+
+def test_a_device_whose_channels_cannot_be_read_counts_as_stereo() -> None:
+    class Unreadable:
+        @property
+        def channels(self) -> int:
+            raise AssertionError  # soundcard: `assert pPropVariantBlob[0].blob.cbSize == 40`
+
+    class Mono:
+        channels = 1
+
+    assert prova.device_channels(Unreadable()) == 2
+    assert prova.device_channels(Mono()) == 1
