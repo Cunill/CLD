@@ -99,7 +99,8 @@ persones; PLA §4.4). Les proves pràctiques les fa només l'usuari. Etiquetes `
 Guia i "Quant a" revisats per l'usuari el 24/10/2026: correctes (s'hi afegeix l'apartat "Imprevistos", a petició seva).
 Fotos reals provades per l'usuari el 24/10/2026 (D:\TEMP_PM, càmera i mòbil, sense HEIC): miniatures instantànies i
 nítides. Sense provar amb HEIC d'iPhone (decisió de l'usuari: es deixa així). Manteniment v1.1 (M05) fet. Llista de
-millores de docs/proves_usuari.md reoberta el 25/10/2026 (negre quiet a l'inici i al final, pendent).
+millores de docs/proves_usuari.md reoberta el 25/10/2026 (negre quiet a l'inici i al final, en espera; silenci
+a l'inici i al final, i "Ajustar a la música" que respecti les durades fetes a mà: pendents).
 Decisions de l'usuari del 21/10/2026: decisió 0007 (D12, llindar de 5 fotos, textos d'error del B10).
 Decisions del B5 aprovades (docs/sessions/B05.md); la nitidesa de la miniatura EXIF es revisa amb fotos reals
 a Windows (vegeu docs/sessions/B10.md).
@@ -117,8 +118,8 @@ D9: i7-6700K, GTX 960, 40 GB) fetes el 24/10/2026 (PR #46): importar 76 s, memò
 durada; totes dins dels límits (docs/RENDIMENT.md).
 **Música de YouTube (versió 1.2.0 prevista)**: pla aprovat per l'usuari el 25/10/2026 (docs/PLA_YOUTUBE.md, blocs
 C01–C06, seguiment al §4.1; decisió 0012). Blocs integrats a main: C01 decisió, contractes (CONTRACTES §15) i
-especificació (§1.7 bis) (PR #52, commit `7f1bc0b`). Següent: tanda T2, C02 (viabilitat, núvol + local) i C04 (MP3)
-en paral·lel.
-C02 (viabilitat, branca `ccr-b0aaafb5-ix9698`): yt-dlp 2026.10.21, `yt-dlp-ejs` i Deno (paquet `deno` de PyPI) aprovats
-per l'usuari el 25/10/2026; en curs (docs/sessions/C02.md). Tota la xarxa, només a `passimaker.youtube` i mai abans de l'avís.
+especificació (§1.7 bis) (PR #52, commit `7f1bc0b`) · C04 conversió a MP3, `ffmpeg.convert_to_mp3` (PR #54, commit
+`5c2129b`). C02 viabilitat (branca `ccr-b0aaafb5-ix9698`, docs/sessions/C02.md): yt-dlp 2026.10.21, `yt-dlp-ejs` 0.8.0 i Deno 2.9.8
+(paquet `deno` de PyPI) a `uv.lock`, ZIP de prova `ProvaYoutube-win64` (128,9 MB) a la CI; **prova al PC de l'usuari
+ajornada fins abans del C05** (decisió de l'usuari, 25/10/2026). Següent: C03. Tota la xarxa, només a `passimaker.youtube` i mai abans de l'avís.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.

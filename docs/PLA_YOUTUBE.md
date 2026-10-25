@@ -227,15 +227,15 @@ les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escen
 |---|---|---|---|---|---|---|---|---|---|
 | Pla (aquest document) | — | — | — | — | — | ✅ aprovat el 25/10/2026 | 1 | — | branca `ccr-08701f22-8ayer4` (sense PR, decisió 6) |
 | C01 Decisió i contracte | aprovació del pla | — (és la base de tots) | T1 | 1 / 1 / 1 | 0,5 | ✅ tancat el 25/10/2026 | 1 | — | PR #52 · `7f1bc0b` |
-| C02 Prova de viabilitat | C01 | **C04** | T2 | 1 / 1 / 2 | 1,0 | 🔧 en curs (Deno aprovat el 25/10/2026; `docs/sessions/C02.md`) | 2 | — | branca `ccr-b0aaafb5-ix9698` |
+| C02 Prova de viabilitat | C01 | **C04** | T2 | 1 / 1 / 2 | 1,0 | ✅ tancat el 25/10/2026; **prova al PC ajornada fins abans del C05** (`docs/sessions/C02.md`) | 1 | — | PR PRNUM · branca `ccr-b0aaafb5-ix9698` |
 | C03 Nucli `youtube` | C01, C02 | **C04** (si encara no s'ha fet) | T3 | 1 / 1 / 2 | 0,5 | ⏳ pendent | — | — | — |
-| C04 Conversió a MP3 | C01 | **C02** o **C03** | T2 (o T3) | 1 / 1 / 1 | 0,25 | ⏳ pendent | — | — | — |
+| C04 Conversió a MP3 | C01 | **C02** o **C03** | T2 (o T3) | 1 / 1 / 1 | 0,25 | ✅ tancat el 25/10/2026 | 1 | — | PR #54 · `5c2129b` |
 | C05 Diàleg | C03, C04 | — | T4 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
 | C06 Empaquetat i versió | C05 | — | T5 | 1 / 1 / 2 | 1,0 | ⏳ pendent | — | — | — |
-| **Subtotal dels blocs** |  |  |  | **6 / 7 / 10** | **4,25** | | **1** | **0** | |
+| **Subtotal dels blocs** |  |  |  | **6 / 7 / 10** | **4,25** | | **2** | **0** | |
 | Sessions de correcció després de la prova de l'usuari | C06 | — | després del C06 | 0 / 1 / 2 | inclòs a sota | ⏳ pendent | — | — | — |
 | Revisió de les PR i prova final de l'usuari | — | — | totes | — | 1,5 / 3 / 6 | ⏳ pendent | — | — | — |
-| **Total** |  |  |  | **6 / 8 / 12 sessions** | **6 / 7 / 10 h** | | **2** (el pla i el C01) | **—** | |
+| **Total** |  |  |  | **6 / 8 / 12 sessions** | **6 / 7 / 10 h** | | **3** (el pla, el C01 i el C04) | **—** | |
 
 Llegenda de l'estat: ⏳ pendent · 🔧 en curs · ✅ tancat (fusionat a `main`) · ⛔ aturat (vegeu `docs/sessions/CNN.md`).
 
