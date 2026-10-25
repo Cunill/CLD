@@ -131,7 +131,7 @@ per comprovar si hi ha internet. Es garanteix així:
 | Resultats per pàgina | 10 | `defaults.YOUTUBE_RESULTS_PER_PAGE` |
 | Durada màxima acceptada | 20 min | Evita descarregar per error mescles d'hores. `defaults.YOUTUBE_MAX_DURATION_S`. Els resultats més llargs surten en gris amb el motiu. |
 | Format | MP3, 192 kbps, 48 kHz estèreo | `defaults.YOUTUBE_MP3_BITRATE_KBPS`. 48 kHz perquè és la freqüència del mesclador (CONTRACTES §0). |
-| Carpeta de destinació | **Es pregunta cada vegada** | En prémer [Descarrega en MP3] s'obre el selector de carpeta, un cop per a tota la selecció. Proposa la darrera carpeta feta servir (o `Documents` la primera vegada). Cancel·lar-lo no descarrega res. |
+| Carpeta de destinació | **Es pregunta cada vegada** | En prémer [Descarrega en MP3] s'obre el selector de carpeta, un cop per a tota la selecció. Proposa sempre la carpeta Baixades, sense recordar la darrera (decisió de l'usuari, 25/10/2026, C05). Cancel·lar-lo no descarrega res. |
 | Nom del fitxer | `<títol>.mp3`, netejat de caràcters no vàlids a Windows | Si ja existeix: `<títol> (2).mp3`. Mai se sobreescriu res. |
 | Metadades | Títol, canal (com a artista), URL d'origen al comentari | Etiquetes ID3 escrites per FFmpeg. |
 | Descàrregues simultànies | 2 | La resta queden a la cua. |

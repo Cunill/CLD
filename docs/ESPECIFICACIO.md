@@ -285,7 +285,7 @@ Si es tanca el diàleg amb descàrregues en curs, pregunta si s'han de cancel·l
 | Resultats per pàgina | 10 | `defaults.YOUTUBE_RESULTS_PER_PAGE` |
 | Durada màxima | 20 min | Evita descarregar per error mescles d'hores. `defaults.YOUTUBE_MAX_DURATION_S`. Els resultats més llargs surten en gris, amb el motiu. |
 | Format | MP3, 192 kbps, 48 kHz estèreo | `defaults.YOUTUBE_MP3_BITRATE_KBPS`; 48 kHz com el mesclador |
-| Carpeta de destinació | Es pregunta cada vegada | Un cop per a tota la selecció, en prémer [Descarrega en MP3]. Proposa la darrera carpeta feta servir (`Documents` la primera vegada). Cancel·lar-lo no descarrega res. |
+| Carpeta de destinació | Es pregunta cada vegada | Un cop per a tota la selecció, en prémer [Descarrega en MP3]. Proposa sempre la carpeta Baixades, sense recordar la darrera (decisió de l'usuari, 25/10/2026). Cancel·lar-lo no descarrega res. |
 | Nom del fitxer | `<títol>.mp3`, sense caràcters no vàlids a Windows | Si ja existeix, `<títol> (2).mp3`. Mai no se sobreescriu res. |
 | Metadades | Títol, canal (com a artista) i l'enllaç d'origen al comentari | Etiquetes ID3 |
 | Descàrregues simultànies | 2 | `defaults.YOUTUBE_SIMULTANEOUS_DOWNLOADS`; la resta, a la cua |
