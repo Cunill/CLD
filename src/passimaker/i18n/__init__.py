@@ -15,6 +15,7 @@ Keys:
 - ``ffmpeg.*`` the FFmpeg bridge (B7)
 - ``export.*`` exporting (B9)
 - ``youtube.*`` music from YouTube (C01, decision 0012)
+- ``recorder.*`` recording the sound of the computer (C07, decision 0013)
 """
 
 from __future__ import annotations
@@ -73,6 +74,17 @@ MESSAGES: Mapping[str, str] = {
     ),
     "youtube.too_long": "Aquest vídeo dura més de 20 minuts.",
     "youtube.consent": "Cal acceptar l'avís abans de fer servir YouTube.",
+    # passimaker.recorder (C07, decision 0013)
+    "recorder.no_device": "No s'ha trobat cap sortida de so per gravar.",
+    "recorder.device_lost": "S'ha desconnectat la sortida de so i la gravació s'ha descartat.",
+    "recorder.silent": (
+        "No s'ha gravat cap so. Comprova que la música sona per la sortida triada; "
+        "algunes aplicacions no deixen gravar el seu so."
+    ),
+    "recorder.disk_full": "No queda prou espai al disc per continuar gravant. La gravació s'ha descartat.",
+    "recorder.no_space": "No hi ha prou espai al disc per començar a gravar (cal almenys 1 GB lliure).",
+    "recorder.max_duration": "S'ha arribat al màxim de 30 minuts i la gravació s'ha descartat.",
+    "recorder.device_error": "No s'ha pogut gravar el so de l'ordinador. La gravació s'ha descartat.",
 }
 
 

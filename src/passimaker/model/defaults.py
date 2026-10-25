@@ -77,3 +77,37 @@ YOUTUBE_MP3_BITRATE_KBPS = 192
 """MP3 of the downloaded songs, 48 kHz stereo like the mixer (decision 0012)."""
 YOUTUBE_SIMULTANEOUS_DOWNLOADS = 2
 """Downloads running at the same time; the rest wait in the queue."""
+
+RECORD_START_WHEN_SOUND = True
+""""Comença quan soni": after [● Grava], nothing is saved until the level first reaches the threshold."""
+RECORD_START_THRESHOLD_DBFS = -50.0
+"""Level (peak of any channel) that counts as sound for "Comença quan soni" (decision 0013)."""
+RECORD_SILENCE_STOP_ENABLED = True
+RECORD_SILENCE_STOP_S = 5.0
+"""Seconds of silence after which the recording stops on its own (and is saved: StopReason.SILENCE)."""
+RECORD_SILENCE_STOP_RANGE = Range(1.0, 60.0, 1.0)
+RECORD_SILENCE_THRESHOLD_DBFS = -50.0
+"""Below this level (every channel) the recording counts as silent, for the automatic stop."""
+RECORD_TRIM_ENABLED = True
+RECORD_TRIM_THRESHOLD_DBFS = -50.0
+"""The silence at the start and at the end, below this level, is trimmed when the recording stops."""
+RECORD_TRIM_MARGIN_S = 0.2
+"""Kept before the first sound and after the last one when trimming."""
+RECORD_MAX_DURATION_S = 30 * 60.0
+"""On reaching it the recording is discarded (decision 0013, G5). The message says "30 minuts"."""
+RECORD_MAX_WARNING_S = 60.0
+"""The elapsed time turns orange this long before RECORD_MAX_DURATION_S."""
+RECORD_MIN_FREE_BYTES = 1024**3
+"""1 GB: with less free space in the temporary folder a recording does not start (one in progress stops)."""
+RECORD_MP3_BITRATE_KBPS = 192
+"""MP3 of the recorded songs, 48 kHz stereo, like YouTube's (decision 0013, G7)."""
+RECORD_WAVE_WINDOW_S = 10.0
+"""The live waves show the last 10 seconds (ESPECIFICACIO §1.7 ter)."""
+RECORD_PEAK_COLUMNS_PER_S = 50
+"""Wave columns per second and channel (minimum and maximum of each), computed by the capture thread."""
+RECORD_WAVE_REFRESH_HZ = 30
+"""How often the window collects the new columns and repaints the waves and the meters."""
+RECORD_CLIP_HOLD_S = 2.0
+"""The clipping mark (0 dBFS) of a level meter stays lit this long."""
+RECORD_DISCARD_CONFIRM_S = 10.0
+"""[Descarta] asks for confirmation when the recording is longer than this."""

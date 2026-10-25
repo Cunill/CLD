@@ -208,7 +208,7 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 
 **Comportament**
 - Sota el storyboard hi ha la franja "Música", amb les cançons en ordre: nom, durada real (després del retall) i indicadors de fosa. Les cançons s'afegeixen amb [+ Música] o arrossegant fitxers d'àudio a la finestra. Es poden eliminar i reordenar arrossegant-les.
-- Formats: MP3, WAV, M4A/AAC, FLAC, OGG, WMA i OPUS. També es poden descarregar de YouTube (§1.7 bis).
+- Formats: MP3, WAV, M4A/AAC, FLAC, OGG, WMA i OPUS. També es poden descarregar de YouTube (§1.7 bis) o gravar del so de l'ordinador (§1.7 ter).
 - Les cançons sonen una darrere l'altra des del principi del vídeo, sense trepitjar-se.
 - Ajustos de cada cançó (panell de propietats):
   - Fosa d'entrada: ☑ activada, 1,0 s (de 0 a 10 s, en passos de 0,5 s).
@@ -305,6 +305,77 @@ Si es tanca el diàleg amb descàrregues en curs, pregunta si s'han de cancel·l
 **Fora d'abast:** llistes de reproducció senceres, vídeo (només àudio), altres webs que admet yt-dlp, escoltar la
 cançó dins del programa (es fa al navegador amb [Obre a YouTube]) i el filtre Creative Commons (descartat a la
 decisió 0012).
+
+### 1.7 ter Grava el que sona (decisió 0013, versió 1.2.0)
+
+Gravar en directe el so que sona a l'ordinador (YouTube al navegador, Spotify, qualsevol reproductor) i desar-lo en MP3
+per fer-lo servir al passi. No es connecta a internet i no mostra cap avís (G2).
+
+**Recorregut**
+
+| # | Acció de l'usuari | Què passa |
+|---|---|---|
+| 1 | Franja de música → [+ Música ▾] → "Grava el que sona…" | S'obre la finestra "Grava el que sona" (no modal), directament, sense cap avís. |
+| 2 | Tria l'origen (per defecte, la sortida de so que fa servir Windows, p. ex. "Altaveus" o els auriculars Bluetooth) | Les ones i el mesurador de nivell mostren en directe si arriba so, **abans de gravar** (no es desa res). |
+| 3 | Posa en marxa la cançó a Spotify, al navegador… i prem [● Grava] | Comença a gravar: les ones es tornen vermelles, i es veuen el temps transcorregut, el mesurador i l'espai lliure al disc. Amb "Comença quan soni", espera el primer so. |
+| 4 | [■ Atura] (o s'atura sola després de 5 s de silenci, si està activat) | Mostra l'ona de tota la gravació amb els silencis que es retallaran ombrejats. Retalla el silenci de l'inici i del final, demana on desar-la (cada vegada) i el nom (proposa "Gravació 25-10-2026 18.30"), i la converteix a MP3. |
+| 5 | Casella "Afegeix al projecte en acabar" (marcada per defecte) | La cançó s'afegeix a la franja de música (Ctrl+Z la treu, com sempre). |
+| — | [Descarta] | Esborra la gravació sense desar-la (amb confirmació si dura més de 10 s). |
+| — | Tancar la finestra o el programa mentre es grava | Pregunta "La gravació s'esborrarà. Vols aturar-la i sortir?". Si es confirma, s'esborra. |
+
+**Orígens**
+- Llista amb dos grups: "So de l'ordinador" (cada sortida de so) i "Micròfon i entrada de línia" (cada entrada). La
+  primera és la sortida per defecte de Windows. Les entrades no es fan servir mai si l'usuari no les tria (G6).
+- Es recorda l'última tria mentre el programa és obert.
+- Com a molt es graven dos canals: un origen mono, en mono; un de 5.1 o més, la seva mescla estèreo.
+
+**Valors per defecte**
+
+| Paràmetre | Per defecte | Notes |
+|---|---|---|
+| Origen | La sortida de so per defecte de Windows | |
+| "Comença quan soni" | Activat | Comença a desar quan el nivell arriba a −50 dBFS. `defaults.RECORD_START_THRESHOLD_DBFS` |
+| "Atura't després de N s de silenci" | Activat, 5 s | 1–60 s, silenci per sota de −50 dBFS. `defaults.RECORD_SILENCE_STOP_S`. Útil per gravar una sola cançó. |
+| Retallar el silenci de l'inici i del final | Activat | Per sota de −50 dBFS, amb 0,2 s de marge. `defaults.RECORD_TRIM_*` |
+| Durada màxima | 30 min | En arribar-hi, la gravació **s'esborra** (G5). A falta d'1 min, el temps es posa en taronja. `defaults.RECORD_MAX_DURATION_S`, `RECORD_MAX_WARNING_S` |
+| Format mentre es grava | WAV de 32 bits flotants a la carpeta temporal, escrit a mesura | No a la memòria (30 min ≈ 690 MB). És temporal fins que l'usuari atura i desa. |
+| Format final | MP3, 192 kbps, 48 kHz estèreo | `defaults.RECORD_MP3_BITRATE_KBPS`; el WAV temporal s'esborra en acabar. |
+| Freqüència | La de la sortida de Windows (44,1 o 48 kHz) | L'MP3 es fa a 48 kHz. |
+| Espai lliure mínim | 1 GB | Si en queda menys, no comença; si s'hi arriba gravant, s'atura i s'esborra. `defaults.RECORD_MIN_FREE_BYTES` |
+| Carpeta i nom | Es pregunta cada vegada; proposa "Gravació <dia-mes-any> <hora>.<minuts>" | Mai no se sobreescriu res (com a YouTube, §1.7 bis). |
+
+**Consell a la finestra** (text fix): "Tanca o silencia les altres aplicacions: es grava tot el que sona a l'ordinador,
+també els avisos. El volum de Windows no afecta la gravació." (l'última frase es confirma al C08).
+
+**Ones**
+- Un carril per canal de l'origen que es grava: esquerre (E) i dret (D) en estèreo, un de sol en mono.
+- L'ona dels últims 10 s es desplaça en directe, amb el pic (mínim i màxim) de cada columna: gris abans de gravar (per
+  comprovar que arriba so) i vermella mentre es grava. `defaults.RECORD_WAVE_WINDOW_S`, `RECORD_PEAK_COLUMNS_PER_S`
+- Al costat de cada carril, el mesurador de nivell del canal en dBFS, amb una marca de saturació (0 dBFS) que es queda
+  encesa 2 s.
+- En aturar, l'ona de tota la gravació, reduïda a l'amplada de la finestra, amb els silencis de l'inici i del final que
+  es retallaran ombrejats.
+- Les ones no fan res més: no s'hi pot clicar ni seleccionar.
+
+**Errors**
+
+| Situació | Missatge |
+|---|---|
+| No hi ha cap sortida de so | "No s'ha trobat cap sortida de so per gravar." |
+| La sortida canvia o es desconnecta mentre es grava (p. ex. auriculars Bluetooth) | "S'ha desconnectat la sortida de so i la gravació s'ha descartat." |
+| Silenci durant tota la gravació | "No s'ha gravat cap so. Comprova que la música sona per la sortida triada; algunes aplicacions no deixen gravar el seu so." |
+| Menys d'1 GB lliure en prémer [● Grava] | "No hi ha prou espai al disc per començar a gravar (cal almenys 1 GB lliure)." |
+| Disc ple o gairebé ple mentre es grava | "No queda prou espai al disc per continuar gravant. La gravació s'ha descartat." |
+| Durada màxima | "S'ha arribat al màxim de 30 minuts i la gravació s'ha descartat." |
+| Error del sistema de so | "No s'ha pogut gravar el so de l'ordinador. La gravació s'ha descartat." (el detall, al registre) |
+| Tancament inesperat del programa | Res en tornar-lo a obrir: la gravació no es recupera i el fitxer temporal s'esborra. |
+
+**Interrompuda o acabada (G1).** Una gravació es desa només si s'acaba amb [■ Atura] o amb l'aturada automàtica per
+silenci. Totes les altres causes, també la durada màxima (G5), esborren el fitxer temporal abans de mostrar el missatge;
+no es pregunta mai si es vol conservar.
+
+**Fora d'abast:** gravar només una aplicació (només Spotify i no la resta), editar l'ona, separar automàticament les
+cançons d'una llista i gravar vídeo.
 
 ### 1.8 Previsualització
 
