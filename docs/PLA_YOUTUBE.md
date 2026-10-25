@@ -240,7 +240,7 @@ les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escen
 | C04 Conversió a MP3 | C01 | **C02** o **C03** | T2 (o T3) | 1 / 1 / 1 | 0,25 | ✅ tancat el 25/10/2026 | 1 | — | PR #54 · `5c2129b` |
 | C05 Diàleg | C03, C04 | **C08** o **C09** | T4 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
 | C06 Empaquetat i versió (YouTube i gravació) | C05, C10 | — | T6 | 1 / 1 / 2 | 1,25 | ⏳ pendent | — | — | — |
-| C07 Gravació: decisió i contracte | C01 | **C08**, **C03** | T3 | 1 / 1 / 1 | 0,5 | ⛔ aturat per l'usuari (sessió "C07 mp3"); la feina feta encara no s'ha pujat | — | — | branca `claude/keen-pascal-io3h1f` (no pujada) |
+| C07 Gravació: decisió i contracte | C01 | **C08**, **C03** | T3 | 1 / 1 / 1 | 0,5 | 🔧 PR #63 oberta, pendent de revisió (`docs/sessions/C07.md`); aturat una vegada per l'usuari fins a la PR #61 | 1 | — | PR #63 · branca `claude/keen-pascal-io3h1f` |
 | C08 Gravació: prova de viabilitat | C01 | **C07**, **C03** o **C05** | T3 | 1 / 1 / 2 | 1,0 | 🔧 fusionat a `main` el 25/10/2026 sense la prova al PC: sounddevice no serveix; `soundcard` 0.4.6 aprovada (G10); ZIP `ProvaGravacio-win64` (83,2 MB) a la CI; **pendent de la prova al PC de l'usuari** i la recomanació final (`docs/sessions/C08.md`) | 1 | — | PR #64 |
 | C09 Nucli `recorder` | C07, C08 (i C03) | **C05** | T4 | 1 / 2 / 2 | 0,5 | ⏳ pendent | — | — | — |
 | C10 Finestra de gravació | C05, C09 | — | T5 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |

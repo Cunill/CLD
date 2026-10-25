@@ -135,6 +135,8 @@ Següent: C05. Tota la xarxa, només a `passimaker.youtube` i mai abans de l'av�
 **Gravar el so de l'ordinador** (ampliació aprovada el 25/10/2026, també a la versió 1.2.0): annex docs/PLA_GRAVACIO.md
 (decisions G1–G9: sense avís, gravacions interrompudes o de més de 30 min esborrades, ones per canal, micròfon opcional),
 blocs C07–C10 i C06 conjunt al §4 de docs/PLA_YOUTUBE.md. C07 i C08 en curs, en paral·lel (25/10/2026).
+C07 decisió 0013, contracte (CONTRACTES §16) i especificació (§1.7 ter), esquelet de `passimaker.recorder` i marca `so`
+(PR #63, pendent de revisió; docs/sessions/C07.md).
 C08 viabilitat (PR #64, fusionat el 25/10/2026, docs/sessions/C08.md): sounddevice no grava el so de l'ordinador
 (PortAudio 19.7.0 sense loopback); `soundcard` 0.4.6 aprovada (G10) i a `uv.lock`; ZIP de prova `ProvaGravacio-win64`
 (83,2 MB) a la CI; **pendent de la prova al PC de l'usuari** per tancar-lo.
