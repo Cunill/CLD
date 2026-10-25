@@ -21,6 +21,7 @@
 | G7 | Format final | **MP3 de 192 kbps**, com YouTube |
 | G8 | Ordre de treball | **C07 i C08 ara**, en paral·lel amb el YouTube |
 | G9 | Incorporació | **Ara**, al pla vigent (`docs/PLA_YOUTUBE.md` §4) |
+| G10 | Biblioteca de captura | **`soundcard` 0.4.6** (BSD-3), proposada pel C08 perquè sounddevice no grava el so de l'ordinador (25/10/2026) |
 
 ---
 
@@ -30,7 +31,7 @@
 |---|---|---|
 | Entrades de música | Fitxers i (pla vigent) YouTube | També **gravació en directe** del so de l'ordinador |
 | Xarxa | Només la funció de YouTube, després del seu avís | **Cap canvi**: gravar no es connecta enlloc. Funciona sense internet. |
-| Dependències | sounddevice (ja hi és, per a la previsualització) | **Una de nova**: el C08 ha comprovat que sounddevice no pot gravar el so de l'ordinador (§3.1). Proposta: `soundcard` 0.4.6 (BSD-3); alternativa `PyAudioWPatch` 0.2.12.9 (Apache-2.0). Pendent de la decisió de l'usuari. |
+| Dependències | sounddevice (ja hi és, per a la previsualització) | **Una de nova**: el C08 ha comprovat que sounddevice no pot gravar el so de l'ordinador (§3.1). `soundcard` 0.4.6 (BSD-3), aprovada per l'usuari el 25/10/2026 (G10). |
 | Regla 7 (subprocess) | — | Sense canvis: la captura és dins del procés; la conversió a MP3 és el `convert_to_mp3` del C04. |
 | Sistema | Només Windows | Igual. La captura del so del sistema es fa amb **WASAPI loopback**, la manera estàndard de Windows (sense controladors ni programes externs com "Stereo Mix" o VB-Cable). |
 
@@ -165,7 +166,7 @@ passimaker.ffmpeg.convert_to_mp3  (C04, ja fet)  →  model: AddSongs
 
 **Resultat del C08 (25/10/2026, `docs/sessions/C08.md` a la branca `claude/confident-ritchie-rk3iju`): A no
 serveix** (sounddevice 0.5.6 porta PortAudio 19.7.0, sense loopback). Proposta del C08: **B, `soundcard` 0.4.6**
-(BSD-3, 44 KB, sense dependències noves). Pendent de la decisió de l'usuari.
+(BSD-3, 44 KB, sense dependències noves). **Aprovada per l'usuari el 25/10/2026 (G10).**
 
 Recomanació: provar **A** primer; si no funciona, **B**. Qualsevol dependència nova es proposa abans (regla 10).
 
