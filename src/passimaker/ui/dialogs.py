@@ -126,6 +126,13 @@ class DialogQuestions(QWidget):
         folder = QFileDialog.getExistingDirectory(self.parentWidget(), self.tr("Tria una carpeta"))
         return Path(folder) if folder else None
 
+    def choose_download_folder(self, suggested: Path) -> Path | None:
+        """[Descarrega en MP3] (§1.7 bis): where the songs from YouTube go, starting at `suggested`."""
+        folder = QFileDialog.getExistingDirectory(
+            self.parentWidget(), self.tr("Tria on vols desar les cançons"), str(suggested)
+        )
+        return Path(folder) if folder else None
+
     def choose_music(self) -> list[Path]:
         patterns = " ".join(f"*{extension}" for extension in sorted(AUDIO_EXTENSIONS))
         chosen, _ = QFileDialog.getOpenFileNames(
