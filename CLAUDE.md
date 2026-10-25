@@ -89,7 +89,7 @@ Manteniment: M01 canvi de nom a PassiMaker (PR #9, commit `72341ff`, decisió 00
 M02 `SHORT_SONG_FADE_FRACTION` a defaults.py (PR #16, commit `43faaaf`) ·
 M03 extensió `.pmk` (PR #25, commit `66b6e92`, decisió 0009) ·
 M04 arrossegar fotos amb el ratolí i so obert en pausa per al Bluetooth (PR #36, commit `56ccca7`) ·
-M05 millores de les proves de l'usuari i codi compartit (PR #49, decisió 0011) · icona nova (PR #48).
+M05 millores de les proves de l'usuari i codi compartit (PR #49, commit `2aad3e3`, decisió 0011) · icona nova (PR #48).
 **Versió 1.1.0** (docs/CHANGELOG.md), publicada com a `v1.1` amb el flux `publicar.yml`.
 Fita F1 aprovada (decisions 0004 i 0005). Fita F2: vídeo provat per l'usuari amb les seves fotos (vertical i
 horitzontal) el 21/10/2026, correcte.
@@ -97,8 +97,8 @@ horitzontal) el 21/10/2026, correcte.
 persones; PLA §4.4). Les proves pràctiques les fa només l'usuari. Etiquetes `v0.5-mvp` i `v1.0` posades el 24/10/2026.
 Guia i "Quant a" revisats per l'usuari el 24/10/2026: correctes (s'hi afegeix l'apartat "Imprevistos", a petició seva).
 Fotos reals provades per l'usuari el 24/10/2026 (D:\TEMP_PM, càmera i mòbil, sense HEIC): miniatures instantànies i
-nítides. Sense provar amb HEIC d'iPhone (decisió de l'usuari: es deixa així). Manteniment v1.1 (M05) fet: la llista de
-millores de docs/proves_usuari.md és tancada. No queda cap tasca ni prova pendent del pla.
+nítides. Sense provar amb HEIC d'iPhone (decisió de l'usuari: es deixa així). Manteniment v1.1 (M05) fet. Llista de
+millores de docs/proves_usuari.md reoberta el 25/10/2026 (fotos negres a l'inici i al final, pendent).
 Decisions de l'usuari del 21/10/2026: decisió 0007 (D12, llindar de 5 fotos, textos d'error del B10).
 Decisions del B5 aprovades (docs/sessions/B05.md); la nitidesa de la miniatura EXIF es revisa amb fotos reals
 a Windows (vegeu docs/sessions/B10.md).
