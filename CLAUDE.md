@@ -118,5 +118,6 @@ durada; totes dins dels límits (docs/RENDIMENT.md).
 **Música de YouTube (versió 1.2.0 prevista)**: pla aprovat per l'usuari el 25/10/2026 (docs/PLA_YOUTUBE.md, blocs
 C01–C06, seguiment al §4.1; decisió 0012). Blocs integrats a main: C01 decisió, contractes (CONTRACTES §15) i
 especificació (§1.7 bis) (PR #52, commit `7f1bc0b`). Següent: tanda T2, C02 (viabilitat, núvol + local) i C04 (MP3)
-en paral·lel. Tota la xarxa, només a `passimaker.youtube` i mai abans de l'avís.
+en paral·lel. C04 (`ffmpeg.convert_to_mp3`): fet, pendent de la PR i de la fusió
+(docs/sessions/C04.md). Tota la xarxa, només a `passimaker.youtube` i mai abans de l'avís.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
