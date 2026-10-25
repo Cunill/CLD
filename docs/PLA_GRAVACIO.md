@@ -1,10 +1,10 @@
-# PassiMaker: ampliació del pla, "Grava el que sona"
+# PassiMaker: annex del pla, "Grava el que sona"
 
-> Proposta d'ampliació del pla de la música de YouTube (`docs/PLA_YOUTUBE.md`): gravar en directe l'àudio que sona a
+> Ampliació del pla de la música de YouTube (`docs/PLA_YOUTUBE.md`): gravar en directe l'àudio que sona a
 > l'ordinador (YouTube al navegador, Spotify, qualsevol reproductor) i desar-lo en MP3 per fer-lo servir al passi.
-> Versió: 0.2 · Data: 25/10/2026 · Estat: **esborrany, pendent d'aprovació** (decisions ja preses al §0)
-> **No modifica el pla vigent.** `docs/PLA_YOUTUBE.md` (taula de seguiment §4.1, decisió 0012, CLAUDE.md) no es toca
-> fins que l'usuari ho digui; llavors s'hi incorporen els blocs d'aquest document (§6).
+> Versió: 1.0 · Data: 25/10/2026 · Estat: **aprovat per l'usuari el 25/10/2026** (decisions al §0)
+> **Incorporat al pla vigent** el 25/10/2026 (decisió G9): els blocs C07–C10, el seguiment i els prompts són a
+> `docs/PLA_YOUTUBE.md` §4. Aquest annex en conté l'especificació i l'arquitectura.
 
 ---
 
@@ -15,6 +15,12 @@
 | G1 | Gravacions interrompudes | **No es desen mai.** Si la gravació s'acaba per qualsevol cosa que no sigui l'usuari o el silenci (sortida desconnectada, disc ple, error del so, tancament del programa o de la finestra, tancament inesperat), s'esborra tot (§2.3) |
 | G2 | Avís legal | **Cap avís** a la funció de gravar (ni casella ni diàleg) |
 | G3 | Ones | **Es mostren les ones del canal que s'està gravant**, en directe, un carril per canal (§2.4) |
+| G4 | Versió | **YouTube i gravació junts a la 1.2.0**: un sol bloc d'empaquetat, el C06, que espera el C05 i el C10 (no hi ha C11) |
+| G5 | Durada màxima (30 min) | **Compta com a interrompuda**: s'esborra (G1). Un minut abans, el temps es posa en taronja |
+| G6 | Orígens | **So de l'ordinador per defecte; micròfon i entrada de línia, opcionals**: surten a la llista d'orígens i només es graven si l'usuari els tria |
+| G7 | Format final | **MP3 de 192 kbps**, com YouTube |
+| G8 | Ordre de treball | **C07 i C08 ara**, en paral·lel amb el YouTube |
+| G9 | Incorporació | **Ara**, al pla vigent (`docs/PLA_YOUTUBE.md` §4) |
 
 ---
 
@@ -35,7 +41,7 @@
 - **Spotify** prohibeix expressament a les seves condicions gravar o "extreure" el contingut. Netflix, Apple Music i
   altres, igual.
 - **Decisió G2: el programa no mostra cap avís** en gravar. Aquesta informació és només per a l'usuari, en aquest
-  pla. La guia (C11) es limita a explicar com gravar.
+  pla. La guia (C06) es limita a explicar com gravar.
 - El programa **no** intenta saltar cap protecció: si una aplicació fa servir el mode exclusiu o protegeix l'àudio, la
   gravació surt en silenci i el programa ho avisa (§2.3).
 
@@ -59,11 +65,11 @@
 
 | Paràmetre | Per defecte | Notes (valors a `defaults.py`) |
 |---|---|---|
-| Origen | Sortida de so per defecte de Windows | Llista de les sortides (loopback). Opcional: també entrades (micròfon, entrada de línia), vegeu "Per decidir" 3. |
+| Origen | Sortida de so per defecte de Windows | Llista amb dos grups: "So de l'ordinador" (cada sortida, loopback) i "Micròfon i entrada de línia" (cada entrada). Les entrades no es fan servir mai si l'usuari no les tria (G6). Es recorda l'última tria durant la sessió del programa. |
 | "Comença quan soni" | Activat | Comença a desar quan el nivell supera −50 dBFS. `RECORD_START_THRESHOLD_DBFS` |
 | Aturada automàtica per silenci | Activada, 5 s | 1–60 s. `RECORD_SILENCE_STOP_S`. Útil per gravar una sola cançó. |
 | Retallar silenci inicial i final | Activat | Llindar −50 dBFS, conserva 0,2 s de marge. `RECORD_TRIM_*` |
-| Durada màxima | 30 min | Protegeix el disc si s'oblida aturar-la. `RECORD_MAX_DURATION_S` |
+| Durada màxima | 30 min | Protegeix el disc si s'oblida aturar-la. En arribar-hi, la gravació **s'esborra** (G5); a falta d'1 min el temps es posa en taronja (`RECORD_MAX_WARNING_S`). `RECORD_MAX_DURATION_S` |
 | Format intern | WAV de 32 bits flotants a la carpeta temporal, escrit **a mesura que es grava** | No a la memòria: 30 min ≈ 690 MB. Es considera temporal fins que l'usuari atura i desa: qualsevol interrupció l'esborra (G1). En obrir el programa s'esborren les restes d'un tancament inesperat (`passimaker_gravacio_*.wav` de la carpeta temporal). |
 | Format final | MP3 192 kbps, 48 kHz estèreo | El mateix `convert_to_mp3` del C04; el WAV temporal s'esborra en acabar. |
 | Freqüència | La de la sortida de Windows (44,1 o 48 kHz) | `convert_to_mp3` la passa a 48 kHz. |
@@ -80,12 +86,12 @@ l'ordinador, també els avisos. El volum de Windows no afecta la gravació." (l'
 | La sortida canvia o es desconnecta mentre es grava (p. ex. auriculars Bluetooth) | "S'ha desconnectat la sortida de so i la gravació s'ha descartat." |
 | Silenci durant tota la gravació | "No s'ha gravat cap so. Comprova que la música sona per la sortida triada; algunes aplicacions no deixen gravar el seu so." |
 | Disc ple o gairebé ple | "No queda prou espai al disc per continuar gravant. La gravació s'ha descartat." |
-| Durada màxima | "S'ha arribat al màxim de 30 minuts i la gravació s'ha aturat." |
+| Durada màxima | "S'ha arribat al màxim de 30 minuts i la gravació s'ha descartat." |
 | Error del sistema de so | "No s'ha pogut gravar el so de l'ordinador. La gravació s'ha descartat." (+ detall al registre) |
 | Tancament inesperat del programa | Res en tornar a obrir-lo: la gravació no es recupera i el fitxer temporal s'esborra (G1). |
 
 **Interrompuda vs. acabada (G1).** Es desa només si s'acaba per **[■ Atura]**, per l'**aturada automàtica per silenci**
-o (pendent, "Per decidir" 2) per la **durada màxima**. Totes les altres causes esborren el fitxer temporal abans de
+Totes les altres causes, també la **durada màxima** (G5), esborren el fitxer temporal abans de
 mostrar el missatge; no es pregunta mai si es vol conservar.
 
 ### 2.4 Ones del canal en gravació (G3)
@@ -130,7 +136,7 @@ ui/wave_view.py     (Qt)   ── ones per canal (QPainter), en directe i de tot
    │  fil de treball (regla 6); ones i mesurador s'actualitzen 30 cops/s amb un QTimer
    ▼
 passimaker.recorder  (nucli, sense Qt)  ── mòdul nou
-   ├─ devices.py    llista d'orígens (sortides loopback i, si s'aprova, entrades)
+   ├─ devices.py    llista d'orígens (sortides loopback i entrades: micròfon, línia)
    ├─ capture.py    Recorder: start / stop / level / elapsed; backend injectable (protocol CaptureBackend)
    ├─ wavwriter.py  WAV temporal escrit a mesura; s'esborra en qualsevol interrupció (G1)
    ├─ peaks.py      pics per columna i canal, memòria circular segura entre fils (pur, NumPy)
@@ -163,7 +169,7 @@ Recomanació: provar **A** primer; si no funciona, **B**. Qualsevol dependència
 
 | Operació | Rep | Retorna |
 |---|---|---|
-| `list_sources(include_inputs)` | — | `tuple[AudioSource, ...]` (la per defecte, primera) |
+| `list_sources()` | — | `tuple[AudioSource, ...]`: primer les sortides (la per defecte, primera) i després les entrades (G6) |
 | `Recorder(source, temp_dir, settings, backend=…)` | — | objecte de gravació |
 | `Recorder.start()` / `stop()` / `discard()` | — | `stop()` → `RecordingResult(wav_path, duration_s, trimmed_start_s, trimmed_end_s, stop_reason)`; una interrupció no retorna resultat: esborra el fitxer i llança l'error (G1) |
 | `Recorder.level_dbfs` / `elapsed_s` / `state` | — | propietats de lectura, segures des d'un altre fil |
@@ -173,72 +179,17 @@ Recomanació: provar **A** primer; si no funciona, **B**. Qualsevol dependència
 | `trim_silence(wav, llindar, marge)` | — | `(inici_s, final_s)` (pur) |
 
 `AudioSource`: `id`, `name`, `kind` (OUTPUT_LOOPBACK, INPUT), `is_default`, `sample_rate`, `channels`.
-`StopReason` (gravacions desades): USER, SILENCE, MAX_DURATION (si es confirma, "Per decidir" 2). Interrupcions (no es
-desen, G1), com a errors que hereten de `PassiMakerError`: `RecorderDeviceLostError`, `RecorderDiskFullError`,
+`StopReason` (gravacions desades): USER, SILENCE. Interrupcions (no es desen, G1 i G5), com a errors que hereten
+de `PassiMakerError`: `RecorderDeviceLostError`, `RecorderDiskFullError`, `RecorderMaxDurationError`,
 `RecorderDeviceError`; i `RecorderNoDeviceError` (no es pot començar).
 
 ---
 
-## 4. Blocs (continuen la numeració del pla vigent)
+## 4. Blocs
 
-| Bloc | Nom | Mòduls | Mida | Depèn de | En paral·lel amb | Model | On |
-|---|---|---|---|---|---|---|---|
-| C07 | Decisió 0013, contracte i especificació | documentació, esquelet de `recorder` | Petit | aprovació d'aquesta ampliació | C03, C05 (pla vigent) | Sonnet | Núvol |
-| C08 | Prova de viabilitat de la captura a Windows | script de prova, paquet | Petit | C07 | C03, C05, C09 (la part de silenci i WAV) | Opus | Núvol + **local** |
-| C09 | Nucli `passimaker.recorder` | `recorder` (nou) | Mitjà | C07, C08 | C05 | Opus | Núvol |
-| C10 | Finestra "Grava el que sona" | `ui` | Gran (ones) | C09 i **C05** (comparteixen el menú [+ Música ▾]) | — | Sonnet | Núvol |
-| C11 | Empaquetat, guia i versió | paquet, `ui/help.py`, documentació | Petit | C10 (i C06 si es publica alhora, "Per decidir" 1) | — | Sonnet | Núvol + **local** |
-
-```
-pla vigent:  C03 ──▶ C05 ──▶ C06
-                       │
-ampliació:   C07 ──▶ C08 ──▶ C09 ──▶ C10 ──▶ C11
-```
-
-### 4.1 Seguiment: estimació (format del §4.1 del pla vigent)
-
-| Bloc | Depèn de | En paral·lel amb | Sessions estimades (opt. / prob. / pes.) | Temps teu estimat (h) | Estat |
-|---|---|---|---|---|---|
-| C07 Decisió i contracte | aprovació | C03, C05 | 1 / 1 / 1 | 0,5 | 📝 proposta |
-| C08 Prova de viabilitat | C07 | C03, C05 | 1 / 1 / 2 | 1,0 | 📝 proposta |
-| C09 Nucli `recorder` | C07, C08 | C05 | 1 / 2 / 2 | 0,5 | 📝 proposta |
-| C10 Finestra de gravació | C09, C05 | — | 1 / 2 / 2 | 1,0 | 📝 proposta |
-| C11 Empaquetat i versió | C10 (i C06) | — | 1 / 1 / 1 | 0,75 | 📝 proposta |
-| **Subtotal** | | | **5 / 7 / 9** | **3,75** | |
-| Correccions després de la prova de l'usuari | C11 | — | 0 / 1 / 2 | inclòs a sota | |
-| Revisió de les PR i prova final | — | — | — | 1 / 2 / 4 | |
-| **Total de l'ampliació** | | | **5 / 8 / 11 sessions** | **5 / 6 / 8 h** | |
-
-Amb el pla vigent (8 sessions probables, 3 de fetes fins ara a `main` més el C03 en curs), el conjunt queda en
-**16 sessions probables**. Fent el C07–C09 en paral·lel amb el C03–C05, el calendari s'allarga només unes **4
-sessions** (C10, que pot necessitar-ne 2, C11 i correccions).
-
-### Fitxes
-
-**C07 · Decisió, contracte i especificació.** Decisió 0013 (gravació del so del sistema, sense xarxa, aspectes legals,
-sense avís (G2), gravacions interrompudes no desades (G1), ones (G3), tecnologia a decidir al C08); ESPECIFICACIO (apartat nou, el §2 d'aquest document);
-CONTRACTES §16 i el trasllat de `safe_target_path`; valors a `defaults.py`; esquelet de `src/passimaker/recorder/`;
-marca `so` a `pyproject.toml`; prova d'arquitectura (sense Qt ni xarxa). Cap dependència nova.
-
-**C08 · Prova de viabilitat (spike).** Un `ProvaGravacio.exe` (com el `ProvaYoutube` del C02) que llista les sortides,
-grava 20 s de la sortida per defecte i escriu un informe. Comprova: (1) si sounddevice veu les sortides "[Loopback]" i
-grava (si no, `soundcard`); (2) Spotify d'escriptori, YouTube a Chrome/Edge i el Reproductor multimèdia de Windows;
-(3) auriculars Bluetooth i canvi de sortida a mitges; (4) si el volum de Windows i el de cada aplicació afecten la
-gravació; (5) que no demana permís de micròfon ni l'avisa l'antivirus; (6) latència i blocs perduts en 10 min.
-L'usuari l'executa al seu PC (un pas cada vegada). Acceptació: informe a `docs/sessions/C08.md` amb la recomanació.
-
-**C09 · Nucli `passimaker.recorder`.** Captura en un fil, WAV temporal escrit a mesura, pics per a les ones
-(memòria circular, vista de tota la gravació), mesurador, "comença quan soni", aturada per silenci, retall, durada
-màxima; disc ple, desconnexió i errors **esborren el fitxer** (G1); neteja de restes en arrencar; descartar. Proves amb el
-substitut (Hypothesis per al retall i el silenci), prova de no-xarxa, i proves `so` per al PC de l'usuari.
-
-**C10 · Finestra "Grava el que sona".** Origen, **ones per canal** (`ui/wave_view.py`, en directe i de tota la
-gravació) i mesurador, temps, [● Grava] [■ Atura] [Descarta], opcions, sense avís (G2), selector de carpeta i nom, conversió amb progrés, "Afegeix
-al projecte". En tancar la finestra o el programa mentre es grava, pregunta i esborra (G1). pytest-qt amb el substitut.
-
-**C11 · Empaquetat, guia i versió.** ZIP (i dependència nova si el C08 la tria), apartat a la guia (com gravar, consells,
-sense apartat legal, G2) i a "Imprevistos" ("No s'ha gravat cap so"), CHANGELOG, versió. Prova de l'usuari: gravar una cançó de
-Spotify i una de YouTube, afegir-les a un passi i exportar.
+Són al pla vigent, `docs/PLA_YOUTUBE.md` §4: **C07** decisió 0013, contracte i especificació · **C08** prova de
+viabilitat de la captura a Windows · **C09** nucli `passimaker.recorder` · **C10** finestra "Grava el que sona" · i
+l'empaquetat conjunt al **C06** (G4). Allà hi ha les dependències, les tandes, el seguiment i els prompts.
 
 ---
 
@@ -250,34 +201,13 @@ Spotify i una de YouTube, afegir-les a un passi i exportar.
 | Es graven també avisos i altres sons | Alta | Gravació bruta | Consell a la finestra; mesurador abans de gravar; retall de silencis |
 | Una aplicació fa servir el mode exclusiu o protegeix l'àudio | Baixa | Gravació en silenci | Avís "No s'ha gravat cap so" amb l'explicació |
 | Canvi de sortida a mitges (Bluetooth) | Mitjana | Es perd la gravació sencera (G1) | Avís clar (§2.3); consell a la guia: no canviar d'auriculars mentre es grava |
-| Qualitat: la música ja ve comprimida (Spotify ~160–320 kbps, YouTube ~130 kbps) i es torna a comprimir en MP3 | Segura | Pèrdua petita, inaudible en un passi | MP3 192 kbps; opció de desar en WAV si es vol ("Per decidir" 4) |
+| Qualitat: la música ja ve comprimida (Spotify ~160–320 kbps, YouTube ~130 kbps) i es torna a comprimir en MP3 | Segura | Pèrdua petita, inaudible en un passi | MP3 192 kbps (G7) |
 | Aspectes legals (condicions de Spotify, drets d'autor) | Mitjana | Reclamació si el vídeo es publica | Cap dins del programa (G2); responsabilitat de l'usuari (§1.1) |
 | Les ones alenteixen la interfície | Baixa | Finestra poc fluida | Pics calculats al fil de captura; repintat de només les columnes noves; prova de rendiment al C10 |
 
 ---
 
-## 6. Com s'incorporarà al pla vigent (quan ho diguis)
+## 6. Incorporació al pla vigent
 
-1. `docs/PLA_YOUTUBE.md`: el títol passa a "Música de YouTube i gravació"; s'hi afegeixen els blocs C07–C11 a la taula
-   del §4 i a la de seguiment del §4.1 (amb les columnes de consum), el diagrama de tandes i els riscos; o bé es deixa
-   aquest document com a annex enllaçat des del §4.
-2. Decisió 0013 (al C07, no abans).
-3. CLAUDE.md, apartat Estat: una línia.
-
----
-
-## Per decidir
-
-1. **Versió:** (a) publicar YouTube i gravació junts a la 1.2.0 (un sol C06+C11; el YouTube surt més tard);
-   (b) YouTube a la 1.2.0 i la gravació a la 1.3.0 (recomanat: no endarrereix el que ja està a mig fer).
-2. **Durada màxima (30 min):** (a) compta com a acabada i es desa (recomanat: s'atura neta i l'usuari sap el límit);
-   (b) compta com a interrompuda i s'esborra.
-3. **Orígens:** (a) només el so de l'ordinador (loopback); (b) també el micròfon i l'entrada de línia (gairebé el
-   mateix codi; útil per gravar una veu o un tocadiscos; recomanat).
-4. **Format final:** (a) MP3 192 kbps, com YouTube (recomanat); (b) a triar entre MP3 i WAV (sense pèrdua, 10 vegades
-   més gran).
-5. **Ordre de treball:** (a) començar el C07 i el C08 ara, en paral·lel amb el C03–C05 (recomanat);
-   (b) esperar que el YouTube estigui acabat.
-6. **Incorporar aquesta ampliació al pla vigent:** (a) ara; (b) més endavant, quan ho diguis.
-
-**Pendent de la teva part:** respondre els punts anteriors.
+Feta el 25/10/2026 (G9): `docs/PLA_YOUTUBE.md` (títol, §0, §4 i §4.1, fitxes i prompts del C07 i el C08, C06 conjunt) i
+CLAUDE.md (Estat). La decisió 0013 la redacta el C07.

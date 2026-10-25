@@ -1,8 +1,10 @@
-# PassiMaker: pla de la funció "Música de YouTube"
+# PassiMaker: pla de la música de YouTube i de la gravació del so
 
 > Proposta de funcionalitat nova: cercar cançons a YouTube i descarregar-les en MP3, des de la cerca o amb l'enllaç
-> directe, per afegir-les al passi.
-> Versió del pla: 0.2 · Data: 25/10/2026 · Estat: **aprovat per l'usuari el 25/10/2026** (decisions al §0)
+> directe, per afegir-les al passi; i (ampliació, blocs C07–C10) gravar en directe el so que sona a l'ordinador.
+> Especificació de la gravació: annex `docs/PLA_GRAVACIO.md`.
+> Versió del pla: 0.3 · Data: 25/10/2026 · Estat: **aprovat per l'usuari el 25/10/2026** (decisions al §0; ampliació
+> de la gravació aprovada el mateix dia, decisions G1–G9 de l'annex)
 > Versió del programa prevista: **1.2.0**
 
 ---
@@ -19,6 +21,7 @@
 | 6 | PR d'aquest pla | **No**: el document es queda a la branca fins al C01 |
 | 7 | Validesa de la conformitat | **Una vegada per cada sessió del programa**: no es desa enlloc i es torna a demanar cada vegada que s'obre PassiMaker (§2.0) |
 | 8 | Començar el C01 | **En una sessió nova**, branca `bloc/C01-decisio-youtube` (prompt al §4) |
+| 9 | Ampliació: gravar el so de l'ordinador | **Aprovada i incorporada** (blocs C07–C10; annex `docs/PLA_GRAVACIO.md`, decisions G1–G9): sense avís, gravacions interrompudes i les que arriben als 30 min s'esborren, ones per canal, micròfon opcional, MP3 192 kbps, **una sola versió 1.2.0** amb YouTube i gravació (el C06 empaqueta les dues) |
 
 ---
 
@@ -216,7 +219,11 @@ Mateix protocol que la resta (CLAUDE.md): un bloc per sessió, branca `bloc/CNN-
 | C03 | Nucli `passimaker.youtube` | `youtube` (nou) | Mitjà | C02 | Opus | Núvol |
 | C04 | Conversió a MP3 al pont FFmpeg | `ffmpeg` | Petit | C01 (en paral·lel amb C03) | Sonnet | Núvol |
 | C05 | Diàleg "Música de YouTube" | `ui` | Gran | C03, C04 | Sonnet | Núvol |
-| C06 | Empaquetat, guia i versió 1.2.0 | paquet, `ui/help.py`, documentació | Mitjà | C05 | Sonnet | Núvol + **local** |
+| C06 | Empaquetat, guia i versió 1.2.0 (YouTube i gravació) | paquet, `ui/help.py`, documentació | Mitjà | C05, C10 | Sonnet | Núvol + **local** |
+| C07 | Gravació: decisió 0013, contracte i especificació | documentació, esquelet de `recorder` | Petit | C01 | Sonnet | Núvol |
+| C08 | Gravació: prova de viabilitat a Windows | script de prova, paquet | Petit | C07 | Opus | Núvol + **local** |
+| C09 | Nucli `passimaker.recorder` | `recorder` (nou) | Mitjà | C08 (i el C03, pel trasllat de `safe_target_path`) | Opus | Núvol |
+| C10 | Finestra "Grava el que sona" (ones) | `ui` | Gran | C05, C09 | Sonnet | Núvol |
 
 ### 4.1 Seguiment: estimació i consum
 
@@ -225,17 +232,21 @@ les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escen
 
 | Bloc | Depèn de | En paral·lel amb | Tanda | Sessions estimades (opt. / prob. / pes.) | Temps teu estimat (h) | Estat | Sessions consumides | Temps teu consumit (h) | PR · commit |
 |---|---|---|---|---|---|---|---|---|---|
-| Pla (aquest document) | — | — | — | — | — | ✅ aprovat el 25/10/2026 | 1 | — | branca `ccr-08701f22-8ayer4` (sense PR, decisió 6) |
+| Pla (aquest document) | — | — | — | — | — | ✅ aprovat el 25/10/2026; ampliació de la gravació aprovada i incorporada el mateix dia | 1 | — | branca `ccr-08701f22-8ayer4` |
 | C01 Decisió i contracte | aprovació del pla | — (és la base de tots) | T1 | 1 / 1 / 1 | 0,5 | ✅ tancat el 25/10/2026 | 1 | — | PR #52 · `7f1bc0b` |
 | C02 Prova de viabilitat | C01 | **C04** | T2 | 1 / 1 / 2 | 1,0 | ✅ tancat el 25/10/2026; prova al PC correcta (xarxa de casa; a la de l'estudi no es prova, decisió de l'usuari) (`docs/sessions/C02.md`) | 1 | — | PR #57 · `1599fb7` |
-| C03 Nucli `youtube` | C01, C02 | **C04** (si encara no s'ha fet) | T3 | 1 / 1 / 2 | 0,5 | ⏳ pendent | — | — | — |
+| C03 Nucli `youtube` | C01, C02 | **C04** (si encara no s'ha fet) | T3 | 1 / 1 / 2 | 0,5 | 🔧 en curs (PR #58, pendent de revisió) | 1 | — | PR #58 · branca `ccr-d5f017cf-dlrecs` |
 | C04 Conversió a MP3 | C01 | **C02** o **C03** | T2 (o T3) | 1 / 1 / 1 | 0,25 | ✅ tancat el 25/10/2026 | 1 | — | PR #54 · `5c2129b` |
-| C05 Diàleg | C03, C04 | — | T4 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
-| C06 Empaquetat i versió | C05 | — | T5 | 1 / 1 / 2 | 1,0 | ⏳ pendent | — | — | — |
-| **Subtotal dels blocs** |  |  |  | **6 / 7 / 10** | **4,25** | | **2** | **0** | |
-| Sessions de correcció després de la prova de l'usuari | C06 | — | després del C06 | 0 / 1 / 2 | inclòs a sota | ⏳ pendent | — | — | — |
-| Revisió de les PR i prova final de l'usuari | — | — | totes | — | 1,5 / 3 / 6 | ⏳ pendent | — | — | — |
-| **Total** |  |  |  | **6 / 8 / 12 sessions** | **6 / 7 / 10 h** | | **3** (el pla, el C01 i el C04) | **—** | |
+| C05 Diàleg | C03, C04 | **C08** o **C09** | T4 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
+| C06 Empaquetat i versió (YouTube i gravació) | C05, C10 | — | T7 | 1 / 1 / 2 | 1,25 | ⏳ pendent | — | — | — |
+| C07 Gravació: decisió i contracte | C01 | **C03** | T3 | 1 / 1 / 1 | 0,5 | ⏳ pendent | — | — | — |
+| C08 Gravació: prova de viabilitat | C07 | **C03** o **C05** | T4 | 1 / 1 / 2 | 1,0 | ⏳ pendent | — | — | — |
+| C09 Nucli `recorder` | C08 (i C03) | **C05** | T5 | 1 / 2 / 2 | 0,5 | ⏳ pendent | — | — | — |
+| C10 Finestra de gravació | C05, C09 | — | T6 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
+| **Subtotal dels blocs** |  |  |  | **10 / 13 / 17** | **7,5** | | **4** | **0** | |
+| Sessions de correcció després de la prova de l'usuari | C06 | — | després del C06 | 0 / 2 / 3 | inclòs a sota | ⏳ pendent | — | — | — |
+| Revisió de les PR i prova final de l'usuari | — | — | totes | — | 2,5 / 5 / 10 | ⏳ pendent | — | — | — |
+| **Total** |  |  |  | **10 / 15 / 20 sessions** | **10 / 12,5 / 17,5 h** | | **5** (el pla i l'ampliació, C01, C02, C03 i C04) | **—** | |
 
 Llegenda de l'estat: ⏳ pendent · 🔧 en curs · ✅ tancat (fusionat a `main`) · ⛔ aturat (vegeu `docs/sessions/CNN.md`).
 
@@ -244,32 +255,37 @@ Claude Code diferents, perquè no depenen l'un de l'altre ni toquen els mateixos
 tots els blocs de què depèn són a `main`.
 
 ```
-T1          T2                    T3              T4          T5
-C01 ──┬──▶ C02 (viabilitat) ──▶ C03 (nucli) ──┐
-      │                                       ├──▶ C05 ──▶ C06 ──▶ correccions
-      └──▶ C04 (MP3, pont FFmpeg) ────────────┘
+T1      T2                  T3                 T4               T5              T6           T7
+C01 ─┬─▶ C02 (viabilitat) ─▶ C03 (nucli) ─┬──▶ C05 (diàleg) ──────────────────┐
+     ├─▶ C04 (MP3) ────────────────────────┘                                   │
+     └──────────────────────▶ C07 (decisió) ─▶ C08 (viabilitat) ─▶ C09 (nucli) ─┴─▶ C10 (finestra) ─▶ C06 ─▶ correccions
+                                                    (C09 també espera el C03)
 ```
 
 | Parella en paral·lel | Per què és possible | Fitxers de codi de cadascun |
 |---|---|---|
 | C02 ∥ C04 | C04 només necessita el contracte de `convert_to_mp3` (C01); no depèn de yt-dlp | C02: script de prova, `pyproject.toml`, `uv.lock`, paquet · C04: `src/passimaker/ffmpeg`, `tests/**/ffmpeg` |
 | C03 ∥ C04 | C03 baixa l'àudio original i C04 el converteix: es troben només al contracte | C03: `src/passimaker/youtube`, `tests/**/youtube` · C04: com a dalt |
+| C03 ∥ C07 | C07 només escriu documents i l'esquelet de `recorder`; no toca `youtube` | C07: `src/passimaker/recorder`, documentació, `defaults.py` (valors nous al final) |
+| C05 ∥ C08 / C09 | La finestra de YouTube i la gravació no es toquen fins al C10 | C05: `src/passimaker/ui` · C08: `tools/`, `packaging/`, CI · C09: `src/passimaker/recorder`, `src/passimaker/common` |
 
 - **No es poden fer en paral·lel:** C01 amb res (fixa els contractes); C03 abans del C02 (pot canviar l'enfocament);
-  C05 abans del C03 i el C04 (la interfície els fa servir tots dos); C06 abans del C05.
+  C05 abans del C03 i el C04 (la interfície els fa servir tots dos); C08 abans del C07; C09 abans del C08 (pot
+  canviar la tecnologia) i del C03 (es trasllada `safe_target_path`, que el C03 modifica); C10 abans del C05 (comparteixen
+  el menú [+ Música ▾]) i del C09; C06 abans del C05 i el C10.
 - **Fitxers compartits:** la taula d'aquest §4.1 i l'apartat Estat del CLAUDE.md. Cada bloc en paral·lel hi escriu
   només la seva fila; el que es fusiona segon porta `main` a la seva branca (fusió, sense reescriure la història) i
   resol el conflicte abans de fusionar.
-- **Camí crític:** C01 → C02 → C03 → C05 → C06 (5 sessions probables). Fer el C04 en paral·lel estalvia **1 sessió**
-  del calendari; el total de sessions no canvia.
+- **Camí crític** (des d'ara, amb el C01, el C02 i el C04 fets): C07 → C08 → C09 → C10 → C06 (7 sessions probables). El
+  C03 i el C05 (3 sessions) es fan alhora i no l'allarguen.
 
 **Calendari** (a 4 h/setmana del teu temps, començant quan s'aprovi el C01):
 
 | Escenari | Sessions | Hores teves | Setmanes |
 |---|---|---|---|
-| Optimista | 6 | 6 h | 1,5 |
-| **Probable** | **8** | **7 h** | **2** |
-| Pessimista | 12 | 10 h | 2,5–3 |
+| Optimista | 10 | 10 h | 2,5 |
+| **Probable** | **15** | **12,5 h** | **3–3,5** |
+| Pessimista | 20 | 17,5 h | 4,5 |
 
 ### C01 · Decisió, contracte i especificació
 - **Fa:** `docs/decisions/0012-musica-de-youtube.md` (xarxa, dependències, regla 7, aspectes legals, manteniment);
@@ -415,15 +431,128 @@ Condició d'aturada: la del CLAUDE.md.
   afegir al projecte (comprova l'ordre `AddSongs` al controlador), textos traduïbles.
 - **Acceptació:** cap operació de més de 50 ms al fil de la interfície; el programa sense xarxa s'obre i funciona igual.
 
-### C06 · Empaquetat, guia i versió
-- **Fa:** PyInstaller amb yt-dlp (i Deno si cal); `tools/construir_zip.ps1`; CI; apartat nou a la guia (`ui/help.py`)
-  i a "Imprevistos" ("YouTube ha canviat"); CHANGELOG; versió 1.2.0; flux de manteniment del §6.
-- **Local:** prova de l'usuari amb el ZIP: una cerca, un enllaç, una descàrrega afegida a un passi i exportada.
+### C06 · Empaquetat, guia i versió 1.2.0 (YouTube i gravació)
+- **Fa:** PyInstaller amb yt-dlp, `yt-dlp-ejs` i Deno (C02) i, si el C08 en tria una, la dependència de captura;
+  `tools/construir_zip.ps1`; CI; apartats nous a la guia (`ui/help.py`): música de YouTube i "Grava el que sona" (sense
+  apartat legal de la gravació, G2); a "Imprevistos": "YouTube ha canviat" i "No s'ha gravat cap so"; CHANGELOG;
+  versió 1.2.0; flux de manteniment del §6.
+- **Local:** prova de l'usuari amb el ZIP: una cerca i un enllaç de YouTube; una cançó gravada de Spotify i una del
+  navegador; totes afegides a un passi i exportades.
 - **Acceptació:** prova de l'usuari correcta; versió publicada amb `publicar.yml`.
+
+### C07 · Gravació: decisió 0013, contracte i especificació
+- **Fa:** `docs/decisions/0013-gravar-el-so.md`; ESPECIFICACIO §1.7 ter (annex §2); CONTRACTES §16 (annex §3.2) i §13
+  (la interfície pot fer servir `recorder`); valors nous a `defaults.py`; esquelet de `src/passimaker/recorder/`; marca
+  `so` a `pyproject.toml`.
+- **No fa:** cap dependència nova, cap implementació, ni el trasllat de `safe_target_path` (és del C09, quan el C03
+  sigui a `main`).
+
+```text
+Bloc C07: Gravar el so de l'ordinador, decisió, contracte i especificació. Model: Sonnet.
+Context: PassiMaker 1.1.0 és a main amb el C01, el C02 i el C04 de la música de YouTube. Llegeix docs/PLA_GRAVACIO.md
+(sencer: és l'annex aprovat de la gravació, decisions G1–G9), docs/PLA_YOUTUBE.md (§0 i §4, fitxa del C07),
+docs/decisions/0012-musica-de-youtube.md (com a model), docs/CONTRACTES.md, docs/ESPECIFICACIO.md §1.7 i §1.7 bis,
+src/passimaker/model/defaults.py, src/passimaker/youtube/ (com a model d'esquelet) i tests/unit/test_architecture.py.
+Branca: bloc/C07-decisio-gravacio des de main actualitzat (o la que imposi la sessió al núvol; anota-ho).
+Objectiu: deixar decidit i definit tot el que el C08, el C09 i el C10 necessiten, sense implementar-ho.
+Fes:
+1. docs/decisions/0013-gravar-el-so.md: gravació del so de l'ordinador amb WASAPI loopback, sense xarxa, sense avís
+   (G2), gravacions interrompudes i les que arriben als 30 min s'esborren (G1, G5), ones per canal (G3), micròfon i
+   entrada de línia opcionals per selecció (G6), MP3 192 kbps (G7), una sola versió 1.2.0 (G4), tecnologia de captura
+   a decidir al C08 (annex §3.1; sounddevice primer). Data 25/10/2026.
+2. docs/ESPECIFICACIO.md: §1.7 ter "Grava el que sona", a partir de l'annex §2 (recorregut, valors, errors,
+   interrompuda vs. acabada, ones, fora d'abast).
+3. docs/CONTRACTES.md: §16 nou (passimaker.recorder, annex §3.2, amb Monitor, peaks_since i overview); §13 (la
+   interfície pot fer servir recorder); anota que safe_target_path passarà a passimaker.common al C09.
+4. src/passimaker/model/defaults.py: els valors de l'annex §2.2 i §2.4 (llindars, aturada per silenci, durada màxima i
+   avís, retall, espai mínim, finestra de les ones, columnes per segon), afegits al final.
+5. src/passimaker/recorder/: tipus (AudioSource, SourceKind, RecordingResult, StopReason), errors amb les claus de
+   missatge a passimaker.i18n (textos de l'annex §2.3), protocol CaptureBackend i signatures de Recorder, Monitor,
+   list_sources i trim_silence sense implementació (avisen que no estan implementades). Sense Qt i sense xarxa.
+6. pyproject.toml: marca "so" (proves que necessiten una targeta de so real; excloses per defecte i a la CI).
+7. tests/unit/test_architecture.py: comprova que recorder no importa Qt ni mòduls de xarxa (si les proves que ja
+   hi ha ja ho cobreixen, afegeix-hi només un cas explícit).
+8. docs/PLA_YOUTUBE.md: només la fila del C07 a la taula del §4.1. CLAUDE.md, apartat Estat: una línia del C07.
+   Si el C03 (PR #58) ja és a main, porta main a la branca (fusió) i resol els conflictes d'aquests fitxers i del
+   pyproject.toml (el C03 hi afegeix la marca "xarxa").
+Criteris d'acceptació: decisió, especificació i contractes coherents amb l'annex; tots els tipus i signatures de
+l'annex §3.2 existeixen; suite ràpida, ruff i pyright en verd; cap dependència nova.
+Fitxers permesos: els dels punts 1–8, docs/sessions/C07.md i tests/unit/recorder/ (proves dels tipus i, si vols, de
+trim_silence, que és pur). Res de src/passimaker/youtube, src/passimaker/ui ni src/passimaker/ffmpeg.
+Condició d'aturada: la del CLAUDE.md. A docs/sessions/C07.md, anota les decisions que hagis pres.
+```
+
+### C08 · Gravació: prova de viabilitat a Windows (spike)
+- **Fa:** `ProvaGravacio.exe` (com el `ProvaYoutube` del C02) que llista els orígens, grava 20 s i escriu un informe;
+  comprova la tecnologia de captura (annex §3.1) i els casos reals al PC de l'usuari.
+- **Acceptació:** informe a `docs/sessions/C08.md` amb el resultat de cada punt i la recomanació (seguir amb
+  sounddevice, passar a `soundcard`, o aturar).
+
+```text
+Bloc C08: Gravar el so de l'ordinador, prova de viabilitat a Windows (spike). Model: Opus.
+Context: el C07 és a main. Llegeix docs/PLA_GRAVACIO.md (§1, §2.2, §3, §5), docs/PLA_YOUTUBE.md (fitxa del C08),
+docs/decisions/0013-gravar-el-so.md, docs/CONTRACTES.md §16, src/passimaker/preview/sound.py (com fa servir
+sounddevice el programa), i com a model del C02: tools/prova_youtube.py, packaging/ProvaYoutube.spec, el treball
+"prova-youtube-windows" de .github/workflows/ci.yml i docs/sessions/C02.md.
+Branca: bloc/C08-viabilitat-gravacio des de main actualitzat (o la que imposi la sessió al núvol; anota-ho).
+Objectiu: comprovar a Windows, abans d'implementar passimaker.recorder (C09), que es pot gravar el so de l'ordinador
+des d'un ZIP de PyInstaller, i triar la tecnologia. No s'implementa passimaker.recorder.
+Fes:
+1. Esbrina si sounddevice 0.5.x (ja és una dependència) veu les sortides de Windows com a entrades WASAPI "[Loopback]"
+   i hi pot gravar. Si no: proposa soundcard (o PyAudioWPatch) a docs/sessions/C08.md (llicència, mida, versió) i
+   atura't sense afegir-la (regla 10).
+2. tools/prova_gravacio.py, sense Qt i sense consola (finestra de missatge de Windows en acabar, amb ctypes, com el
+   C02): llista tots els orígens (sortides loopback i entrades: micròfon, línia) amb freqüència i canals; grava 20 s de
+   l'origen per defecte (o el que es triï amb --origen N) a un WAV temporal mentre calcula el nivell i els pics per
+   canal; detecta blocs perduts i canvis de dispositiu; comprova el WAV amb passimaker.ffmpeg.probe i el converteix a
+   MP3 amb passimaker.ffmpeg.convert_to_mp3; escriu informe_prova_gravacio.txt al costat de l'executable (versions,
+   orígens, nivells, pics, blocs perduts, temps, errors complets). Opcions: --durada S, --origen N, --llista,
+   --sense-dispositiu (només versions, per a la CI), --conservar.
+3. packaging/ProvaGravacio.spec (console=False, mateix FFmpeg) i un treball nou a .github/workflows/ci.yml que
+   construeix el ZIP "ProvaGravacio-win64", l'executa amb --sense-dispositiu i el publica com a artefacte. No canviïs
+   el ZIP de PassiMaker ni els treballs que ja hi ha.
+4. Proves (a Linux, sense targeta de so): l'script es pot importar sense obrir cap dispositiu; execució
+   --sense-dispositiu; execució completa amb un backend fals (tons i silenci); la prova d'arquitectura continua passant.
+5. docs/sessions/C08.md amb els punts: (1) sounddevice sí o no; (2) Spotify d'escriptori, YouTube a Chrome o Edge i el
+   Reproductor multimèdia de Windows; (3) auriculars Bluetooth i canvi de sortida a mitges; (4) si el volum de Windows i
+   el de cada aplicació afecten la gravació; (5) cap demanda de permís de micròfon per al loopback, ni avís de
+   l'antivirus, ni finestra de consola; (6) blocs perduts en una gravació de 10 min; (7) el micròfon, si l'usuari el
+   tria (G6); (8) mida del ZIP. Els punts 2–7 els fa l'usuari al seu PC: dona-li les instruccions pas a pas (un pas cada
+   vegada) per baixar l'artefacte, executar-lo i enganxar-te l'informe.
+6. docs/PLA_YOUTUBE.md: només la fila del C08 de la taula del §4.1. CLAUDE.md, apartat Estat: una línia del C08.
+   Si mentrestant s'ha fusionat un altre bloc a main, porta main a la branca (fusió) i resol el conflicte d'aquests
+   fitxers.
+Criteris d'acceptació: ZIP de prova generat per la CI; informe de l'usuari amb els punts 2–7; recomanació final a
+docs/sessions/C08.md; suite ràpida, ruff i pyright en verd.
+Fitxers permesos: tools/prova_gravacio.py, packaging/ProvaGravacio.spec, .github/workflows/ci.yml (només el treball
+nou), tests/unit/test_prova_gravacio.py, docs/sessions/C08.md, la fila del C08 a docs/PLA_YOUTUBE.md i l'apartat Estat
+del CLAUDE.md; pyproject.toml i uv.lock només si l'usuari aprova una dependència nova. Res de src/passimaker.
+Condició d'aturada: la del CLAUDE.md. També t'atures si sounddevice no serveix (punt 1) o si la prova a Windows falla
+dues vegades pel mateix motiu: anota-ho a docs/sessions/C08.md amb el pas següent.
+```
+
+### C09 · Nucli `passimaker.recorder`
+- **Fa:** captura en un fil, WAV temporal escrit a mesura, pics per a les ones (memòria circular, vista de tota la
+  gravació), mesurador, "comença quan soni", aturada per silenci, retall; disc ple, desconnexió, error del so i durada
+  màxima **esborren el fitxer** (G1, G5); neteja de restes en arrencar; trasllat de `safe_target_path` a
+  `passimaker.common` (cal el C03 a `main`).
+- **Proves:** substitut `FakeCaptureBackend` (tons i silencis), Hypothesis per al retall i el silenci, cada causa
+  d'interrupció sense deixar fitxers, prova de no-xarxa, i proves `so` per al PC de l'usuari.
+- Prompt: s'escriu en tancar el C08 (depèn de la tecnologia triada).
+
+### C10 · Finestra "Grava el que sona"
+- **Fa:** `ui/record_dialog.py` i `ui/wave_view.py` (ones per canal en directe i de tota la gravació, annex §2.4),
+  entrada al menú [+ Música ▾] (el crea el C05), orígens amb el micròfon opcional, [● Grava] [■ Atura] [Descarta],
+  avís de temps a falta d'1 min, selector de carpeta i nom, conversió amb progrés, "Afegeix al projecte"; en tancar
+  mentre es grava, pregunta i esborra (G1). Sense avís legal (G2).
+- **Proves:** pytest-qt amb el substitut; rendiment de les ones (repintat < 5 ms per fotograma); textos traduïbles.
+- Prompt: s'escriu en tancar el C05 i el C09.
 
 ---
 
 ## 5. Riscos
+
+Riscos de la gravació (C07–C10): annex `docs/PLA_GRAVACIO.md` §5.
 
 | Risc | Probabilitat | Impacte | Mitigació |
 |---|---|---|---|
