@@ -17,6 +17,8 @@ ERROR_LIVE = "youtube.live"
 """A live stream in progress."""
 ERROR_BROKEN = "youtube.broken"
 """YouTube changed and yt-dlp no longer works (detail: yt-dlp's message, for the log)."""
+ERROR_BLOCKED = "youtube.blocked"
+"""YouTube refuses this network for now ("confirm you're not a bot", too many requests)."""
 ERROR_TOO_LONG = "youtube.too_long"
 """Longer than defaults.YOUTUBE_MAX_DURATION_S."""
 ERROR_CONSENT = "youtube.consent"
@@ -42,6 +44,11 @@ class YoutubeUnavailableError(YoutubeError):
 class YoutubeBrokenError(YoutubeError):
     def __init__(self, detail: str = "") -> None:
         super().__init__(ERROR_BROKEN, detail)
+
+
+class YoutubeBlockedError(YoutubeError):
+    def __init__(self, detail: str = "") -> None:
+        super().__init__(ERROR_BLOCKED, detail)
 
 
 class YoutubeTooLongError(YoutubeError):
