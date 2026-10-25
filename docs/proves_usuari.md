@@ -15,7 +15,8 @@ s'anoten aquí i es corregeixen en un bloc de manteniment. Quan es fa el manteni
 | 2 | B14 (usuari, 24/10/2026) | "Tornar a sortejar" no s'entén. El botó de la foto ha de dir **"Nou moviment a l'atzar"** (🎲). | **Fet** (M05, v1.1) |
 | 3 | B14 (usuari, 24/10/2026) | "Nou moviment a l'atzar" no s'ha de desactivar quan la foto té el moviment triat a mà: s'ha de poder aplicar sempre (la foto torna a automàtic amb un moviment nou). | **Fet** (M05, v1.1) |
 | 4 | Fotos reals (usuari, 24/10/2026) | La durada de cada foto ha d'admetre de **0,4 a 24 s** (ara 1–3 s, `defaults.PHOTO_DURATION_RANGE`). Cal revisar-ho amb la fosa (0,5–1,5 s, més llarga que 0,4 s) i els límits de velocitat del moviment (decisions 0004 i 0005). | **Fet** (M05, v1.1; decisió 0011) |
-| 5 | Usuari (25/10/2026) | Afegir una **foto inicial i una de final completament negres**, que l'usuari pugui esborrar si vol. Ara el passi ja fa una fosa des del negre a l'inici (1 s) i cap al negre al final (2 s), però no hi ha cap foto negra a la llista. | Pendent |
+| 5 | Usuari (25/10/2026) | Afegir **uns segons de negre quiet** a l'inici i al final del passi, abans de la fosa des del negre i després de la fosa cap al negre. La durada ha de ser ajustable i s'ha de poder suprimir. | Pendent |
+| 6 | Usuari (25/10/2026) | La fosa actual des del negre i cap al negre "es veu gris". Cal esbrinar si passa a la previsualització o al vídeo, i amb quin reproductor. Causes possibles: el vídeo comença directament amb la fosa, sense negre quiet (vegeu la 5), o el reproductor no interpreta bé el rang limitat BT.709 (ESPECIFICACIO §1.9) i mostra el negre (Y=16) com a gris fosc. | Pendent |
 
 ## Resultats
 
