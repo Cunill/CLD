@@ -99,7 +99,8 @@ persones; PLA §4.4). Les proves pràctiques les fa només l'usuari. Etiquetes `
 Guia i "Quant a" revisats per l'usuari el 24/10/2026: correctes (s'hi afegeix l'apartat "Imprevistos", a petició seva).
 Fotos reals provades per l'usuari el 24/10/2026 (D:\TEMP_PM, càmera i mòbil, sense HEIC): miniatures instantànies i
 nítides. Sense provar amb HEIC d'iPhone (decisió de l'usuari: es deixa així). Manteniment v1.1 (M05) fet. Llista de
-millores de docs/proves_usuari.md reoberta el 25/10/2026 (negre quiet a l'inici i al final, pendent).
+millores de docs/proves_usuari.md reoberta el 25/10/2026 (negre quiet a l'inici i al final, en espera; silenci
+a l'inici i al final, i "Ajustar a la música" que respecti les durades fetes a mà: pendents).
 Decisions de l'usuari del 21/10/2026: decisió 0007 (D12, llindar de 5 fotos, textos d'error del B10).
 Decisions del B5 aprovades (docs/sessions/B05.md); la nitidesa de la miniatura EXIF es revisa amb fotos reals
 a Windows (vegeu docs/sessions/B10.md).
