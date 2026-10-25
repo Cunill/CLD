@@ -64,13 +64,15 @@ nostre codi no crida `subprocess` fora de `passimaker.ffmpeg`).
 |---|---|
 | **A. sounddevice** (ja és una dependència) | Cap dependència nova. Cal confirmar que el PortAudio que porta exposa les sortides com a entrades WASAPI "[Loopback]". **Es prova primer.** |
 | B. `soundcard` (BSD-3) | Loopback documentat; dependència nova. Si A no serveix. |
-| C. `PyAudioWPatch` (MIT) | Fork de PyAudio; dependència nova amb binaris propis. |
+| C. `PyAudioWPatch` (Apache-2.0) | Fork de PyAudio; dependència nova amb binaris propis. |
 
-Qualsevol dependència nova es proposa abans (regla 10). El nucli amaga la tecnologia darrere del protocol
+**Resultat del C08** (25/10/2026, annex §3.1): **A no serveix** (sounddevice 0.5.6 porta PortAudio 19.7.0, sense
+loopback). El C08 proposa **B, `soundcard` 0.4.6** (BSD-3, 44 KB, sense dependències noves), **pendent de la decisió
+de l'usuari**. Qualsevol dependència nova es proposa abans (regla 10). El nucli amaga la tecnologia darrere del protocol
 `CaptureBackend` (CONTRACTES §16), de manera que el C08 la pot triar sense canviar el contracte públic.
 
 ## Conseqüències
-- Si serveix sounddevice, el ZIP no creix.
+- Amb `soundcard` (si s'aprova), el ZIP gairebé no creix (44 KB).
 - La captura real necessita una targeta de so, i els servidors de la CI no en tenen: aquestes proves porten la marca
   `so` (excloses per defecte i, a més, omeses sense `PASSIMAKER_SO=1`) i les fa l'usuari al seu PC. La lògica (silenci,
   retall, WAV, durada màxima, disc ple, desconnexió) es prova a Linux i a la CI amb un substitut (C09).

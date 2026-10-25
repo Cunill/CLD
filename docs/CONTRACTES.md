@@ -222,6 +222,9 @@ cançons i `waveform` per a la forma d'ona), sempre fora del fil de la interfíc
 Ampliat al C01 (decisió 0012): la interfície pot fer servir `passimaker.youtube` (§15) i
 `passimaker.ffmpeg.convert_to_mp3`, sempre fora del fil de la interfície. No importa `yt_dlp` ni cap mòdul de xarxa;
 [Obre a YouTube] fa servir `QDesktopServices.openUrl` (obre el navegador, el programa no s'hi connecta).
+Ampliat al C07 (decisió 0013): la interfície pot fer servir `passimaker.recorder` (§16): `list_sources`, `Monitor` i
+`Recorder` (es creen i s'aturen fora del fil de la interfície; les propietats i `peaks_since` es llegeixen des d'un
+`QTimer`, `defaults.RECORD_WAVE_REFRESH_HZ` cops per segon) i `remove_leftovers` en obrir el programa.
 
 ## 14. Substituts per a les proves (`tests/fakes`)
 
@@ -298,7 +301,8 @@ que en surten els tradueix `youtube.errors.translate` (vegeu la taula d'errors).
 - `download_audio`: el fitxer és dins d'una carpeta nova `youtube_…` de `temp_dir`; progrés en bytes, que no recula i
   acaba a `(total, total)`. Un error d'escriptura local (disc ple, sense permís) surt com l'`OSError` original, no com a
   error de YouTube.
-- `safe_target_path`: treu `< > : " / \ | ? *` i els caràcters de control, els punts i espais del final, i posa `_`
+- `safe_target_path` (C07: **passarà a `passimaker.common` al C09**, perquè la gravació també el fa servir; és un canvi
+  de contracte que farà el C09): treu `< > : " / \ | ? *` i els caràcters de control, els punts i espais del final, i posa `_`
   davant dels noms reservats (`CON`, `NUL`, `COM1`…, també `con.txt`); com a molt 150 unitats UTF-16 i 200 bytes UTF-8,
   menys si la carpeta és molt llarga (perquè la ruta càpiga en 259 caràcters), però mai menys de 20; títol buit →
   `YouTube.mp3`.
@@ -307,3 +311,64 @@ que en surten els tradueix `youtube.errors.translate` (vegeu la taula d'errors).
 
 **Proves amb xarxa real**: marca `xarxa`, excloses per defecte; a més s'ometen si no hi ha `PASSIMAKER_XARXA=1`
 (la CI fa `-m "not perf"`). Només al PC de l'usuari: `uv run pytest -m xarxa` amb la variable.
+
+## 16. Grava el que sona (`passimaker.recorder`) · C07 (contracte), C09 (implementació)
+
+Grava el so que sona per una sortida de Windows (WASAPI loopback) o, només si l'usuari la tria, una entrada (micròfon,
+línia). Decisió 0013, ESPECIFICACIO §1.7 ter, annex `docs/PLA_GRAVACIO.md` §3. Sense Qt i **sense xarxa** (hi ha una
+prova). La tecnologia de captura queda darrere de `CaptureBackend` (C08: sounddevice no serveix; proposta `soundcard`,
+pendent de l'usuari).
+
+| Operació | Rep | Retorna |
+|---|---|---|
+| `list_sources(*, backend=None)` | — | `tuple[AudioSource, ...]`: primer les sortides (la per defecte, primera), després les entrades; `()` si no n'hi ha cap |
+| `Monitor(source, *, backend=None)` | — | ones i nivell **sense gravar** (no escriu res al disc): `start()`, `stop()`, `level_dbfs`, `peaks_since(n)`, `error` |
+| `Recorder(source, temp_dir, settings=None, *, backend=None)` | `RecordingSettings` (sense: els valors de `defaults.py`) | objecte de gravació |
+| `Recorder.start()` | — | Comença (WAITING amb "Comença quan soni", si no RECORDING). `RecorderDiskFullError(ERROR_NO_SPACE)` amb menys de `min_free_bytes` lliures; `RecorderNoDeviceError` o `RecorderDeviceError` si no es pot obrir l'origen |
+| `Recorder.stop()` | — | `RecordingResult(wav_path, duration_s, trimmed_start_s, trimmed_end_s, stop_reason)`, ja retallat. Si estava INTERRUPTED, llança `Recorder.error`; si no s'ha gravat cap so, esborra el WAV i llança `RecorderSilentError` |
+| `Recorder.discard()` | — | Atura i ho esborra tot ([Descarta], tancar la finestra o el programa) |
+| `Recorder.state` / `error` / `elapsed_s` / `level_dbfs` | — | propietats de lectura, segures des d'un altre fil. `elapsed_s` = segons desats (0 en WAITING). `level_dbfs` = un valor per canal gravat, en dBFS (−inf en silenci digital) |
+| `Recorder.peaks_since(n)` / `Monitor.peaks_since(n)` | índex de la darrera columna rebuda (0 la primera vegada) | `(columnes noves, nou índex)`: `PeakColumns`, matriu `float32` (columnes, canals, 2) amb el mínim i el màxim de cada columna (`defaults.RECORD_PEAK_COLUMNS_PER_S` per segon); el `Monitor` només guarda els últims `RECORD_WAVE_WINDOW_S` |
+| `Recorder.overview(amplada)` | píxels | `PeakColumns` de tota la gravació reduïda a `amplada` columnes (en aturar) |
+| `trim_silence(samples, sample_rate, threshold_dbfs, margin_s)` | `(fotogrames, canals)` o `(fotogrames,)`: l'àudio o una envolupant dels pics (`sample_rate` = columnes per segon) | `(inici_s, final_s)` de la part que es conserva, amb `margin_s` abans del primer so i després de l'últim, dins de la gravació; `None` si tot és per sota del llindar. Pur |
+| `remove_leftovers(temp_dir)` | — | nombre de WAV temporals (`TEMP_PREFIX` = `passimaker_gravacio_`) esborrats; en obrir el programa (G1) |
+
+**Desar o esborrar (G1, G5).** Una gravació es desa només si acaba amb `stop()` (`StopReason.USER`) o amb l'aturada
+automàtica per silenci (estat FINISHED; `stop()` retorna `StopReason.SILENCE`). Qualsevol altra causa (desconnexió, disc
+ple, durada màxima, error del so, `discard()`) esborra el WAV **abans** que l'error sigui visible: estat INTERRUPTED,
+`error` amb la causa, i `stop()` la llança. El WAV d'un `RecordingResult` és de qui el rep: el converteix a MP3
+(`ffmpeg.convert_to_mp3`, `defaults.RECORD_MP3_BITRATE_KBPS`) i l'esborra.
+
+`AudioSource`: `id` (text opac del backend), `name`, `kind: SourceKind` (OUTPUT_LOOPBACK, INPUT), `is_default`,
+`sample_rate`, `channels`; propietat `recorded_channels` (1 per a un origen mono, si no 2: un 5.1 es grava en estèreo).
+`StopReason`: USER, SILENCE. `RecorderState`: IDLE, WAITING, RECORDING, FINISHED, INTERRUPTED, CLOSED.
+`RecordingSettings`: `start_when_sound`, `start_threshold_dbfs`, `silence_stop`, `silence_stop_s`,
+`silence_threshold_dbfs`, `trim`, `trim_threshold_dbfs`, `trim_margin_s`, `max_duration_s`, `min_free_bytes`,
+`peak_columns_per_s`.
+
+**Backend** (protocols a `passimaker.recorder.backend`; el C09 els pot ajustar segons el C08). `CaptureBackend`:
+`list_sources()` i `open(source) -> CaptureStream`. `CaptureStream` (des del fil de captura): `sample_rate`, `channels`
+(1 o 2), `read(timeout_s) -> AudioFrames | None` (`float32` (fotogrames, canals); `None` si no ha arribat res),
+`dropped_frames()` i `close()`; llança `RecorderDeviceLostError` o `RecorderDeviceError`. Substitut de proves:
+`FakeCaptureBackend` a `tests/fakes` (C09), amb tons i silencis.
+
+Errors (hereten de `RecorderError`, que hereta de `PassiMakerError`):
+
+| Error | Clau (`passimaker.i18n`) | Quan |
+|---|---|---|
+| `RecorderNoDeviceError` | `recorder.no_device` | no hi ha cap sortida de so, o l'origen triat ja no hi és |
+| `RecorderDeviceLostError` | `recorder.device_lost` | la sortida canvia o es desconnecta mentre es grava |
+| `RecorderSilentError` | `recorder.silent` | `stop()` sense cap so per sobre del llindar |
+| `RecorderDiskFullError` | `recorder.disk_full` · `recorder.no_space` | menys de `RECORD_MIN_FREE_BYTES` gravant · en començar |
+| `RecorderMaxDurationError` | `recorder.max_duration` | `RECORD_MAX_DURATION_S` (G5) |
+| `RecorderDeviceError` | `recorder.device_error` | qualsevol altra fallada del so (el detall, per al registre) |
+
+Valors (`passimaker.model.defaults`): `RECORD_START_WHEN_SOUND`, `RECORD_START_THRESHOLD_DBFS = -50`,
+`RECORD_SILENCE_STOP_ENABLED`, `RECORD_SILENCE_STOP_S = 5` (`RECORD_SILENCE_STOP_RANGE` 1–60),
+`RECORD_SILENCE_THRESHOLD_DBFS = -50`, `RECORD_TRIM_ENABLED`, `RECORD_TRIM_THRESHOLD_DBFS = -50`,
+`RECORD_TRIM_MARGIN_S = 0.2`, `RECORD_MAX_DURATION_S = 1800`, `RECORD_MAX_WARNING_S = 60`, `RECORD_MIN_FREE_BYTES` (1 GB),
+`RECORD_MP3_BITRATE_KBPS = 192`, `RECORD_WAVE_WINDOW_S = 10`, `RECORD_PEAK_COLUMNS_PER_S = 50`,
+`RECORD_WAVE_REFRESH_HZ = 30`, `RECORD_CLIP_HOLD_S = 2`, `RECORD_DISCARD_CONFIRM_S = 10`.
+
+**Proves amb una targeta de so real**: marca `so`, excloses per defecte; a més s'han d'ometre si no hi ha
+`PASSIMAKER_SO=1` (la CI fa `-m "not perf"`). Només al PC de l'usuari: `uv run pytest -m so` amb la variable.
