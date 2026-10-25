@@ -316,8 +316,8 @@ que en surten els tradueix `youtube.errors.translate` (vegeu la taula d'errors).
 
 Grava el so que sona per una sortida de Windows (WASAPI loopback) o, només si l'usuari la tria, una entrada (micròfon,
 línia). Decisió 0013, ESPECIFICACIO §1.7 ter, annex `docs/PLA_GRAVACIO.md` §3. Sense Qt i **sense xarxa** (hi ha una
-prova). La tecnologia de captura queda darrere de `CaptureBackend` (C08: sounddevice no serveix; proposta `soundcard`,
-pendent de l'usuari).
+prova). La tecnologia de captura queda darrere de `CaptureBackend` (C08: sounddevice no serveix; `soundcard` 0.4.6,
+aprovada per l'usuari, G10).
 
 | Operació | Rep | Retorna |
 |---|---|---|
