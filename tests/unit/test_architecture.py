@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import subprocess
 import sys
 from pathlib import Path
@@ -23,7 +24,10 @@ CORE_MODULES = [
     "passimaker.projectio",
     "passimaker.i18n",
     "passimaker.cli",
+    "passimaker.youtube",
 ]
+NETWORK_MODULES = {"yt_dlp", "urllib.request", "http.client", "socket"}
+"""Only passimaker.youtube may import these (decision 0012: no network anywhere else)."""
 
 
 def test_core_does_not_import_qt() -> None:
@@ -61,3 +65,51 @@ def test_qt_modules_import() -> None:
 
     assert passimaker.preview.PREVIEW_MAX_SIZE == (960, 540)
     assert callable(passimaker.ui.app.main)
+
+
+def _imported_modules(source: str) -> set[str]:
+    names: set[str] = set()
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Import):
+            names.update(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
+            names.add(node.module)
+            names.update(f"{node.module}.{alias.name}" for alias in node.names)
+    return names
+
+
+def _is_network(name: str) -> bool:
+    return any(name == bad or name.startswith(bad + ".") for bad in NETWORK_MODULES)
+
+
+def test_only_youtube_module_imports_network_modules() -> None:
+    offenders = [
+        f"{path.relative_to(SRC)}: {name}"
+        for path in SRC.rglob("*.py")
+        if path.relative_to(SRC).parts[0] != "youtube"
+        for name in sorted(_imported_modules(path.read_text(encoding="utf-8")))
+        if _is_network(name)
+    ]
+    assert offenders == []
+
+
+def test_the_network_check_sees_every_import_form() -> None:
+    """Guards the test above: it would pass trivially if the import parser missed something."""
+    sample = (
+        "import socket\nimport urllib.request as r\nfrom http import client\n"
+        + "from yt_dlp import YoutubeDL\n"
+    )
+    found = {name for name in _imported_modules(sample) if _is_network(name)}
+    assert not _is_network("urllib.parse")
+    assert {"socket", "urllib.request", "http.client", "yt_dlp"} <= found
+
+
+def test_importing_the_program_does_not_load_yt_dlp() -> None:
+    code = (
+        "import sys\n"
+        + "".join(f"import {m}\n" for m in CORE_MODULES)
+        + "import passimaker.ui.app\n"
+        + "print('yt_dlp' in sys.modules)\n"
+    )
+    out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
+    assert out.stdout.strip() == "False"

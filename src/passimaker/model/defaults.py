@@ -68,3 +68,12 @@ DATE_ORDER_MIN_FRACTION = 0.8
 AUTOSAVE_INTERVAL_S = 120
 UNDO_HISTORY_STEPS = 100
 """Undo history depth (§1.13, P1)."""
+
+YOUTUBE_RESULTS_PER_PAGE = 10
+"""Results of a YouTube search shown at once; "Més resultats" loads as many again (decision 0012)."""
+YOUTUBE_MAX_DURATION_S = 20 * 60.0
+"""Longer videos cannot be downloaded (avoids hour-long mixes by mistake). The message says "20 minuts"."""
+YOUTUBE_MP3_BITRATE_KBPS = 192
+"""MP3 of the downloaded songs, 48 kHz stereo like the mixer (decision 0012)."""
+YOUTUBE_SIMULTANEOUS_DOWNLOADS = 2
+"""Downloads running at the same time; the rest wait in the queue."""

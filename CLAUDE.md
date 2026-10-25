@@ -2,7 +2,8 @@
 
 ## Què és
 Programa d'escriptori per a Windows per fer passis de fotos (moviment Ken Burns, fosa encadenada, música)
-i exportar-los a MP4 Full HD (1920×1080 o 1080×1920, 30 fps). Ús intern i fora de línia.
+i exportar-los a MP4 Full HD (1920×1080 o 1080×1920, 30 fps). Ús intern; fora de línia excepte la música
+de YouTube (decisió 0012).
 Pla: docs/PLA.md · Contractes: docs/CONTRACTES.md · Comportament i valors per defecte: docs/ESPECIFICACIO.md ·
 Decisions: docs/decisions/ · Estat de cada bloc: docs/sessions/
 
@@ -115,4 +116,8 @@ Prova manual del B14 a Windows feta el 24/10/2026: correcta; tres millores a la 
 B15: registre a `%LOCALAPPDATA%\PassiMaker\logs`. Mesures de 1.000 fotos al PC de referència (el sobretaula de l'usuari,
 D9: i7-6700K, GTX 960, 40 GB) fetes el 24/10/2026 (PR #46): importar 76 s, memòria màxima 835 MB, exportar 1,17 × la
 durada; totes dins dels límits (docs/RENDIMENT.md).
+**Música de YouTube (versió 1.2.0 prevista)**: pla aprovat per l'usuari el 25/10/2026 (docs/PLA_YOUTUBE.md, blocs
+C01–C06, seguiment al §4.1; decisió 0012). Blocs integrats a main: C01 decisió, contractes (CONTRACTES §15) i
+especificació (§1.7 bis) (PR #52, commit `7f1bc0b`) · C04 conversió a MP3, `ffmpeg.convert_to_mp3` (PR #54, commit
+`5c2129b`). Següent: C02 (viabilitat, núvol + local), que encara és pendent. Tota la xarxa, només a `passimaker.youtube` i mai abans de l'avís.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.

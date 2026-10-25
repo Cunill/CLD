@@ -14,6 +14,7 @@ Keys:
   the key as ``f"import.{failure.reason.value}"`` so that this module imports nothing
 - ``ffmpeg.*`` the FFmpeg bridge (B7)
 - ``export.*`` exporting (B9)
+- ``youtube.*`` music from YouTube (C01, decision 0012)
 """
 
 from __future__ import annotations
@@ -57,6 +58,17 @@ MESSAGES: Mapping[str, str] = {
     "export.disk_full": "No hi ha prou espai al disc.",
     "export.write_error": "No es pot escriure el vídeo en aquesta carpeta.",
     "export.failed": "L'exportació ha fallat per un error inesperat.",
+    # passimaker.youtube (C01, decision 0012)
+    "youtube.offline": "No hi ha connexió a internet. Comprova la xarxa i torna-ho a provar.",
+    "youtube.invalid_link": "Aquest enllaç no és d'un vídeo de YouTube.",
+    "youtube.unavailable": "Aquest vídeo no es pot descarregar (és privat, s'ha esborrat o té restriccions).",
+    "youtube.live": "No es poden descarregar directes.",
+    "youtube.broken": (
+        "YouTube ha canviat i aquesta versió de PassiMaker ja no pot descarregar. "
+        "Cal una versió nova del programa."
+    ),
+    "youtube.too_long": "Aquest vídeo dura més de 20 minuts.",
+    "youtube.consent": "Cal acceptar l'avís abans de fer servir YouTube.",
 }
 
 

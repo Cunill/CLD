@@ -208,7 +208,7 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 
 **Comportament**
 - Sota el storyboard hi ha la franja "Música", amb les cançons en ordre: nom, durada real (després del retall) i indicadors de fosa. Les cançons s'afegeixen amb [+ Música] o arrossegant fitxers d'àudio a la finestra. Es poden eliminar i reordenar arrossegant-les.
-- Formats: MP3, WAV, M4A/AAC, FLAC, OGG, WMA i OPUS.
+- Formats: MP3, WAV, M4A/AAC, FLAC, OGG, WMA i OPUS. També es poden descarregar de YouTube (§1.7 bis).
 - Les cançons sonen una darrere l'altra des del principi del vídeo, sense trepitjar-se.
 - Ajustos de cada cançó (panell de propietats):
   - Fosa d'entrada: ☑ activada, 1,0 s (de 0 a 10 s, en passos de 0,5 s).
@@ -240,6 +240,70 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 - Retall amb l'inici després del final: no es permet.
 - Àudio mono, 5.1 o amb freqüències de mostreig diferents: es converteix a estèreo de 48 kHz.
 - Música de més d'una hora: s'admet.
+
+### 1.7 bis Música de YouTube (decisió 0012, versió 1.2.0)
+
+Cercar cançons a YouTube, o enganxar-ne l'enllaç, i descarregar-les en MP3 per afegir-les al passi. És l'única part
+del programa que es connecta a internet; la resta funciona igual sense xarxa.
+
+**Avís de conformitat**
+- En triar [+ Música ▾] → "Des de YouTube…" s'obre primer un diàleg modal, "Abans de fer servir YouTube":
+  - "Aquesta funció es connecta a internet per cercar i descarregar àudio de YouTube."
+  - "Les condicions de YouTube no permeten descarregar contingut si YouTube no ofereix un botó de descàrrega."
+  - "La majoria de cançons tenen drets d'autor. Descarrega i fes servir només música que tinguis dret a fer servir."
+  - "Ets responsable de l'ús que en facis."
+  - "PassiMaker i els seus autors declinen qualsevol responsabilitat derivada de l'ús de la música descarregada, i en particular per qualsevol infracció dels drets d'autor o de les condicions de YouTube."
+  - Casella "☐ He llegit l'avís, n'accepto les condicions i hi estic conforme" i botons [Cancel·la] i [Accepta i continua].
+- La casella no està mai marcada d'entrada; [Accepta i continua] està desactivat fins que es marca.
+- [Cancel·la], Esc o tancar la finestra: no s'obre la funció i no es desa res.
+- La conformitat val per a la sessió del programa: es guarda només a la memòria i no es desa enlloc (ni la
+  configuració, ni el registre, ni el `.pmk`). Mentre PassiMaker és obert, l'avís no torna a sortir; en tancar-lo es
+  perd. La comparteixen totes les finestres obertes.
+- Enllaç "Retira la conformitat" a la finestra de YouTube: la tanca i cancel·la les descàrregues en curs.
+- **Cap connexió abans d'acceptar**, ni tan sols per comprovar si hi ha internet. La finestra de YouTube tampoc no fa
+  res sola en obrir-se (cap cerca, miniatura ni comprovació de versió): la primera connexió és la primera cerca o
+  enllaç que demana l'usuari.
+
+**Recorregut**
+
+| # | Acció de l'usuari | Què passa |
+|---|---|---|
+| 1 | Franja de música → [+ Música ▾] → "Des de YouTube…" | S'obre el diàleg "Música de YouTube" (no modal: es pot continuar treballant). Si encara no s'ha acceptat l'avís en aquesta sessió del programa, abans surt l'avís. |
+| 2a | Escriu una cerca ("Ludovico Einaudi Nuvole Bianche") i prem Retorn | Llista de 10 resultats: miniatura, títol, canal, durada. [Més resultats] en carrega 10 més. |
+| 2b | O bé enganxa un enllaç (`youtube.com/watch?v=…`, `youtu.be/…`, `music.youtube.com/…`, `shorts/…`) | El camp el reconeix sol i mostra un únic resultat amb les dades del vídeo. |
+| 3 | Selecciona un o diversos resultats i prem [Descarrega en MP3] | Primer es tria la carpeta. Després cada fila mostra el progrés (descarregant → convertint → fet) i es pot cancel·lar cada descàrrega. |
+| 4 | Casella "Afegeix al projecte en acabar" (marcada per defecte) | En acabar, la cançó s'afegeix a la franja de música (Ctrl+Z la treu, com sempre). |
+| 5 | [Mostrar a la carpeta] | Obre la carpeta on s'ha desat l'MP3. |
+| — | [Obre a YouTube], a cada resultat | Obre el vídeo al navegador per escoltar-lo abans de descarregar-lo (el programa no s'hi connecta). |
+
+Si es tanca el diàleg amb descàrregues en curs, pregunta si s'han de cancel·lar.
+
+**Valors per defecte**
+
+| Paràmetre | Per defecte | Notes |
+|---|---|---|
+| Resultats per pàgina | 10 | `defaults.YOUTUBE_RESULTS_PER_PAGE` |
+| Durada màxima | 20 min | Evita descarregar per error mescles d'hores. `defaults.YOUTUBE_MAX_DURATION_S`. Els resultats més llargs surten en gris, amb el motiu. |
+| Format | MP3, 192 kbps, 48 kHz estèreo | `defaults.YOUTUBE_MP3_BITRATE_KBPS`; 48 kHz com el mesclador |
+| Carpeta de destinació | Es pregunta cada vegada | Un cop per a tota la selecció, en prémer [Descarrega en MP3]. Proposa la darrera carpeta feta servir (`Documents` la primera vegada). Cancel·lar-lo no descarrega res. |
+| Nom del fitxer | `<títol>.mp3`, sense caràcters no vàlids a Windows | Si ja existeix, `<títol> (2).mp3`. Mai no se sobreescriu res. |
+| Metadades | Títol, canal (com a artista) i l'enllaç d'origen al comentari | Etiquetes ID3 |
+| Descàrregues simultànies | 2 | `defaults.YOUTUBE_SIMULTANEOUS_DOWNLOADS`; la resta, a la cua |
+
+**Errors**
+
+| Situació | Missatge |
+|---|---|
+| Sense connexió | "No hi ha connexió a internet. Comprova la xarxa i torna-ho a provar." |
+| Enllaç no vàlid | "Aquest enllaç no és d'un vídeo de YouTube." |
+| Vídeo privat, esborrat, amb restricció d'edat o de país | "Aquest vídeo no es pot descarregar (és privat, s'ha esborrat o té restriccions)." |
+| Directe en curs | "No es poden descarregar directes." |
+| YouTube ha canviat i yt-dlp ja no funciona | "YouTube ha canviat i aquesta versió de PassiMaker ja no pot descarregar. Cal una versió nova del programa." (el detall, al registre) |
+| Massa llarg | "Aquest vídeo dura més de 20 minuts." |
+
+**Fora d'abast:** llistes de reproducció senceres, vídeo (només àudio), altres webs que admet yt-dlp, escoltar la
+cançó dins del programa (es fa al navegador amb [Obre a YouTube]) i el filtre Creative Commons (descartat a la
+decisió 0012).
 
 ### 1.8 Previsualització
 
