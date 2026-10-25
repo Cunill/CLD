@@ -266,7 +266,7 @@ Errors (hereten de `YoutubeError`, que hereta de `PassiMakerError`):
 |---|---|---|
 | `YoutubeOfflineError` | `youtube.offline` | sense connexió |
 | `YoutubeUnavailableError` | `youtube.unavailable` · `youtube.live` | privat, esborrat o amb restriccions · directe en curs |
-| `YoutubeBrokenError` | `youtube.broken` | YouTube ha canviat i yt-dlp no funciona (el detall, per al registre) |
+| `YoutubeBrokenError` | `youtube.broken` | YouTube ha canviat i yt-dlp no funciona (el detall, per al registre); també qualsevol error que no es reconeix |
 | `YoutubeTooLongError` | `youtube.too_long` | més de `defaults.YOUTUBE_MAX_DURATION_S` |
 | `YoutubeConsentError` | `youtube.consent` | sense conformitat |
 | — | `youtube.invalid_link` | la interfície, quan `parse_link` no reconeix un enllaç enganxat |
@@ -274,5 +274,33 @@ Errors (hereten de `YoutubeError`, que hereta de `PassiMakerError`):
 Valors (`passimaker.model.defaults`): `YOUTUBE_RESULTS_PER_PAGE = 10`, `YOUTUBE_MAX_DURATION_S = 1200`,
 `YOUTUBE_MP3_BITRATE_KBPS = 192`, `YOUTUBE_SIMULTANEOUS_DOWNLOADS = 2`.
 
-Proves: el substitut de yt-dlp (un "backend" injectable, a `tests/fakes`) i la marca `xarxa` per a les proves amb
-xarxa real (excloses per defecte i a la CI) es defineixen al C03.
+**Backend** (C03). `search`, `resolve`, `fetch_thumbnail` i `download_audio` accepten un paràmetre opcional
+(només per nom) `backend: YoutubeBackend`; sense, fan servir `YtDlpBackend` (yt-dlp com a biblioteca, el servidor
+intermediari del sistema i el Deno del paquet; yt-dlp no fa cap conversió ni fa servir FFmpeg). El protocol
+`YoutubeBackend` té `extract_info(url, *, flat)`, `download(info, folder, hook)` i `fetch(url, max_bytes)`; els errors
+que en surten els tradueix `youtube.errors.translate` (vegeu la taula d'errors). El substitut de proves és
+`tests/fakes/youtube.py` (`FakeYoutubeBackend`).
+
+**Cancel·lació** (C03). Les quatre funcions llancen `concurrent.futures.CancelledError` si el `CancelToken` s'activa
+(la baixada s'atura al bloc de dades següent). `download_audio` no deixa cap fitxer en cancel·lar o fallar.
+
+**Detalls** (C03).
+- `search`: només vídeos (sense canals ni llistes); consulta buida → `()`; com a molt `MAX_SEARCH_RESULTS = 100`
+  (`offset + limit`); `limit < 1` o `offset < 0` → `ValueError`.
+- `resolve` i `search` retornen també els directes (`is_live`) i els vídeos massa llargs: la interfície els mostra en
+  gris. `download_audio` els rebutja abans de baixar res (`ERROR_LIVE`, `YoutubeTooLongError`).
+- `SearchResult.thumbnail_url` és sempre `https://i.ytimg.com/vi/<id>/mqdefault.jpg` (320×180).
+  `fetch_thumbnail` només va a `https` de `ytimg.com`, `ggpht.com` o `googleusercontent.com` (si no, `ValueError`) i
+  com a molt 2 MB.
+- `download_audio`: el fitxer és dins d'una carpeta nova `youtube_…` de `temp_dir`; progrés en bytes, que no recula i
+  acaba a `(total, total)`. Un error d'escriptura local (disc ple, sense permís) surt com l'`OSError` original, no com a
+  error de YouTube.
+- `safe_target_path`: treu `< > : " / \ | ? *` i els caràcters de control, els punts i espais del final, i posa `_`
+  davant dels noms reservats (`CON`, `NUL`, `COM1`…, també `con.txt`); com a molt 150 unitats UTF-16 i 200 bytes UTF-8,
+  menys si la carpeta és molt llarga (perquè la ruta càpiga en 259 caràcters), però mai menys de 20; títol buit →
+  `YouTube.mp3`.
+- Un enllaç o `video_id` mal format a `resolve` o `download_audio` → `ValueError` (error de programació: la interfície
+  passa sempre el que retorna `parse_link`).
+
+**Proves amb xarxa real**: marca `xarxa`, excloses per defecte; a més s'ometen si no hi ha `PASSIMAKER_XARXA=1`
+(la CI fa `-m "not perf"`). Només al PC de l'usuari: `uv run pytest -m xarxa` amb la variable.

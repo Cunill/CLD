@@ -45,11 +45,12 @@ default-groups = ["dev"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --strict-markers -m 'not lent and not perf'"
+addopts = "-ra --strict-markers -m 'not lent and not perf and not xarxa'"
 markers = [
     "lent: proves lentes (més de ~5 s); s'executen amb -m 'not perf'",
     "ui: proves de la interfície amb pytest-qt (sense pantalla)",
     "perf: proves de rendiment; només en local al PC de referència o a les fites",
+    "xarxa: proves amb YouTube de veritat; només al PC de l'usuari, amb PASSIMAKER_XARXA=1 (mai a la CI)",
 ]
 qt_api = "pyside6"
 filterwarnings = ["error::DeprecationWarning:passimaker.*"]
