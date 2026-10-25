@@ -218,21 +218,45 @@ Mateix protocol que la resta (CLAUDE.md): un bloc per sessió, branca `bloc/CNN-
 Es posa al dia en tancar cada bloc (a la mateixa PR del bloc). "Sessions" són sessions de Claude Code; "temps teu" són
 les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escenaris: optimista / probable / pessimista.
 
-| Bloc | Sessions estimades (opt. / prob. / pes.) | Temps teu estimat (h) | Estat | Sessions consumides | Temps teu consumit (h) | PR · commit |
-|---|---|---|---|---|---|---|
-| Pla (aquest document) | — | — | ✅ aprovat el 25/10/2026 | 1 | — | branca `ccr-08701f22-8ayer4` (sense PR, decisió 6) |
-| C01 Decisió i contracte | 1 / 1 / 1 | 0,5 | ⏳ pendent | — | — | — |
-| C02 Prova de viabilitat | 1 / 1 / 2 | 1,0 | ⏳ pendent | — | — | — |
-| C03 Nucli `youtube` | 1 / 1 / 2 | 0,5 | ⏳ pendent | — | — | — |
-| C04 Conversió a MP3 | 1 / 1 / 1 | 0,25 | ⏳ pendent | — | — | — |
-| C05 Diàleg | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
-| C06 Empaquetat i versió | 1 / 1 / 2 | 1,0 | ⏳ pendent | — | — | — |
-| **Subtotal dels blocs** | **6 / 7 / 10** | **4,25** | | **0** | **0** | |
-| Sessions de correcció després de la prova de l'usuari | 0 / 1 / 2 | inclòs a sota | ⏳ pendent | — | — | — |
-| Revisió de les PR i prova final de l'usuari | — | 1,5 / 3 / 6 | ⏳ pendent | — | — | — |
-| **Total** | **6 / 8 / 12 sessions** | **6 / 7 / 10 h** | | **1** (el pla) | **—** | |
+| Bloc | Depèn de | En paral·lel amb | Tanda | Sessions estimades (opt. / prob. / pes.) | Temps teu estimat (h) | Estat | Sessions consumides | Temps teu consumit (h) | PR · commit |
+|---|---|---|---|---|---|---|---|---|---|
+| Pla (aquest document) | — | — | — | — | — | ✅ aprovat el 25/10/2026 | 1 | — | branca `ccr-08701f22-8ayer4` (sense PR, decisió 6) |
+| C01 Decisió i contracte | aprovació del pla | — (és la base de tots) | T1 | 1 / 1 / 1 | 0,5 | ⏳ pendent | — | — | — |
+| C02 Prova de viabilitat | C01 | **C04** | T2 | 1 / 1 / 2 | 1,0 | ⏳ pendent | — | — | — |
+| C03 Nucli `youtube` | C01, C02 | **C04** (si encara no s'ha fet) | T3 | 1 / 1 / 2 | 0,5 | ⏳ pendent | — | — | — |
+| C04 Conversió a MP3 | C01 | **C02** o **C03** | T2 (o T3) | 1 / 1 / 1 | 0,25 | ⏳ pendent | — | — | — |
+| C05 Diàleg | C03, C04 | — | T4 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
+| C06 Empaquetat i versió | C05 | — | T5 | 1 / 1 / 2 | 1,0 | ⏳ pendent | — | — | — |
+| **Subtotal dels blocs** |  |  |  | **6 / 7 / 10** | **4,25** | | **0** | **0** | |
+| Sessions de correcció després de la prova de l'usuari | C06 | — | després del C06 | 0 / 1 / 2 | inclòs a sota | ⏳ pendent | — | — | — |
+| Revisió de les PR i prova final de l'usuari | — | — | totes | — | 1,5 / 3 / 6 | ⏳ pendent | — | — | — |
+| **Total** |  |  |  | **6 / 8 / 12 sessions** | **6 / 7 / 10 h** | | **1** (el pla) | **—** | |
 
 Llegenda de l'estat: ⏳ pendent · 🔧 en curs · ✅ tancat (fusionat a `main`) · ⛔ aturat (vegeu `docs/sessions/CNN.md`).
+
+**Dependències i blocs en paral·lel.** Una *tanda* és un grup de blocs que es poden fer **alhora**, en sessions de
+Claude Code diferents, perquè no depenen l'un de l'altre ni toquen els mateixos fitxers de codi. Una tanda comença quan
+tots els blocs de què depèn són a `main`.
+
+```
+T1          T2                    T3              T4          T5
+C01 ──┬──▶ C02 (viabilitat) ──▶ C03 (nucli) ──┐
+      │                                       ├──▶ C05 ──▶ C06 ──▶ correccions
+      └──▶ C04 (MP3, pont FFmpeg) ────────────┘
+```
+
+| Parella en paral·lel | Per què és possible | Fitxers de codi de cadascun |
+|---|---|---|
+| C02 ∥ C04 | C04 només necessita el contracte de `convert_to_mp3` (C01); no depèn de yt-dlp | C02: script de prova, `pyproject.toml`, `uv.lock`, paquet · C04: `src/passimaker/ffmpeg`, `tests/**/ffmpeg` |
+| C03 ∥ C04 | C03 baixa l'àudio original i C04 el converteix: es troben només al contracte | C03: `src/passimaker/youtube`, `tests/**/youtube` · C04: com a dalt |
+
+- **No es poden fer en paral·lel:** C01 amb res (fixa els contractes); C03 abans del C02 (pot canviar l'enfocament);
+  C05 abans del C03 i el C04 (la interfície els fa servir tots dos); C06 abans del C05.
+- **Fitxers compartits:** la taula d'aquest §4.1 i l'apartat Estat del CLAUDE.md. Cada bloc en paral·lel hi escriu
+  només la seva fila; el que es fusiona segon porta `main` a la seva branca (fusió, sense reescriure la història) i
+  resol el conflicte abans de fusionar.
+- **Camí crític:** C01 → C02 → C03 → C05 → C06 (5 sessions probables). Fer el C04 en paral·lel estalvia **1 sessió**
+  del calendari; el total de sessions no canvia.
 
 **Calendari** (a 4 h/setmana del teu temps, començant quan s'aprovi el C01):
 
