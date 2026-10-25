@@ -70,3 +70,31 @@ def test_the_canonical_url_round_trips(video_id: str) -> None:
 def test_never_crashes_and_only_returns_valid_ids(text: str) -> None:
     found = parse_link(text)
     assert found is None or (len(found) == 11 and found in text)
+
+
+FORMS = [
+    "https://www.youtube.com/watch?v={id}",
+    "m.youtube.com/watch?v={id}",
+    "https://music.youtube.com/watch?v={id}",
+    "https://youtu.be/{id}?",
+    "https://www.youtube.com/shorts/{id}?",
+    "https://www.youtube.com/embed/{id}?",
+    "https://www.youtube.com/live/{id}?",
+]
+param_names = st.sampled_from(["t", "list", "index", "si", "feature", "pp", "start_radio"])
+param_values = st.text(alphabet=ID_ALPHABET + "%.", min_size=0, max_size=20)
+
+
+@given(video_ids, st.sampled_from(FORMS), st.lists(st.tuples(param_names, param_values), max_size=4))
+def test_extra_parameters_do_not_matter(video_id: str, form: str, params: list[tuple[str, str]]) -> None:
+    """C03: &t=30s, &list=…, &si=… and the like, in any number and order, keep the video id."""
+    link = form.format(id=video_id)
+    extra = "&".join(f"{name}={value}" for name, value in params)
+    if extra:
+        link += extra if link.endswith("?") else "&" + extra
+    assert parse_link(link) == video_id
+
+
+@given(video_ids, st.sampled_from(["vimeo.com", "youtube.co", "example.org", "notyoutube.com"]))
+def test_other_hosts_are_never_links(video_id: str, host: str) -> None:
+    assert parse_link(f"https://{host}/watch?v={video_id}") is None
