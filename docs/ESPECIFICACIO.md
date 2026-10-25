@@ -252,6 +252,7 @@ del programa que es connecta a internet; la resta funciona igual sense xarxa.
   - "Les condicions de YouTube no permeten descarregar contingut si YouTube no ofereix un botó de descàrrega."
   - "La majoria de cançons tenen drets d'autor. Descarrega i fes servir només música que tinguis dret a fer servir."
   - "Ets responsable de l'ús que en facis."
+  - "PassiMaker i els seus autors declinen qualsevol responsabilitat derivada de l'ús de la música descarregada, i en particular per qualsevol infracció dels drets d'autor o de les condicions de YouTube."
   - Casella "☐ He llegit l'avís i hi estic conforme" i botons [Cancel·la] i [Accepta i continua].
 - La casella no està mai marcada d'entrada; [Accepta i continua] està desactivat fins que es marca.
 - [Cancel·la], Esc o tancar la finestra: no s'obre la funció i no es desa res.

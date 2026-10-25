@@ -53,6 +53,8 @@ per afegir-les al passi.
   majoria de cançons tenen drets d'autor (un vídeo publicat es pot silenciar o bloquejar).
 - Mesures: l'avís amb la casella de conformitat obligatòria (decisions 2 i 7) i, a la guia (C06), fonts de música
   lliure: Biblioteca d'àudio de YouTube, Free Music Archive i Pixabay Music. Sense filtre Creative Commons.
+- **Declinació de responsabilitat** (petició de l'usuari en revisar el C01, 25/10/2026): l'avís diu explícitament
+  "PassiMaker i els seus autors declinen qualsevol responsabilitat derivada de l'ús de la música descarregada, i en particular per qualsevol infracció dels drets d'autor o de les condicions de YouTube." Text complet de l'avís: ESPECIFICACIO §1.7 bis.
 
 ## 5. Conformitat per sessió del programa
 - La casella no està mai marcada d'entrada i [Accepta i continua] està desactivat fins que es marca.

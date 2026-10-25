@@ -43,7 +43,8 @@ Aquesta funció xoca amb tres decisions preses i amb dues regles del CLAUDE.md. 
   l'estudi, pot necessitar llicència; si el vídeo es publica (YouTube, Instagram…), la plataforma el pot silenciar o
   bloquejar.
 - Mesures (decisió 2 del §0):
-  1. **Avís amb casella de conformitat obligatòria** i sense cap connexió abans d'acceptar-lo (§2.0).
+  1. **Avís amb casella de conformitat obligatòria** i sense cap connexió abans d'acceptar-lo (§2.0). L'avís inclou
+     una **declinació explícita de responsabilitat** sobre els drets d'autor (petició de l'usuari, 25/10/2026, C01).
   2. A la guia, un apartat amb fonts de música lliure: Biblioteca d'àudio de YouTube (descàrrega oficial des de YouTube
      Studio), Free Music Archive, Pixabay Music.
 
@@ -65,6 +66,10 @@ Aquesta funció xoca amb tres decisions preses i amb dues regles del CLAUDE.md. 
 │ · La majoria de cançons tenen drets d'autor. Descarrega i fes servir    │
 │   només música que tinguis dret a fer servir.                           │
 │ · Ets responsable de l'ús que en facis.                                 │
+│ · PassiMaker i els seus autors declinen qualsevol responsabilitat       │
+│   derivada de l'ús de la música descarregada, i en particular per       │
+│   qualsevol infracció dels drets d'autor o de les condicions de         │
+│   YouTube.                                                              │
 │                                                                         │
 │ ☐ He llegit l'avís i hi estic conforme                                  │
 │                                                                         │
