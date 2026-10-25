@@ -228,13 +228,24 @@ def select(window: YoutubeWindow, rows: Sequence[int]) -> None:
 
 
 def wait_finished(qtbot: QtBot, window: YoutubeWindow) -> None:
-    qtbot.waitUntil(lambda: window.download_rows() and window.active_downloads() == 0, timeout=WAIT_MS)
+    qtbot.waitUntil(lambda: bool(window.download_rows()) and window.active_downloads() == 0, timeout=WAIT_MS)
+
+
+def waiting(event: threading.Event, seconds: float, at: int | None = None) -> Callable[[int], None]:
+    """An on_chunk that holds the download (at every chunk, or only at chunk `at`) until `event`."""
+
+    def hold(index: int) -> None:
+        if at is None or index == at:
+            event.wait(seconds)
+
+    return hold
 
 
 # --- The notice ----------------------------------------------------------------------------------
 
 
 def test_notice_box_starts_unticked_and_accept_is_disabled_until_ticked(qtbot: QtBot) -> None:
+    loaded = "yt_dlp" in sys.modules  # other tests of the suite may have loaded it already
     dialog = NoticeDialog()
     qtbot.addWidget(dialog)
     assert not dialog.agree.isChecked()
@@ -247,7 +258,7 @@ def test_notice_box_starts_unticked_and_accept_is_disabled_until_ticked(qtbot: Q
     assert dialog.result() != NoticeDialog.DialogCode.Accepted
     assert "drets d'autor" in " ".join(label.text() for label in dialog.findChildren(QLabel))
     assert consent.current() is None
-    assert "yt_dlp" not in sys.modules
+    assert ("yt_dlp" in sys.modules) == loaded
 
 
 def test_notice_cancel_rejects(qtbot: QtBot) -> None:
@@ -259,6 +270,7 @@ def test_notice_cancel_rejects(qtbot: QtBot) -> None:
 
 
 def test_cancelling_the_notice_opens_nothing_and_grants_nothing(window: MainWindow) -> None:
+    loaded = "yt_dlp" in sys.modules
     questions = FakeQuestions(accept=False)
     window.youtube_questions = questions
     window.youtube_backend = FakeYoutubeBackend()
@@ -266,7 +278,7 @@ def test_cancelling_the_notice_opens_nothing_and_grants_nothing(window: MainWind
     assert questions.notices == 1
     assert window.youtube_window is None
     assert consent.current() is None
-    assert "yt_dlp" not in sys.modules
+    assert ("yt_dlp" in sys.modules) == loaded
     settings = user_settings()
     assert not [key for key in settings.allKeys() if "consent" in key.lower() or "conformitat" in key.lower()]
 
@@ -299,7 +311,7 @@ def test_withdrawing_the_consent_closes_cancels_and_asks_again(
 ) -> None:
     fake = backend_with_results(3)
     gate = threading.Event()
-    fake.on_chunk = lambda _index: gate.wait(0.02)
+    fake.on_chunk = waiting(gate, 0.02)
     questions = FakeQuestions(folder=folder)
     window = make_window(qtbot, fake, questions, added)
     run_search(qtbot, window, "einaudi")
@@ -548,7 +560,7 @@ def test_same_title_twice_gets_two_names(qtbot: QtBot, folder: Path, added: list
 def test_two_downloads_at_a_time_the_rest_wait(qtbot: QtBot, folder: Path, added: list[list[Path]]) -> None:
     fake = backend_with_results(4)
     gate = threading.Event()
-    fake.on_chunk = lambda _index: gate.wait(WAIT_MS / 1000)
+    fake.on_chunk = waiting(gate, WAIT_MS / 1000)
     window = make_window(qtbot, fake, FakeQuestions(folder=folder), added)
     run_search(qtbot, window, "einaudi")
     select(window, [0, 1, 2, 3])
@@ -570,7 +582,7 @@ def test_progress_goes_through_downloading_converting_done(
     convert = FakeConverter()
     convert.gate = threading.Event()
     downloading = threading.Event()
-    fake.on_chunk = lambda index: downloading.wait(WAIT_MS / 1000) if index == 3 else None
+    fake.on_chunk = waiting(downloading, WAIT_MS / 1000, at=3)
     window = make_window(qtbot, fake, FakeQuestions(folder=folder), added, convert)
     run_search(qtbot, window, "einaudi")
     select(window, [0])
@@ -629,7 +641,7 @@ def test_cancel_one_row_while_downloading(
 def test_cancel_a_queued_row(qtbot: QtBot, folder: Path, added: list[list[Path]]) -> None:
     fake = backend_with_results(3)
     gate = threading.Event()
-    fake.on_chunk = lambda _index: gate.wait(WAIT_MS / 1000)
+    fake.on_chunk = waiting(gate, WAIT_MS / 1000)
     window = make_window(qtbot, fake, FakeQuestions(folder=folder), added)
     run_search(qtbot, window, "einaudi")
     select(window, [0, 1, 2])
@@ -740,7 +752,7 @@ def test_closing_with_downloads_asks_and_keeping_them_keeps_the_window(
 ) -> None:
     fake = backend_with_results(1)
     gate = threading.Event()
-    fake.on_chunk = lambda _index: gate.wait(WAIT_MS / 1000)
+    fake.on_chunk = waiting(gate, WAIT_MS / 1000)
     questions = FakeQuestions(folder=folder, cancel_downloads=False)
     window = make_window(qtbot, fake, questions, added)
     run_search(qtbot, window, "einaudi")
@@ -758,7 +770,7 @@ def test_closing_with_downloads_cancels_them_and_leaves_nothing(
     qtbot: QtBot, folder: Path, added: list[list[Path]], isolated_temp: Path
 ) -> None:
     fake = backend_with_results(3)
-    fake.on_chunk = lambda _index: threading.Event().wait(0.02)
+    fake.on_chunk = waiting(threading.Event(), 0.02)
     questions = FakeQuestions(folder=folder, cancel_downloads=True)
     window = make_window(qtbot, fake, questions, added)
     run_search(qtbot, window, "einaudi")
@@ -786,7 +798,7 @@ def test_closing_the_main_window_with_downloads_asks_first(
 ) -> None:
     fake = backend_with_results(1)
     gate = threading.Event()
-    fake.on_chunk = lambda _index: gate.wait(WAIT_MS / 1000)
+    fake.on_chunk = waiting(gate, WAIT_MS / 1000)
     questions = FakeQuestions(folder=folder, cancel_downloads=False)
     window.youtube_questions = questions
     window.youtube_backend = fake

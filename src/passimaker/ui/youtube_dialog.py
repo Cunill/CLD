@@ -115,7 +115,7 @@ def error_text(error: BaseException) -> str:
 
 def log_error(what: str, error: BaseException) -> None:
     detail = error.detail if isinstance(error, PassiMakerError) else ""
-    _log.warning("YouTube, %s: %r %s", what, error, detail)
+    _log.log(logging.WARNING, "YouTube, %s: %r %s", what, error, detail)
 
 
 # --- Questions --------------------------------------------------------------------------------------
@@ -706,7 +706,7 @@ class YoutubeWindow(QWidget):
         signals.deleteLater()
         if not isinstance(image, QImage) or image.isNull():
             if isinstance(error, BaseException) and not isinstance(error, CancelledError):
-                _log.info("YouTube, miniatura de %s: %r", result.video_id, error)
+                _log.log(logging.INFO, "YouTube, miniatura de %s: %r", result.video_id, error)
             return
         pixmap = QPixmap.fromImage(image)
         self._thumbnails[result.video_id] = pixmap
