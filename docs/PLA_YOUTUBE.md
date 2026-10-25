@@ -221,7 +221,7 @@ Mateix protocol que la resta (CLAUDE.md): un bloc per sessió, branca `bloc/CNN-
 | C05 | Diàleg "Música de YouTube" | `ui` | Gran | C03, C04 | Sonnet | Núvol |
 | C06 | Empaquetat, guia i versió 1.2.0 (YouTube i gravació) | paquet, `ui/help.py`, documentació | Mitjà | C05, C10 | Sonnet | Núvol + **local** |
 | C07 | Gravació: decisió 0013, contracte i especificació | documentació, esquelet de `recorder` | Petit | C01 | Sonnet | Núvol |
-| C08 | Gravació: prova de viabilitat a Windows | script de prova, paquet | Petit | C07 | Opus | Núvol + **local** |
+| C08 | Gravació: prova de viabilitat a Windows | script de prova, paquet | Petit | C01 (en paral·lel amb C07) | Opus | Núvol + **local** |
 | C09 | Nucli `passimaker.recorder` | `recorder` (nou) | Mitjà | C08 (i el C03, pel trasllat de `safe_target_path`) | Opus | Núvol |
 | C10 | Finestra "Grava el que sona" (ones) | `ui` | Gran | C05, C09 | Sonnet | Núvol |
 
@@ -238,11 +238,11 @@ les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escen
 | C03 Nucli `youtube` | C01, C02 | **C04** (si encara no s'ha fet) | T3 | 1 / 1 / 2 | 0,5 | 🔧 en curs (PR #58, pendent de revisió) | 1 | — | PR #58 · branca `ccr-d5f017cf-dlrecs` |
 | C04 Conversió a MP3 | C01 | **C02** o **C03** | T2 (o T3) | 1 / 1 / 1 | 0,25 | ✅ tancat el 25/10/2026 | 1 | — | PR #54 · `5c2129b` |
 | C05 Diàleg | C03, C04 | **C08** o **C09** | T4 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
-| C06 Empaquetat i versió (YouTube i gravació) | C05, C10 | — | T7 | 1 / 1 / 2 | 1,25 | ⏳ pendent | — | — | — |
-| C07 Gravació: decisió i contracte | C01 | **C03** | T3 | 1 / 1 / 1 | 0,5 | ⏳ pendent | — | — | — |
-| C08 Gravació: prova de viabilitat | C07 | **C03** o **C05** | T4 | 1 / 1 / 2 | 1,0 | ⏳ pendent | — | — | — |
-| C09 Nucli `recorder` | C08 (i C03) | **C05** | T5 | 1 / 2 / 2 | 0,5 | ⏳ pendent | — | — | — |
-| C10 Finestra de gravació | C05, C09 | — | T6 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
+| C06 Empaquetat i versió (YouTube i gravació) | C05, C10 | — | T6 | 1 / 1 / 2 | 1,25 | ⏳ pendent | — | — | — |
+| C07 Gravació: decisió i contracte | C01 | **C08**, **C03** | T3 | 1 / 1 / 1 | 0,5 | ⏳ pendent | — | — | — |
+| C08 Gravació: prova de viabilitat | C01 | **C07**, **C03** o **C05** | T3 | 1 / 1 / 2 | 1,0 | ⏳ pendent | — | — | — |
+| C09 Nucli `recorder` | C07, C08 (i C03) | **C05** | T4 | 1 / 2 / 2 | 0,5 | ⏳ pendent | — | — | — |
+| C10 Finestra de gravació | C05, C09 | — | T5 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
 | **Subtotal dels blocs** |  |  |  | **10 / 13 / 17** | **7,5** | | **4** | **0** | |
 | Sessions de correcció després de la prova de l'usuari | C06 | — | després del C06 | 0 / 2 / 3 | inclòs a sota | ⏳ pendent | — | — | — |
 | Revisió de les PR i prova final de l'usuari | — | — | totes | — | 2,5 / 5 / 10 | ⏳ pendent | — | — | — |
@@ -255,11 +255,12 @@ Claude Code diferents, perquè no depenen l'un de l'altre ni toquen els mateixos
 tots els blocs de què depèn són a `main`.
 
 ```
-T1      T2                  T3                 T4               T5              T6           T7
-C01 ─┬─▶ C02 (viabilitat) ─▶ C03 (nucli) ─┬──▶ C05 (diàleg) ──────────────────┐
-     ├─▶ C04 (MP3) ────────────────────────┘                                   │
-     └──────────────────────▶ C07 (decisió) ─▶ C08 (viabilitat) ─▶ C09 (nucli) ─┴─▶ C10 (finestra) ─▶ C06 ─▶ correccions
-                                                    (C09 també espera el C03)
+T1      T2                  T3                    T4               T5                T6
+C01 ─┬─▶ C02 (viabilitat) ─▶ C03 (nucli) ────┬──▶ C05 (diàleg) ─────┐
+     ├─▶ C04 (MP3) ───────────────────────────┤                     │
+     ├──────────────────────▶ C07 (decisió) ──┼──▶ C09 (nucli) ─────┴─▶ C10 (finestra) ─▶ C06 ─▶ correccions
+     └──────────────────────▶ C08 (viabilitat)┘
+                     (C09 espera el C03, el C07 i el C08)
 ```
 
 | Parella en paral·lel | Per què és possible | Fitxers de codi de cadascun |
@@ -267,16 +268,18 @@ C01 ─┬─▶ C02 (viabilitat) ─▶ C03 (nucli) ─┬──▶ C05 (diàle
 | C02 ∥ C04 | C04 només necessita el contracte de `convert_to_mp3` (C01); no depèn de yt-dlp | C02: script de prova, `pyproject.toml`, `uv.lock`, paquet · C04: `src/passimaker/ffmpeg`, `tests/**/ffmpeg` |
 | C03 ∥ C04 | C03 baixa l'àudio original i C04 el converteix: es troben només al contracte | C03: `src/passimaker/youtube`, `tests/**/youtube` · C04: com a dalt |
 | C03 ∥ C07 | C07 només escriu documents i l'esquelet de `recorder`; no toca `youtube` | C07: `src/passimaker/recorder`, documentació, `defaults.py` (valors nous al final) |
+| C07 ∥ C08 | El C08 és una prova a part (`tools/`, `packaging/`, CI) que no fa servir res del C07: es basa en l'annex `docs/PLA_GRAVACIO.md`. El C09 llegeix tots dos | C07: com a dalt · C08: `tools/prova_gravacio.py`, `packaging/ProvaGravacio.spec`, treball nou de la CI |
 | C05 ∥ C08 / C09 | La finestra de YouTube i la gravació no es toquen fins al C10 | C05: `src/passimaker/ui` · C08: `tools/`, `packaging/`, CI · C09: `src/passimaker/recorder`, `src/passimaker/common` |
 
 - **No es poden fer en paral·lel:** C01 amb res (fixa els contractes); C03 abans del C02 (pot canviar l'enfocament);
-  C05 abans del C03 i el C04 (la interfície els fa servir tots dos); C08 abans del C07; C09 abans del C08 (pot
+  C05 abans del C03 i el C04 (la interfície els fa servir tots dos); C09 abans del C07 i el C08 (pot
   canviar la tecnologia) i del C03 (es trasllada `safe_target_path`, que el C03 modifica); C10 abans del C05 (comparteixen
   el menú [+ Música ▾]) i del C09; C06 abans del C05 i el C10.
 - **Fitxers compartits:** la taula d'aquest §4.1 i l'apartat Estat del CLAUDE.md. Cada bloc en paral·lel hi escriu
   només la seva fila; el que es fusiona segon porta `main` a la seva branca (fusió, sense reescriure la història) i
   resol el conflicte abans de fusionar.
-- **Camí crític** (des d'ara, amb el C01, el C02 i el C04 fets): C07 → C08 → C09 → C10 → C06 (7 sessions probables). El
+- **Camí crític** (des d'ara, amb el C01, el C02 i el C04 fets): C08 → C09 → C10 → C06 (6 sessions probables; el C07
+  va alhora que el C08). El
   C03 i el C05 (3 sessions) es fan alhora i no l'allarguen.
 
 **Calendari** (a 4 h/setmana del teu temps, començant quan s'aprovi el C01):
@@ -449,6 +452,12 @@ Condició d'aturada: la del CLAUDE.md.
 
 ```text
 Bloc C07: Gravar el so de l'ordinador, decisió, contracte i especificació. Model: Sonnet.
+ATENCIÓ, BLOCS EN PARAL·LEL: aquest bloc (C07) es fa alhora que el C08 (prova de viabilitat de la gravació), en una
+altra sessió, i potser també que el C03 (PR #58). No facis res fora d'aquest bloc: modifica només els fitxers
+permesos de sota, encara que vegis errors o millores en d'altres (anota-les a docs/sessions/C07.md). No toquis
+tools/, packaging/, .github/ ni res del C08 o del C03. A la taula del §4.1 de docs/PLA_YOUTUBE.md i a l'apartat
+Estat del CLAUDE.md, escriu només la fila i la línia del C07; si en acabar un altre bloc ja és a main, porta main a
+la branca (fusió, sense reescriure la història) i resol el conflicte conservant els canvis de l'altre bloc.
 Context: PassiMaker 1.1.0 és a main amb el C01, el C02 i el C04 de la música de YouTube. Llegeix docs/PLA_GRAVACIO.md
 (sencer: és l'annex aprovat de la gravació, decisions G1–G9), docs/PLA_YOUTUBE.md (§0 i §4, fitxa del C07),
 docs/decisions/0012-musica-de-youtube.md (com a model), docs/CONTRACTES.md, docs/ESPECIFICACIO.md §1.7 i §1.7 bis,
@@ -483,6 +492,7 @@ Condició d'aturada: la del CLAUDE.md. A docs/sessions/C07.md, anota les decisio
 ```
 
 ### C08 · Gravació: prova de viabilitat a Windows (spike)
+- **En paral·lel amb el C07**: no fa servir res del C07 (es basa en l'annex).
 - **Fa:** `ProvaGravacio.exe` (com el `ProvaYoutube` del C02) que llista els orígens, grava 20 s i escriu un informe;
   comprova la tecnologia de captura (annex §3.1) i els casos reals al PC de l'usuari.
 - **Acceptació:** informe a `docs/sessions/C08.md` amb el resultat de cada punt i la recomanació (seguir amb
@@ -490,8 +500,16 @@ Condició d'aturada: la del CLAUDE.md. A docs/sessions/C07.md, anota les decisio
 
 ```text
 Bloc C08: Gravar el so de l'ordinador, prova de viabilitat a Windows (spike). Model: Opus.
-Context: el C07 és a main. Llegeix docs/PLA_GRAVACIO.md (§1, §2.2, §3, §5), docs/PLA_YOUTUBE.md (fitxa del C08),
-docs/decisions/0013-gravar-el-so.md, docs/CONTRACTES.md §16, src/passimaker/preview/sound.py (com fa servir
+ATENCIÓ, BLOCS EN PARAL·LEL: aquest bloc (C08) es fa alhora que el C07 (decisió 0013, contracte i especificació de la
+gravació), en una altra sessió, i potser també que el C03 (PR #58). No facis res fora d'aquest bloc: modifica només
+els fitxers permesos de sota, encara que vegis errors o millores en d'altres (anota-les a docs/sessions/C08.md). No
+toquis docs/decisions/, docs/CONTRACTES.md, docs/ESPECIFICACIO.md, src/ ni res del C07 o del C03; la decisió 0013 i el
+contracte §16 els escriu el C07, i aquí no hi són: fes servir l'annex docs/PLA_GRAVACIO.md. A la taula del §4.1 de
+docs/PLA_YOUTUBE.md i a l'apartat Estat del CLAUDE.md, escriu només la fila i la línia del C08; si en acabar un altre
+bloc ja és a main, porta main a la branca (fusió, sense reescriure la història) i resol el conflicte conservant els
+canvis de l'altre bloc.
+Context: el C01, el C02 i el C04 són a main; el C07 es fa alhora. Llegeix docs/PLA_GRAVACIO.md (§0, §1, §2.2, §3,
+§5), docs/PLA_YOUTUBE.md (fitxa del C08), docs/CONTRACTES.md §8, src/passimaker/preview/sound.py (com fa servir
 sounddevice el programa), i com a model del C02: tools/prova_youtube.py, packaging/ProvaYoutube.spec, el treball
 "prova-youtube-windows" de .github/workflows/ci.yml i docs/sessions/C02.md.
 Branca: bloc/C08-viabilitat-gravacio des de main actualitzat (o la que imposi la sessió al núvol; anota-ho).
@@ -520,8 +538,9 @@ Fes:
    tria (G6); (8) mida del ZIP. Els punts 2–7 els fa l'usuari al seu PC: dona-li les instruccions pas a pas (un pas cada
    vegada) per baixar l'artefacte, executar-lo i enganxar-te l'informe.
 6. docs/PLA_YOUTUBE.md: només la fila del C08 de la taula del §4.1. CLAUDE.md, apartat Estat: una línia del C08.
-   Si mentrestant s'ha fusionat un altre bloc a main, porta main a la branca (fusió) i resol el conflicte d'aquests
-   fitxers.
+   Si mentrestant s'ha fusionat un altre bloc a main (el C07 o el C03), porta main a la branca (fusió) i resol el
+   conflicte d'aquests fitxers; si l'usuari aprova una dependència nova, també el del pyproject.toml (el C07 hi afegeix
+   la marca "so").
 Criteris d'acceptació: ZIP de prova generat per la CI; informe de l'usuari amb els punts 2–7; recomanació final a
 docs/sessions/C08.md; suite ràpida, ruff i pyright en verd.
 Fitxers permesos: tools/prova_gravacio.py, packaging/ProvaGravacio.spec, .github/workflows/ci.yml (només el treball
