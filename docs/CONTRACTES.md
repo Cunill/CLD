@@ -160,6 +160,10 @@ d'aquest color. Les dades de prova no contenen mai píxels semblants al magenta
 | `waveform(fitxer, punts)` | pics 0–1 |
 
 `EncoderSettings`: 30 fps, CRF 18, preset `medium`, perfil `high`, AAC 192 kbps. Errors: `FfmpegError`.
+Afegit al C01 (decisió 0012; implementació al C04): `convert_to_mp3(origen, destí, bitrate_kbps, tags, progress=None,
+cancel=None) -> None` converteix qualsevol àudio a MP3 (libmp3lame, `bitrate_kbps` constant, 48 kHz estèreo, etiquetes
+ID3 de `Mp3Tags(title, artist, comment)`). Escriu a un fitxer temporal al costat del destí i el reanomena en acabar: si
+falla o es cancel·la, el destí no es crea. Errors: `FfmpegError` amb les claus `ffmpeg.*`.
 
 ## 9. Àudio (`passimaker.audio`) · B8
 
@@ -215,6 +219,9 @@ Ampliat al B14 (aprovat per l'usuari el 23/10/2026; resol també el pendent del 
 `passimaker.timeline` (línia de temps, avís d'ajustar a la música i `build_audio_plan`), `passimaker.audio`
 (`prepare`, per escoltar un tros d'una cançó tal com sonarà) i `passimaker.ffmpeg` (`probe` per a la durada de les
 cançons i `waveform` per a la forma d'ona), sempre fora del fil de la interfície quan triguin.
+Ampliat al C01 (decisió 0012): la interfície pot fer servir `passimaker.youtube` (§15) i
+`passimaker.ffmpeg.convert_to_mp3`, sempre fora del fil de la interfície. No importa `yt_dlp` ni cap mòdul de xarxa;
+[Obre a YouTube] fa servir `QDesktopServices.openUrl` (obre el navegador, el programa no s'hi connecta).
 
 ## 14. Substituts per a les proves (`tests/fakes`)
 
@@ -227,3 +234,45 @@ cançons i `waveform` per a la forma d'ona), sempre fora del fil de la interfíc
 | `fixed_motion`, `fixed_window_at` | `draw_motions`, `window_at` (moviments fixos) |
 
 Dades de prova: `tests/fixtures/generate.py` (fixture de pytest `fixture_files`).
+
+## 15. Música de YouTube (`passimaker.youtube`) · C01 (contracte), C03 (implementació)
+
+L'únic mòdul que pot obrir connexions de xarxa (decisió 0012; hi ha una prova). Sense Qt. `import yt_dlp` només dins
+de les funcions que el fan servir, mai en carregar el mòdul.
+
+| Operació | Rep | Retorna |
+|---|---|---|
+| `parse_link(text)` | text enganxat | `video_id: str` (11 caràcters) o `None`. Pur, sense xarxa. Admet `youtube.com/watch?v=…` (també `m.` i `music.`), `youtu.be/…`, `/shorts/…`, `/embed/…` i `/live/…`, amb paràmetres extra o sense l'esquema |
+| `watch_url(video_id)` | — | `https://www.youtube.com/watch?v=<id>` |
+| `search(token, query, limit=10, offset=0, cancel=None)` | — | `tuple[SearchResult, ...]` (com a molt `limit`; `offset` per a [Més resultats]) |
+| `resolve(token, video_id, cancel=None)` | — | `SearchResult` |
+| `fetch_thumbnail(token, url, cancel=None)` | — | `bytes` de la imatge (la interfície la descodifica) |
+| `download_audio(token, video_id, temp_dir, progress=None, cancel=None)` | — | `Path` de l'àudio original (M4A/WebM, sense postprocés), dins de `temp_dir`. Cancel·lar no deixa cap fitxer. |
+| `safe_target_path(folder, title)` | — | `Path` lliure `<títol>.mp3`, vàlid a Windows (`<títol> (2).mp3`… si ja existeix); mai un fitxer existent |
+| `consent.grant()` / `consent.current()` / `consent.revoke()` | — | `ConsentToken` / `ConsentToken` o `None` / — |
+| `consent.is_valid(token)` / `consent.require(token)` | — | `bool` / llança `YoutubeConsentError` |
+
+**Conformitat.** `ConsentToken` només el crea `consent.grant()` (cridat en acceptar l'avís, ESPECIFICACIO §1.7 bis).
+L'estat és només a la memòria del procés, compartit per totes les finestres, i no es desa enlloc. Mentre dura la
+conformitat, `grant()` retorna el mateix testimoni; `revoke()` invalida tots els testimonis donats fins llavors. Les
+funcions que es poden connectar (`search`, `resolve`, `fetch_thumbnail`, `download_audio`) criden `require(token)`
+abans de res: sense un testimoni vàlid, `YoutubeConsentError` i cap intent de connexió.
+
+`SearchResult`: `video_id`, `title`, `channel`, `duration_s` (`float | None`), `thumbnail_url`, `is_live`, `url`.
+
+Errors (hereten de `YoutubeError`, que hereta de `PassiMakerError`):
+
+| Error | Clau (`passimaker.i18n`) | Quan |
+|---|---|---|
+| `YoutubeOfflineError` | `youtube.offline` | sense connexió |
+| `YoutubeUnavailableError` | `youtube.unavailable` · `youtube.live` | privat, esborrat o amb restriccions · directe en curs |
+| `YoutubeBrokenError` | `youtube.broken` | YouTube ha canviat i yt-dlp no funciona (el detall, per al registre) |
+| `YoutubeTooLongError` | `youtube.too_long` | més de `defaults.YOUTUBE_MAX_DURATION_S` |
+| `YoutubeConsentError` | `youtube.consent` | sense conformitat |
+| — | `youtube.invalid_link` | la interfície, quan `parse_link` no reconeix un enllaç enganxat |
+
+Valors (`passimaker.model.defaults`): `YOUTUBE_RESULTS_PER_PAGE = 10`, `YOUTUBE_MAX_DURATION_S = 1200`,
+`YOUTUBE_MP3_BITRATE_KBPS = 192`, `YOUTUBE_SIMULTANEOUS_DOWNLOADS = 2`.
+
+Proves: el substitut de yt-dlp (un "backend" injectable, a `tests/fakes`) i la marca `xarxa` per a les proves amb
+xarxa real (excloses per defecte i a la CI) es defineixen al C03.

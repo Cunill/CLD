@@ -221,16 +221,16 @@ les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escen
 | Bloc | Depèn de | En paral·lel amb | Tanda | Sessions estimades (opt. / prob. / pes.) | Temps teu estimat (h) | Estat | Sessions consumides | Temps teu consumit (h) | PR · commit |
 |---|---|---|---|---|---|---|---|---|---|
 | Pla (aquest document) | — | — | — | — | — | ✅ aprovat el 25/10/2026 | 1 | — | branca `ccr-08701f22-8ayer4` (sense PR, decisió 6) |
-| C01 Decisió i contracte | aprovació del pla | — (és la base de tots) | T1 | 1 / 1 / 1 | 0,5 | ⏳ pendent | — | — | — |
+| C01 Decisió i contracte | aprovació del pla | — (és la base de tots) | T1 | 1 / 1 / 1 | 0,5 | 🔧 en curs (PR oberta, pendent d'aprovació) | 1 | — | branca `ccr-59466ea5-miqdh0` |
 | C02 Prova de viabilitat | C01 | **C04** | T2 | 1 / 1 / 2 | 1,0 | ⏳ pendent | — | — | — |
 | C03 Nucli `youtube` | C01, C02 | **C04** (si encara no s'ha fet) | T3 | 1 / 1 / 2 | 0,5 | ⏳ pendent | — | — | — |
 | C04 Conversió a MP3 | C01 | **C02** o **C03** | T2 (o T3) | 1 / 1 / 1 | 0,25 | ⏳ pendent | — | — | — |
 | C05 Diàleg | C03, C04 | — | T4 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
 | C06 Empaquetat i versió | C05 | — | T5 | 1 / 1 / 2 | 1,0 | ⏳ pendent | — | — | — |
-| **Subtotal dels blocs** |  |  |  | **6 / 7 / 10** | **4,25** | | **0** | **0** | |
+| **Subtotal dels blocs** |  |  |  | **6 / 7 / 10** | **4,25** | | **1** | **0** | |
 | Sessions de correcció després de la prova de l'usuari | C06 | — | després del C06 | 0 / 1 / 2 | inclòs a sota | ⏳ pendent | — | — | — |
 | Revisió de les PR i prova final de l'usuari | — | — | totes | — | 1,5 / 3 / 6 | ⏳ pendent | — | — | — |
-| **Total** |  |  |  | **6 / 8 / 12 sessions** | **6 / 7 / 10 h** | | **1** (el pla) | **—** | |
+| **Total** |  |  |  | **6 / 8 / 12 sessions** | **6 / 7 / 10 h** | | **2** (el pla i el C01) | **—** | |
 
 Llegenda de l'estat: ⏳ pendent · 🔧 en curs · ✅ tancat (fusionat a `main`) · ⛔ aturat (vegeu `docs/sessions/CNN.md`).
 
@@ -376,4 +376,4 @@ yt-dlp publica versions noves sovint. Proposta:
 
 Res pendent: el pla està aprovat (decisions 1–8 del §0).
 
-**Pendent de la teva part:** obrir una sessió nova al núvol i enganxar-hi el prompt del C01 (§4, fitxa del C01).
+**Pendent de la teva part:** revisar i aprovar els documents del C01 (`docs/sessions/C01.md`).

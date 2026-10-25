@@ -114,4 +114,7 @@ Prova manual del B14 a Windows feta el 24/10/2026: correcta; tres millores a la 
 B15: registre a `%LOCALAPPDATA%\PassiMaker\logs`. Mesures de 1.000 fotos al PC de referència (el sobretaula de l'usuari,
 D9: i7-6700K, GTX 960, 40 GB) fetes el 24/10/2026 (PR #46): importar 76 s, memòria màxima 835 MB, exportar 1,17 × la
 durada; totes dins dels límits (docs/RENDIMENT.md).
+**Música de YouTube (versió 1.2.0 prevista)**: pla aprovat per l'usuari el 25/10/2026 (docs/PLA_YOUTUBE.md, blocs
+C01–C06, seguiment al §4.1; decisió 0012). C01 (decisió, contractes CONTRACTES §15 i especificació §1.7 bis): PR
+oberta, pendent d'aprovació (docs/sessions/C01.md). Tota la xarxa, només a `passimaker.youtube` i mai abans de l'avís.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
