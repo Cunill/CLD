@@ -276,7 +276,8 @@ Valors (`passimaker.model.defaults`): `YOUTUBE_RESULTS_PER_PAGE = 10`, `YOUTUBE_
 
 **Backend** (C03). `search`, `resolve`, `fetch_thumbnail` i `download_audio` accepten un paràmetre opcional
 (només per nom) `backend: YoutubeBackend`; sense, fan servir `YtDlpBackend` (yt-dlp com a biblioteca, el servidor
-intermediari del sistema i el Deno del paquet; yt-dlp no fa cap conversió ni fa servir FFmpeg). El protocol
+intermediari del sistema i el Deno del paquet; yt-dlp no fa cap conversió ni fa servir FFmpeg; format
+`bestaudio[audio_channels<=?2]/bestaudio`: l'estèreo abans que el 5.1). El protocol
 `YoutubeBackend` té `extract_info(url, *, flat)`, `download(info, folder, hook)` i `fetch(url, max_bytes)`; els errors
 que en surten els tradueix `youtube.errors.translate` (vegeu la taula d'errors). El substitut de proves és
 `tests/fakes/youtube.py` (`FakeYoutubeBackend`).

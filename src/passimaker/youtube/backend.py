@@ -22,6 +22,10 @@ _log = logging.getLogger(__name__)
 SOCKET_TIMEOUT_S = 30.0
 """Seconds without an answer before a request fails (yt-dlp and the thumbnails)."""
 DENO_EXE = "deno.exe" if sys.platform == "win32" else "deno"
+AUDIO_FORMAT = "bestaudio[audio_channels<=?2]/bestaudio"
+"""Stereo first: with Deno, plain "bestaudio" chose a 5.1 AAC three times the size of the stereo Opus
+(docs/sessions/C02.md). "<=?" also takes formats that do not say their channels; without any stereo
+format, the best audio."""
 
 type Info = Mapping[str, Any]
 """yt-dlp's information dictionary (one video, or a search with its "entries")."""
@@ -90,7 +94,7 @@ class YtDlpBackend:
             "extractor_retries": 2,
             "cachedir": False,  # nothing written outside the folders we choose
             "noplaylist": True,
-            "format": "bestaudio/best",
+            "format": AUDIO_FORMAT,
             "fixup": "never",  # no FFmpeg from yt-dlp (rule 7: passimaker.ffmpeg converts)
             "postprocessors": [],
             "overwrites": True,
