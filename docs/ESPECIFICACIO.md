@@ -253,7 +253,7 @@ del programa que es connecta a internet; la resta funciona igual sense xarxa.
   - "La majoria de cançons tenen drets d'autor. Descarrega i fes servir només música que tinguis dret a fer servir."
   - "Ets responsable de l'ús que en facis."
   - "PassiMaker i els seus autors declinen qualsevol responsabilitat derivada de l'ús de la música descarregada, i en particular per qualsevol infracció dels drets d'autor o de les condicions de YouTube."
-  - Casella "☐ He llegit l'avís i hi estic conforme" i botons [Cancel·la] i [Accepta i continua].
+  - Casella "☐ He llegit l'avís, n'accepto les condicions i hi estic conforme" i botons [Cancel·la] i [Accepta i continua].
 - La casella no està mai marcada d'entrada; [Accepta i continua] està desactivat fins que es marca.
 - [Cancel·la], Esc o tancar la finestra: no s'obre la funció i no es desa res.
 - La conformitat val per a la sessió del programa: es guarda només a la memòria i no es desa enlloc (ni la

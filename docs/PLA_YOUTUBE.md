@@ -71,7 +71,7 @@ Aquesta funció xoca amb tres decisions preses i amb dues regles del CLAUDE.md. 
 │   qualsevol infracció dels drets d'autor o de les condicions de         │
 │   YouTube.                                                              │
 │                                                                         │
-│ ☐ He llegit l'avís i hi estic conforme                                  │
+│ ☐ He llegit l'avís, n'accepto les condicions i hi estic conforme        │
 │                                                                         │
 │                                   [Cancel·la]   [Accepta i continua]    │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -226,7 +226,7 @@ les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escen
 | Bloc | Depèn de | En paral·lel amb | Tanda | Sessions estimades (opt. / prob. / pes.) | Temps teu estimat (h) | Estat | Sessions consumides | Temps teu consumit (h) | PR · commit |
 |---|---|---|---|---|---|---|---|---|---|
 | Pla (aquest document) | — | — | — | — | — | ✅ aprovat el 25/10/2026 | 1 | — | branca `ccr-08701f22-8ayer4` (sense PR, decisió 6) |
-| C01 Decisió i contracte | aprovació del pla | — (és la base de tots) | T1 | 1 / 1 / 1 | 0,5 | 🔧 en curs (PR oberta, pendent d'aprovació) | 1 | — | PR #52 · branca `ccr-59466ea5-miqdh0` |
+| C01 Decisió i contracte | aprovació del pla | — (és la base de tots) | T1 | 1 / 1 / 1 | 0,5 | ✅ aprovat per l'usuari el 25/10/2026 (es tanca en fusionar la PR) | 1 | — | PR #52 · branca `ccr-59466ea5-miqdh0` |
 | C02 Prova de viabilitat | C01 | **C04** | T2 | 1 / 1 / 2 | 1,0 | ⏳ pendent | — | — | — |
 | C03 Nucli `youtube` | C01, C02 | **C04** (si encara no s'ha fet) | T3 | 1 / 1 / 2 | 0,5 | ⏳ pendent | — | — | — |
 | C04 Conversió a MP3 | C01 | **C02** o **C03** | T2 (o T3) | 1 / 1 / 1 | 0,25 | ⏳ pendent | — | — | — |
@@ -381,4 +381,4 @@ yt-dlp publica versions noves sovint. Proposta:
 
 Res pendent: el pla està aprovat (decisions 1–8 del §0).
 
-**Pendent de la teva part:** revisar i aprovar els documents del C01 (`docs/sessions/C01.md`).
+**Pendent de la teva part:** res del C01 (aprovat el 25/10/2026). Següent: tanda T2, C02 i C04 (prompts per escriure).

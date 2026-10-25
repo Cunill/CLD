@@ -11,7 +11,7 @@
 | Ús | Intern de l'estudi, gratuït i no comercial. Es pot fer servir FFmpeg amb x264 (llicència GPL). |
 | Distribució | ZIP portable: es descomprimeix i s'executa. Sense instal·lador ni signatura de codi (cost 0). |
 | Sistema | Només Windows 10/11 de 64 bits. El nucli també es podrà provar a Linux. |
-| Xarxa | Totalment fora de línia. |
+| Xarxa | Totalment fora de línia. **Excepció** (decisió 0012, 25/10/2026): la música de YouTube es connecta a internet, només des de la seva finestra i mai abans d'acceptar l'avís. |
 | Volum | Fins a 1.000 fotos per projecte, de fins a 50 MP. |
 | Maquinari mínim | PC d'oficina: 4 nuclis, 8 GB de RAM i gràfics integrats. |
 | Sortida | MP4 Full HD (FHD) a 30 fps, horitzontal (1920×1080) o vertical (1080×1920), a triar per projecte. Sense 4K. Confirmat el 20/10/2026. |
