@@ -8,7 +8,7 @@ block B13's.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 from PySide6.QtCore import QSize, Qt, Signal
@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QSplitter,
     QToolBar,
+    QToolButton,
     QVBoxLayout,
     QWidget,
 )
@@ -59,6 +60,8 @@ from passimaker.ui.properties import PropertiesPanel
 from passimaker.ui.song_panel import SongPanel
 from passimaker.ui.storyboard import StoryboardPanel
 from passimaker.ui.thumbnails import ThumbnailBridge, ThumbnailProvider
+from passimaker.ui.youtube_dialog import YoutubeDialogs, YoutubeQuestions, YoutubeWindow, ensure_consent
+from passimaker.youtube import YoutubeBackend
 
 CONFIRM_DELETE_FROM = 5
 """§1.2 and decision 0007: a confirmation from five photos on, even though undo exists."""
@@ -92,6 +95,10 @@ class MainWindow(QMainWindow):
         self.files = ProjectFiles(controller, self.questions, parent=self)
         self.video_export = VideoExport(self.questions, self)
         self.help = HelpWindows(self, log_dir())
+        self.youtube_questions: YoutubeQuestions = YoutubeDialogs(self)
+        self.youtube_backend: YoutubeBackend | None = None
+        """None: the real one (yt-dlp); the tests put tests/fakes/youtube.py here before opening."""
+        self.youtube_window: YoutubeWindow | None = None
 
         self.setWindowTitle(self.tr("PassiMaker"))
         self.resize(WINDOW_SIZE)
@@ -185,6 +192,10 @@ class MainWindow(QMainWindow):
             self.tr("Afegeix cançons (també les pots arrossegar a la franja de música)")
         )
         self.add_music_action.triggered.connect(self.choose_music)
+        self.music_menu = QMenu(self.tr("+ Música"), self)
+        self.add_music_action.setMenu(self.music_menu)
+        self.music_files_action = self._add_music_source(self.tr("Des de fitxers…"), self.choose_music)
+        self.music_youtube_action = self._add_music_source(self.tr("Des de YouTube…"), self.open_youtube)
         self.fit_to_music_action = QAction(self.tr("Ajustar a la música"), self)
         self.fit_to_music_action.setToolTip(
             self.tr("Canvia la durada de les fotos perquè el passi acabi alhora que la música")
@@ -269,6 +280,12 @@ class MainWindow(QMainWindow):
         self._build_toolbar()
         self._build_context_menu()
 
+    def _add_music_source(self, text: str, slot: Callable[[], None]) -> QAction:
+        """One entry of the [+ Música ▾] menu (also in the music strip's [+] and the File menu)."""
+        action = self.music_menu.addAction(text)
+        action.triggered.connect(slot)
+        return action
+
     def _build_size_actions(self) -> dict[ThumbnailSize, QAction]:
         group = QActionGroup(self)
         labels = {
@@ -337,6 +354,9 @@ class MainWindow(QMainWindow):
         self.addToolBar(self.toolbar)
         self.toolbar.addAction(self.add_photos_action)
         self.toolbar.addAction(self.add_music_action)
+        music_button = self.toolbar.widgetForAction(self.add_music_action)
+        if isinstance(music_button, QToolButton):
+            music_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         self.toolbar.addAction(self.fit_to_music_action)
         self.toolbar.addSeparator()
         self.toolbar.addAction(self.undo_action)
@@ -373,7 +393,7 @@ class MainWindow(QMainWindow):
         self.importer.started.connect(self._on_import_started)
         self.importer.progress.connect(self._on_import_progress)
         self.importer.finished.connect(self._on_import_finished)
-        self.music_strip.add_requested.connect(self.choose_music)
+        self.music_strip.add_button.setMenu(self.music_menu)
         self.music_strip.files_dropped.connect(self._on_files_dropped_on_music)
         self.files.state_changed.connect(self._refresh_title)
         self.files.missing_changed.connect(self._on_missing_changed)
@@ -409,6 +429,18 @@ class MainWindow(QMainWindow):
 
     def add_songs(self, paths: Sequence[Path], index: int | None = None) -> None:
         self.songs.start(paths, index)
+
+    def open_youtube(self) -> None:
+        """§1.7 bis: the notice first (once per run of the program), then the window, not modal."""
+        if ensure_consent(self.youtube_questions) is None:
+            return
+        if self.youtube_window is None:
+            self.youtube_window = YoutubeWindow(
+                self.youtube_questions, self.add_songs, backend=self.youtube_backend, parent=self
+            )
+        self.youtube_window.show()
+        self.youtube_window.raise_()
+        self.youtube_window.activateWindow()
 
     def fit_to_music(self) -> None:
         """§1.7: asks first when the photos would end outside 1-3 s."""
@@ -665,6 +697,9 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event: QCloseEvent) -> None:  # noqa: N802 (Qt)
         """§1.10: asks to save the changes; the recovery copy goes away on a clean exit."""
+        if self.youtube_window is not None and not self.youtube_window.close():
+            event.ignore()  # downloads from YouTube in progress, and the user kept them
+            return
         if self.video_export.running or not self.files.maybe_save():
             event.ignore()
             return

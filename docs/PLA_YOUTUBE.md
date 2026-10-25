@@ -238,7 +238,7 @@ les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escen
 | C02 Prova de viabilitat | C01 | **C04** | T2 | 1 / 1 / 2 | 1,0 | ✅ tancat el 25/10/2026; prova al PC correcta (xarxa de casa; a la de l'estudi no es prova, decisió de l'usuari) (`docs/sessions/C02.md`) | 1 | — | PR #57 · `1599fb7` |
 | C03 Nucli `youtube` | C01, C02 | **C04** (si encara no s'ha fet) | T3 | 1 / 1 / 2 | 0,5 | ✅ tancat el 25/10/2026 | 1 | — | PR #58 · `5c7fd88` |
 | C04 Conversió a MP3 | C01 | **C02** o **C03** | T2 (o T3) | 1 / 1 / 1 | 0,25 | ✅ tancat el 25/10/2026 | 1 | — | PR #54 · `5c2129b` |
-| C05 Diàleg | C03, C04 | **C08** o **C09** | T4 | 1 / 2 / 2 | 1,0 | ⏳ pendent | — | — | — |
+| C05 Diàleg | C03, C04 | **C08** o **C09** | T4 | 1 / 2 / 2 | 1,0 | 🔧 en curs: finestra feta i provada amb el substitut; falta la prova de l'usuari a Windows (`docs/sessions/C05.md`) | 1 | — | branca `claude/practical-hawking-1i180s` |
 | C06 Empaquetat i versió (YouTube i gravació) | C05, C10 | — | T6 | 1 / 1 / 2 | 1,25 | ⏳ pendent | — | — | — |
 | C07 Gravació: decisió i contracte | C01 | **C08**, **C03** | T3 | 1 / 1 / 1 | 0,5 | 🔧 PR #63 oberta, pendent de revisió (`docs/sessions/C07.md`); aturat una vegada per l'usuari fins a la PR #61 | 1 | — | PR #63 · branca `claude/keen-pascal-io3h1f` |
 | C08 Gravació: prova de viabilitat | C01 | **C07**, **C03** o **C05** | T3 | 1 / 1 / 2 | 1,0 | ⛔ aturat (sessió "C08 mp3"): sounddevice no serveix; `soundcard` 0.4.6 aprovada per l'usuari (G10), pendent de continuar | — | — | branca `claude/confident-ritchie-rk3iju` (nota pujada) |
