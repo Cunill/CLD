@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
 from passimaker.export import cache_root
@@ -17,6 +18,14 @@ from passimaker.ui.main_window import MainWindow
 from passimaker.ui.project_files import APPLICATION, ORGANISATION
 from passimaker.ui.translations import install
 
+ICON_FILE = Path(__file__).with_name("app_icon.png")
+"""Made by packaging/generar_icona.py; PassiMaker.spec copies it next to this module."""
+
+
+def app_icon() -> QIcon:
+    """The window and taskbar icon (a null icon if the file is missing: the program still starts)."""
+    return QIcon(str(ICON_FILE))
+
 
 def main(argv: list[str] | None = None) -> int:
     """Starts the GUI. Optional argument: a .pmk file to open; without it, the recovery copy is offered
@@ -26,6 +35,7 @@ def main(argv: list[str] | None = None) -> int:
     app = QApplication(sys.argv[:1])
     app.setOrganizationName(ORGANISATION)
     app.setApplicationName(APPLICATION)
+    app.setWindowIcon(app_icon())
     install(app)
     reporter = ErrorReporter(log_file)
     install_exception_hooks(reporter.report)
