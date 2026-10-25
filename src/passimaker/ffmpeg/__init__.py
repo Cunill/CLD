@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from passimaker.ffmpeg._audio import decode_audio, measure_loudness, probe, waveform
 from passimaker.ffmpeg._locate import locate
+from passimaker.ffmpeg._mp3 import convert_to_mp3
 from passimaker.ffmpeg._video import FfmpegVideoWriter, extract_frames, open_encoder
 from passimaker.ffmpeg.types import (
     AUDIO_CHANNELS,
@@ -31,6 +32,7 @@ from passimaker.ffmpeg.types import (
     FfmpegPaths,
     Loudness,
     MediaInfo,
+    Mp3Tags,
     PcmFile,
     VideoWriter,
 )
@@ -56,8 +58,10 @@ __all__ = [
     "FfmpegVideoWriter",
     "Loudness",
     "MediaInfo",
+    "Mp3Tags",
     "PcmFile",
     "VideoWriter",
+    "convert_to_mp3",
     "decode_audio",
     "extract_frames",
     "locate",
