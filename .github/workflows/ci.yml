@@ -122,3 +122,80 @@ jobs:
           path: _paquet/
           if-no-files-found: ignore
           retention-days: 14
+
+  prova-youtube-windows:
+    # C02 (prova de viabilitat de la música de YouTube; docs/sessions/C02.md): ZIP de prova ProvaYoutube-win64,
+    # amb yt-dlp, yt-dlp-ejs, Deno i FFmpeg. Aquí només es comprova sense xarxa que s'obre i ho troba tot; la prova
+    # amb YouTube la fa l'usuari al seu PC (Actions → CI → l'execució → Artifacts → ProvaYoutube-win64).
+    name: Prova de YouTube (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instal·lar uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.32"
+          enable-cache: true
+
+      - name: Memòria cau d'FFmpeg
+        uses: actions/cache@v4
+        with:
+          path: vendor/ffmpeg
+          key: ffmpeg-${{ runner.os }}-${{ hashFiles('tools/obtenir_ffmpeg.ps1') }}
+
+      - name: Obtenir FFmpeg
+        shell: pwsh
+        run: ./tools/obtenir_ffmpeg.ps1
+
+      - name: Construir el ZIP de prova
+        id: zip
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          uv sync --locked --group packaging
+          if ($LASTEXITCODE -ne 0) { throw "uv sync ha fallat" }
+          uv run --group packaging pyinstaller packaging/ProvaYoutube.spec --noconfirm --clean `
+            --distpath build/prova/dist --workpath build/prova/work
+          if ($LASTEXITCODE -ne 0) { throw "PyInstaller ha fallat" }
+          $App = 'build/prova/dist/ProvaYoutube'
+          foreach ($File in @('ProvaYoutube.exe', 'bin/ffmpeg.exe', 'bin/ffprobe.exe', 'bin/deno.exe',
+                              'bin/yt_dlp_ejs/yt/solver/core.min.js', 'bin/yt_dlp_ejs/yt/solver/lib.min.js')) {
+            if (-not (Test-Path (Join-Path $App $File))) { throw "Falta $File a la carpeta de la prova" }
+          }
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $Zip = Join-Path (Resolve-Path dist) 'ProvaYoutube-win64.zip'
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          [System.IO.Compression.ZipFile]::CreateFromDirectory(
+            (Resolve-Path $App), $Zip, [System.IO.Compression.CompressionLevel]::Optimal, $true)
+          $FolderMB = (Get-ChildItem -Recurse -File $App | Measure-Object -Sum Length).Sum / 1MB
+          Write-Host ('Carpeta: {0:N1} MB · ZIP: {1:N1} MB' -f $FolderMB, ((Get-Item $Zip).Length / 1MB))
+          Write-Host 'Els 10 fitxers més grans:'
+          Get-ChildItem -Recurse -File $App | Sort-Object Length -Descending | Select-Object -First 10 |
+            ForEach-Object { Write-Host ('  {0,6:N1} MB  {1}' -f ($_.Length / 1MB), $_.Name) }
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "zip=$Zip"
+
+      - name: Provar el ZIP sense xarxa
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $Work = Join-Path $env:RUNNER_TEMP 'Prova YouTube àèòç'
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          [System.IO.Compression.ZipFile]::ExtractToDirectory('${{ steps.zip.outputs.zip }}', $Work)
+          $Report = Join-Path $Work 'informe.txt'
+          $Run = Start-Process -FilePath (Join-Path $Work 'ProvaYoutube/ProvaYoutube.exe') -Wait -PassThru `
+            -WorkingDirectory $Work -ArgumentList @('--sense-xarxa', '--sense-avis', '--informe', """$Report""")
+          Get-Content $Report -Encoding utf8 | ForEach-Object { Write-Host "  | $_" }
+          if ($Run.ExitCode -ne 0) { throw "ProvaYoutube.exe acaba amb el codi $($Run.ExitCode)" }
+
+      - name: Publicar el ZIP de prova
+        uses: actions/upload-artifact@v4
+        with:
+          name: ProvaYoutube-win64
+          path: ${{ steps.zip.outputs.zip }}
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
