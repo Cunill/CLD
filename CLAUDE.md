@@ -116,8 +116,9 @@ B15: registre a `%LOCALAPPDATA%\PassiMaker\logs`. Mesures de 1.000 fotos al PC d
 D9: i7-6700K, GTX 960, 40 GB) fetes el 24/10/2026 (PR #46): importar 76 s, memòria màxima 835 MB, exportar 1,17 × la
 durada; totes dins dels límits (docs/RENDIMENT.md).
 **Música de YouTube (versió 1.2.0 prevista)**: pla aprovat per l'usuari el 25/10/2026 (docs/PLA_YOUTUBE.md, blocs
-C01–C06, seguiment al §4.1; decisió 0012). C01 (decisió, contractes CONTRACTES §15 i especificació §1.7 bis): PR #52
-aprovada per l'usuari el 25/10/2026 (docs/sessions/C01.md); en fusionar-la, tanda T2: C02 i C04 en paral·lel.
-C02 (viabilitat, branca `ccr-b0aaafb5-ix9698`): yt-dlp 2026.10.21 afegit; aturat el 25/10/2026 perquè **cal Deno** (i
-`yt-dlp-ejs`): proposta i decisions pendents a docs/sessions/C02.md. Tota la xarxa, només a `passimaker.youtube` i mai abans de l'avís.
+C01–C06, seguiment al §4.1; decisió 0012). Blocs integrats a main: C01 decisió, contractes (CONTRACTES §15) i
+especificació (§1.7 bis) (PR #52, commit `7f1bc0b`). Següent: tanda T2, C02 (viabilitat, núvol + local) i C04 (MP3)
+en paral·lel.
+C02 (viabilitat, branca `ccr-b0aaafb5-ix9698`): yt-dlp 2026.10.21, `yt-dlp-ejs` i Deno (paquet `deno` de PyPI) aprovats
+per l'usuari el 25/10/2026; en curs (docs/sessions/C02.md). Tota la xarxa, només a `passimaker.youtube` i mai abans de l'avís.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
