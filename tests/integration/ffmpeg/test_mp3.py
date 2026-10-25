@@ -131,9 +131,9 @@ def test_empty_tags_are_not_written(fixture_files: dict[str, Path], tmp_path: Pa
 def test_paths_with_accents_emojis_and_dashes(fixture_files: dict[str, Path], tmp_path: Path) -> None:
     folder = tmp_path / "Música d'en Pérez 🎵" / "àèéíòóú ïü ç ñ €"
     folder.mkdir(parents=True)
-    source = folder / "-Cançó original: 1 🎧.m4a"
+    source = folder / "-Cançó original, 1 🎧.m4a"
     source.write_bytes(fixture_files["tone_660.m4a"].read_bytes())
-    dest = folder / "-Cançó convertida: 1 🎶.mp3"
+    dest = folder / "-Cançó convertida, 1 🎶.mp3"
     ffmpeg.convert_to_mp3(source, dest, 192, TAGS)
     assert abs(ffmpeg.probe(dest).duration_s - 6.0) <= 0.050
     assert _tags(_ffprobe(dest))["title"] == TAGS.title
