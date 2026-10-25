@@ -88,15 +88,17 @@ B14 (PR #37, commit `8368028`) · B15 (PR #40, commit `a96edd6`) · B16 (PR #42,
 Manteniment: M01 canvi de nom a PassiMaker (PR #9, commit `72341ff`, decisió 0006) ·
 M02 `SHORT_SONG_FADE_FRACTION` a defaults.py (PR #16, commit `43faaaf`) ·
 M03 extensió `.pmk` (PR #25, commit `66b6e92`, decisió 0009) ·
-M04 arrossegar fotos amb el ratolí i so obert en pausa per al Bluetooth (PR #36, commit `56ccca7`).
+M04 arrossegar fotos amb el ratolí i so obert en pausa per al Bluetooth (PR #36, commit `56ccca7`) ·
+M05 millores de les proves de l'usuari i codi compartit (PR #49, decisió 0011) · icona nova (PR #48).
+**Versió 1.1.0** (docs/CHANGELOG.md), publicada com a `v1.1` amb el flux `publicar.yml`.
 Fita F1 aprovada (decisions 0004 i 0005). Fita F2: vídeo provat per l'usuari amb les seves fotos (vertical i
 horitzontal) el 21/10/2026, correcte.
 **Decidit el 24/10/2026: no es fan proves amb persones externes** (ni la de la F2, ni la de la F3, ni la F5 amb dues
 persones; PLA §4.4). Les proves pràctiques les fa només l'usuari. Etiquetes `v0.5-mvp` i `v1.0` posades el 24/10/2026.
 Guia i "Quant a" revisats per l'usuari el 24/10/2026: correctes (s'hi afegeix l'apartat "Imprevistos", a petició seva).
 Fotos reals provades per l'usuari el 24/10/2026 (D:\TEMP_PM, càmera i mòbil, sense HEIC): miniatures instantànies i
-nítides. Sense provar amb HEIC d'iPhone (no en té a mà). Queda, al final, el manteniment v1.1: les millores de docs/proves_usuari.md i
-una sola còpia de `photo_from_candidate` i `song_from_file` (decidit per Claude amb el vistiplau de l'usuari).
+nítides. Sense provar amb HEIC d'iPhone (decisió de l'usuari: es deixa així). Manteniment v1.1 (M05) fet: la llista de
+millores de docs/proves_usuari.md és tancada. No queda cap tasca ni prova pendent del pla.
 Decisions de l'usuari del 21/10/2026: decisió 0007 (D12, llindar de 5 fotos, textos d'error del B10).
 Decisions del B5 aprovades (docs/sessions/B05.md); la nitidesa de la miniatura EXIF es revisa amb fotos reals
 a Windows (vegeu docs/sessions/B10.md).
