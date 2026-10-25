@@ -48,9 +48,9 @@ type OutputFactory = Callable[[], AudioOutput]
 _log = logging.getLogger(__name__)
 
 LISTEN_END_MARGIN_MS = 150
+"""After the part has been heard, the device is stopped a little later (its own latency)."""
 PLAYHEAD_INTERVAL_MS = 33
 """How often the line on the waveform follows the sound while a part is heard (about 30 times a second)."""
-"""After the part has been heard, the device is stopped a little later (its own latency)."""
 
 
 def listening_source(project: Project, song: Song) -> MixedAudioSource:
@@ -133,7 +133,9 @@ class SongListening(QObject):
                     return  # stopped (or another song) while it was being prepared: not a sound
                 if self._output is None:
                     self._output = self.output_factory()
-                self._clock = self._output.start(source, 0.0)
+                clock = self._output.start(source, 0.0)
+                if generation == self._generation:  # not stopped while the device was opening
+                    self._clock = clock
             except PassiMakerError as error:
                 self._signals.failed.emit(generation, message(error.message_key))
                 return

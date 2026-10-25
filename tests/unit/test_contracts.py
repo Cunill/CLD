@@ -80,3 +80,10 @@ def test_cli_parsers_define_the_documented_arguments() -> None:
     args = cli.build_render_parser().parse_args(["p.pmk", "v.mp4"])
     assert args.output == Path("v.mp4")
     assert args.project == Path("p.pmk") and not args.sentinella
+
+
+def test_the_speed_limit_covers_the_shortest_photo() -> None:
+    """M05: with photos of 0,4 s, the floor of the speed limit must not be longer than a photo."""
+    from passimaker.motion.draw import MIN_VISIBLE_DURATION_S
+
+    assert defaults.PHOTO_DURATION_RANGE.minimum >= MIN_VISIBLE_DURATION_S

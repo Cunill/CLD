@@ -621,12 +621,13 @@ class MainWindow(QMainWindow):
             self.move_right_action,
             self.rotate_left_action,
             self.rotate_right_action,
-            self.reroll_action,
         ):
             action.setEnabled(has_selection)
         photos = self.controller.project.photos
         has_photos = bool(photos)
         motion = self.controller.project.motion_enabled
+        # Like the photo panel's button: with camera motion off it would only undo the manual choices.
+        self.reroll_action.setEnabled(has_selection and motion)
         self.reroll_all_action.setEnabled(has_photos and motion)
         self.reset_motions_action.setEnabled(any(p.motion.mode is MotionMode.MANUAL for p in photos))
         self.select_all_action.setEnabled(has_photos)

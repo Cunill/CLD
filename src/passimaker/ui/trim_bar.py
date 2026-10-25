@@ -16,7 +16,7 @@ from pathlib import Path
 
 import numpy as np
 from numpy.typing import NDArray
-from PySide6.QtCore import QObject, QPointF, QRectF, QRunnable, QSize, Qt, QThreadPool, Signal
+from PySide6.QtCore import QObject, QPointF, QRect, QRectF, QRunnable, QSize, Qt, QThreadPool, Signal
 from PySide6.QtGui import QColor, QMouseEvent, QPainter, QPaintEvent, QPalette, QPen
 from PySide6.QtWidgets import QSizePolicy, QWidget
 
@@ -116,8 +116,11 @@ class TrimBar(QWidget):
     def set_playhead(self, seconds: float | None) -> None:
         """Moves the line that shows what is being heard (None hides it)."""
         if seconds != self._playhead:
-            self._playhead = seconds
-            self.update()
+            old, self._playhead = self._playhead, seconds
+            for value in (old, seconds):  # only the two thin strips change, not the whole waveform
+                if value is not None:
+                    x = self.x_of(value)
+                    self.update(QRect(int(x) - PLAYHEAD_WIDTH - 1, 0, 2 * PLAYHEAD_WIDTH + 3, self.height()))
 
     # --- Geometry --------------------------------------------------------------------------------
 

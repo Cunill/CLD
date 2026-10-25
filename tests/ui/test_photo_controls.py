@@ -223,6 +223,7 @@ def test_without_camera_motion_the_motion_controls_are_disabled(window_with_phot
     assert not window.photo_panel.motion.isEnabled()
     assert not window.photo_panel.reroll.isEnabled()
     assert not window.panel.reroll_all.isEnabled()
+    assert not window.reroll_action.isEnabled()  # M05: the menu entry too (it would free manual photos)
 
 
 def test_enter_gives_the_duration_shown_to_photos_with_different_durations(

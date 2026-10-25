@@ -1,7 +1,7 @@
 """Photo panel: the settings of the selected photo or photos (§1.3, §1.5, §1.6 and P2).
 
-Duration (and [Restablir a la general]), motion ("Automàtic" or a fixed type), [🎲 Tornar a
-sortejar], fit and the two rotations. With several photos selected every control acts on all of
+Duration (and [Restablir a la general]), motion ("Automàtic" or a fixed type), [🎲 Nou moviment a
+l'atzar], fit and the two rotations. With several photos selected every control acts on all of
 them; a setting on which they differ shows "Diversos" until it is changed.
 
 Like the project panel, every control sends a command to the controller (rule 2) and is refreshed
@@ -191,7 +191,7 @@ class PhotoPanel(QWidget):
         # M05: always available; a photo whose motion was fixed by hand goes back to automatic.
         self.reroll.setEnabled(bool(photos) and project.motion_enabled)
         self.reroll.setToolTip(
-            self.tr("Tria a l'atzar un moviment nou per a aquesta foto (torna a Automàtic)")
+            self.tr("Tria a l'atzar un moviment nou per a les fotos seleccionades (tornen a Automàtic)")
         )
         self.motion.setEnabled(project.motion_enabled)
 
