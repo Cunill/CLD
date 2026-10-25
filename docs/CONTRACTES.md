@@ -267,7 +267,7 @@ Errors (hereten de `YoutubeError`, que hereta de `PassiMakerError`):
 | `YoutubeOfflineError` | `youtube.offline` | sense connexió |
 | `YoutubeUnavailableError` | `youtube.unavailable` · `youtube.live` | privat, esborrat o amb restriccions · directe en curs |
 | `YoutubeBrokenError` | `youtube.broken` | YouTube ha canviat i yt-dlp no funciona (el detall, per al registre); també qualsevol error que no es reconeix |
-| `YoutubeBlockedError` | `youtube.blocked` | YouTube no deixa descarregar des d'aquesta xarxa ("confirma que no ets un robot", HTTP 429) · C03, decisió de l'usuari del 25/10/2026 |
+| `YoutubeBlockedError` | `youtube.blocked` | YouTube no deixa descarregar des d'aquesta xarxa ("confirma que no ets un robot", HTTP 429, límit de peticions, captcha) · C03, decisió de l'usuari del 25/10/2026 |
 | `YoutubeTooLongError` | `youtube.too_long` | més de `defaults.YOUTUBE_MAX_DURATION_S` |
 | `YoutubeConsentError` | `youtube.consent` | sense conformitat |
 | — | `youtube.invalid_link` | la interfície, quan `parse_link` no reconeix un enllaç enganxat |
@@ -278,7 +278,8 @@ Valors (`passimaker.model.defaults`): `YOUTUBE_RESULTS_PER_PAGE = 10`, `YOUTUBE_
 **Backend** (C03). `search`, `resolve`, `fetch_thumbnail` i `download_audio` accepten un paràmetre opcional
 (només per nom) `backend: YoutubeBackend`; sense, fan servir `YtDlpBackend` (yt-dlp com a biblioteca, el servidor
 intermediari del sistema i el Deno del paquet; yt-dlp no fa cap conversió ni fa servir FFmpeg; format
-`bestaudio[audio_channels<=?2]/bestaudio`: l'estèreo abans que el 5.1). El protocol
+`bestaudio[audio_channels<=?2]/bestaudio` per baixar, l'estèreo abans que el 5.1; per llegir les dades d'un vídeo,
+el mateix amb `/best` al final, perquè un directe, que no té cap format només d'àudio, arribi a `ERROR_LIVE`). El protocol
 `YoutubeBackend` té `extract_info(url, *, flat)`, `download(info, folder, hook)` i `fetch(url, max_bytes)`; els errors
 que en surten els tradueix `youtube.errors.translate` (vegeu la taula d'errors). El substitut de proves és
 `tests/fakes/youtube.py` (`FakeYoutubeBackend`).

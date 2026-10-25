@@ -26,6 +26,10 @@ AUDIO_FORMAT = "bestaudio[audio_channels<=?2]/bestaudio"
 """Stereo first: with Deno, plain "bestaudio" chose a 5.1 AAC three times the size of the stereo Opus
 (docs/sessions/C02.md). "<=?" also takes formats that do not say their channels; without any stereo
 format, the best audio."""
+INFO_FORMAT = AUDIO_FORMAT + "/best"
+"""Only for reading a video's data (extract_info): yt-dlp also selects formats then, and a live stream
+has no audio-only format; "/best" lets it through so download_audio can say it is a live stream
+(ERROR_LIVE) instead of "Requested format is not available". Downloading always uses AUDIO_FORMAT."""
 
 type Info = Mapping[str, Any]
 """yt-dlp's information dictionary (one video, or a search with its "entries")."""
@@ -58,6 +62,7 @@ class YtDlpBackend:
 
     def extract_info(self, url: str, *, flat: bool) -> Info:
         options = self._options()
+        options["format"] = INFO_FORMAT
         if flat:
             options["extract_flat"] = "in_playlist"
         with self._ydl(options) as ydl:

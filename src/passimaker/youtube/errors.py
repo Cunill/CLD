@@ -56,6 +56,8 @@ _BLOCKED_MESSAGES = (
     "not a bot",
     "http error 429",
     "too many requests",
+    "rate-limited",
+    "captcha challenge",
 )
 """YouTube refuses this IP address for a while (PLA_YOUTUBE §5); not fixable from the program."""
 _OFFLINE_MESSAGES = (
@@ -115,8 +117,10 @@ def translate(error: BaseException) -> BaseException:
     """The exception to raise for `error`: a YoutubeError, or the local OSError behind it.
 
     - a YoutubeError anywhere in the chain is returned as is;
-    - a live stream, then a private/deleted/restricted video (by yt-dlp's message);
-    - YouTube refusing this network ("confirm you're not a bot", HTTP 429);
+    - a live stream (by yt-dlp's message);
+    - YouTube refusing this network ("confirm you're not a bot", HTTP 429, rate limit, captcha), checked
+      before the next one because yt-dlp appends it to a "video unavailable" reason;
+    - a private/deleted/restricted video (by yt-dlp's message);
     - no connection (socket errors, yt-dlp's TransportError, or their messages);
     - a file system error while writing (disk full, no permission) is returned unchanged;
     - anything else means yt-dlp no longer understands YouTube: YoutubeBrokenError with the detail.
@@ -129,10 +133,10 @@ def translate(error: BaseException) -> BaseException:
     text = detail.lower()
     if any(message in text for message in _LIVE_MESSAGES):
         return YoutubeUnavailableError(ERROR_LIVE, detail)
-    if any(message in text for message in _UNAVAILABLE_MESSAGES):
-        return YoutubeUnavailableError(detail=detail)
     if any(message in text for message in _BLOCKED_MESSAGES) or any(_status(item) == 429 for item in chain):
         return YoutubeBlockedError(detail)
+    if any(message in text for message in _UNAVAILABLE_MESSAGES):
+        return YoutubeUnavailableError(detail=detail)
     if any(_is_network(item) for item in chain) or any(message in text for message in _OFFLINE_MESSAGES):
         return YoutubeOfflineError(detail)
     for item in chain:

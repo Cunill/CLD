@@ -128,6 +128,9 @@ def test_youtube_changed(message: str) -> None:
         "authentication.",
         "Sign in to confirm you’re not a bot. This helps protect our community. Learn more",
         "Unable to download API page: HTTP Error 429: Too Many Requests",
+        "This content isn't available, try again later. The current session has been rate-limited by YouTube "
+        "for up to an hour.",
+        "This video is unavailable. YouTube is requiring a captcha challenge before playback",
     ],
 )
 def test_youtube_blocks_this_network(message: str) -> None:
