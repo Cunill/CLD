@@ -136,5 +136,5 @@ Següent: C05. Tota la xarxa, només a `passimaker.youtube` i mai abans de l'av�
 (decisions G1–G9: sense avís, gravacions interrompudes o de més de 30 min esborrades, ones per canal, micròfon opcional),
 blocs C07–C10 i C06 conjunt al §4 de docs/PLA_YOUTUBE.md. C07 i C08 en curs, en paral·lel (25/10/2026).
 C07 decisió 0013, contracte (CONTRACTES §16) i especificació (§1.7 ter), esquelet de `passimaker.recorder` i marca `so`
-(PR #63, pendent de revisió; docs/sessions/C07.md).
+(PR #63, commit `fb7f244`, docs/sessions/C07.md).
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
