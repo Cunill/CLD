@@ -242,7 +242,7 @@ les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escen
 | C06 Empaquetat i versió (YouTube i gravació) | ⏳ pendent | C05, C10 | — | T6 | 1 / 1 / 2 | 1,25 | — | — | — |
 | C07 Gravació: decisió i contracte | ✅ tancat el 25/10/2026 (`docs/sessions/C07.md`) | C01 | **C08**, **C03** | T3 | 1 / 1 / 1 | 0,5 | 1 | — | PR #63 · `fb7f244` |
 | C08 Gravació: prova de viabilitat | ✅ tancat el 26/10/2026; prova al PC correcta: `soundcard` 0.4.6 grava el so de l'ordinador i el micròfon; el volum de Windows i el de cada aplicació afecten la gravació (`docs/sessions/C08.md`) | C01 | **C07**, **C03** o **C05** | T3 | 1 / 1 / 2 | 1,0 | 1 | — | PR #64 · `031dce3` |
-| C09 Nucli `recorder` | ⏳ pendent | C07, C08 (i C03) | **C05** | T4 | 1 / 2 / 2 | 0,5 | — | — | — |
+| C09 Nucli `recorder` | 🔄 fet el 26/10/2026, PR pendent de fusió; proves "so" al PC de l'usuari pendents (`docs/sessions/C09.md`) | C07, C08 (i C03) | **C05** | T4 | 1 / 2 / 2 | 0,5 | 1 | — | PR pendent |
 | C10 Finestra de gravació | ⏳ pendent | C05, C09 | — | T5 | 1 / 2 / 2 | 1,0 | — | — | — |
 | **Subtotal dels blocs** | |  |  |  | **10 / 13 / 17** | **7,5** | **7** | **—** | |
 | Sessions de correcció després de la prova de l'usuari | ⏳ pendent | C06 | — | després del C06 | 0 / 2 / 3 | inclòs a sota | — | — | — |

@@ -72,12 +72,15 @@
 | Retallar silenci inicial i final | Activat | Llindar −50 dBFS, conserva 0,2 s de marge. `RECORD_TRIM_*` |
 | Durada màxima | 30 min | Protegeix el disc si s'oblida aturar-la. En arribar-hi, la gravació **s'esborra** (G5); a falta d'1 min el temps es posa en taronja (`RECORD_MAX_WARNING_S`). `RECORD_MAX_DURATION_S` |
 | Format intern | WAV de 32 bits flotants a la carpeta temporal, escrit **a mesura que es grava** | No a la memòria: 30 min ≈ 690 MB. Es considera temporal fins que l'usuari atura i desa: qualsevol interrupció l'esborra (G1). En obrir el programa s'esborren les restes d'un tancament inesperat (`passimaker_gravacio_*.wav` de la carpeta temporal). |
+| Normalització en desar | Activada, pic de −1 dBFS | Decisió de l'usuari del 26/10/2026 (C08): si el pic de la part conservada és per sota de −1 dBFS, es puja el nivell de tota la gravació fins a −1 dBFS; mai més amunt, i una gravació més forta no s'abaixa. Compensa un volum de Windows o de l'aplicació baix. `RECORD_NORMALIZE_ENABLED`, `RECORD_NORMALIZE_PEAK_DBFS` (C09) |
 | Format final | MP3 192 kbps, 48 kHz estèreo | El mateix `convert_to_mp3` del C04; el WAV temporal s'esborra en acabar. |
 | Freqüència | La de la sortida de Windows (44,1 o 48 kHz) | `convert_to_mp3` la passa a 48 kHz. |
 | Espai lliure mínim | 1 GB | Si en queda menys, no comença, i atura la gravació si s'hi arriba. |
 
 **Consell a la finestra** (text fix, traduïble): "Tanca o silencia les altres aplicacions: es grava tot el que sona a
-l'ordinador, també els avisos. El volum de Windows no afecta la gravació." (l'últim punt es confirma al C08).
+l'ordinador, també els avisos. Puja el volum de Windows i el de l'aplicació que sona: com més baixos, més fluixa queda
+la gravació." (C08: el volum general de Windows i el de cada aplicació **sí** que afecten la gravació; el programa
+normalitza el nivell en desar, però amb el volum molt baix es perd detall.)
 
 ### 2.3 Errors i avisos (en català, traduïbles)
 

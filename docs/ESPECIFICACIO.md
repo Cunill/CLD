@@ -339,13 +339,15 @@ per fer-lo servir al passi. No es connecta a internet i no mostra cap avís (G2)
 | Retallar el silenci de l'inici i del final | Activat | Per sota de −50 dBFS, amb 0,2 s de marge. `defaults.RECORD_TRIM_*` |
 | Durada màxima | 30 min | En arribar-hi, la gravació **s'esborra** (G5). A falta d'1 min, el temps es posa en taronja. `defaults.RECORD_MAX_DURATION_S`, `RECORD_MAX_WARNING_S` |
 | Format mentre es grava | WAV de 32 bits flotants a la carpeta temporal, escrit a mesura | No a la memòria (30 min ≈ 690 MB). És temporal fins que l'usuari atura i desa. |
+| Normalització en desar | Activada, fins a un pic de −1 dBFS | Si la part que es desa queda fluixa (pic per sota de −1 dBFS), se'n puja el nivell fins a −1 dBFS; mai més amunt, i una gravació més forta no s'abaixa (decisió de l'usuari del 26/10/2026). `defaults.RECORD_NORMALIZE_ENABLED`, `RECORD_NORMALIZE_PEAK_DBFS` |
 | Format final | MP3, 192 kbps, 48 kHz estèreo | `defaults.RECORD_MP3_BITRATE_KBPS`; el WAV temporal s'esborra en acabar. |
 | Freqüència | La de la sortida de Windows (44,1 o 48 kHz) | L'MP3 es fa a 48 kHz. |
 | Espai lliure mínim | 1 GB | Si en queda menys, no comença; si s'hi arriba gravant, s'atura i s'esborra. `defaults.RECORD_MIN_FREE_BYTES` |
 | Carpeta i nom | Es pregunta cada vegada; proposa "Gravació <dia-mes-any> <hora>.<minuts>" | Mai no se sobreescriu res (com a YouTube, §1.7 bis). |
 
 **Consell a la finestra** (text fix): "Tanca o silencia les altres aplicacions: es grava tot el que sona a l'ordinador,
-també els avisos. El volum de Windows no afecta la gravació." (l'última frase es confirma al C08).
+també els avisos. Puja el volum de Windows i el de l'aplicació que sona: com més baixos, més fluixa queda la gravació."
+(Comprovat al C08: el volum general de Windows i el de cada aplicació **sí** que afecten la gravació.)
 
 **Ones**
 - Un carril per canal de l'origen que es grava: esquerre (E) i dret (D) en estèreo, un de sol en mono.
@@ -368,6 +370,7 @@ també els avisos. El volum de Windows no afecta la gravació." (l'última frase
 | Disc ple o gairebé ple mentre es grava | "No queda prou espai al disc per continuar gravant. La gravació s'ha descartat." |
 | Durada màxima | "S'ha arribat al màxim de 30 minuts i la gravació s'ha descartat." |
 | Error del sistema de so | "No s'ha pogut gravar el so de l'ordinador. La gravació s'ha descartat." (el detall, al registre) |
+| Windows no deixa fer servir el micròfon (en triar una entrada) | "Windows no deixa que el programa faci servir el micròfon. Activa-ho a Configuració → Privadesa → Micròfon → "Permet que les aplicacions d'escriptori accedeixin al micròfon" i torna-ho a provar." |
 | Tancament inesperat del programa | Res en tornar-lo a obrir: la gravació no es recupera i el fitxer temporal s'esborra. |
 
 **Interrompuda o acabada (G1).** Una gravació es desa només si s'acaba amb [■ Atura] o amb l'aturada automàtica per
