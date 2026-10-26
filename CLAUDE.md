@@ -141,5 +141,7 @@ C07 decisió 0013, contracte (CONTRACTES §16) i especificació (§1.7 ter), esq
 (PR #63, commit `fb7f244`, docs/sessions/C07.md).
 C08 viabilitat (PR #64, commit `031dce3`, docs/sessions/C08.md): sounddevice no grava el so de l'ordinador
 (PortAudio 19.7.0 sense loopback); `soundcard` 0.4.6 aprovada (G10) i a `uv.lock`; ZIP de prova `ProvaGravacio-win64`
-(83,2 MB) a la CI; **pendent de la prova al PC de l'usuari** per tancar-lo.
+(83,2 MB) a la CI; prova al PC de l'usuari el 26/10/2026: correcta (Spotify, YouTube, Reproductor, Bluetooth, 10 min
+sense pèrdues, micròfon amb el permís de Windows). Per al C09: COM al fil de captura, vigilar el canvi de sortida (WASAPI
+no avisa); el volum de Windows sí que afecta la gravació.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
