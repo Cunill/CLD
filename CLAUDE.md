@@ -146,5 +146,5 @@ sense pèrdues, micròfon amb el permís de Windows). Per al C09: COM al fil de 
 no avisa); el volum de Windows i el de cada aplicació sí que afecten la gravació.
 C09 nucli `passimaker.recorder` amb `soundcard` (PR #77, commit `07e0aed`,
 docs/sessions/C09.md): normalització en desar fins a −1 dBFS, `safe_target_path` a `passimaker.common.files`; proves
-`so` al PC de l'usuari pendents.
+`so` al PC de l'usuari el 26/10/2026: correctes (5 s gravats, normalitzats de −28,8 a −1 dBFS).
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
