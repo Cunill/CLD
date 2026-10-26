@@ -241,7 +241,7 @@ les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escen
 | C05 Diàleg | ✅ tancat el 25/10/2026; prova manual de l'usuari a Windows pendent (`docs/sessions/C05.md`) | C03, C04 | **C08** o **C09** | T4 | 1 / 2 / 2 | 1,0 | 1 | — | PR #65 · `9bda982`; PR #68 · `a591521` (carpeta Baixades) |
 | C06 Empaquetat i versió (YouTube i gravació) | ⏳ pendent | C05, C10 | — | T6 | 1 / 1 / 2 | 1,25 | — | — | — |
 | C07 Gravació: decisió i contracte | ✅ tancat el 25/10/2026 (`docs/sessions/C07.md`) | C01 | **C08**, **C03** | T3 | 1 / 1 / 1 | 0,5 | 1 | — | PR #63 · `fb7f244` |
-| C08 Gravació: prova de viabilitat | ✅ tancat el 26/10/2026; prova al PC correcta: `soundcard` 0.4.6 grava el so de l'ordinador i el micròfon; el volum de Windows i el de cada aplicació afecten la gravació (`docs/sessions/C08.md`) | C01 | **C07**, **C03** o **C05** | T3 | 1 / 1 / 2 | 1,0 | 1 | — | PR #64 · `031dce3` |
+| C08 Gravació: prova de viabilitat | ✅ tancat el 26/10/2026; prova al PC correcta: `soundcard` 0.4.6 grava el so de l'ordinador i el micròfon; el volum de Windows i el de cada aplicació afecten la gravació; normalització en desar a −1 dBFS (decisió de l'usuari, 26/10/2026) (`docs/sessions/C08.md`) | C01 | **C07**, **C03** o **C05** | T3 | 1 / 1 / 2 | 1,0 | 1 | — | PR #64 · `031dce3`; PR #70 · `bf89811`; PR #73 · `1b6fb5d`; PR #74 · `6a4bf89`; PR #75 · `2bdd169` |
 | C09 Nucli `recorder` | 🔄 fet el 26/10/2026, PR pendent de fusió; proves "so" al PC de l'usuari pendents (`docs/sessions/C09.md`) | C07, C08 (i C03) | **C05** | T4 | 1 / 2 / 2 | 0,5 | 1 | — | PR pendent |
 | C10 Finestra de gravació | ⏳ pendent | C05, C09 | — | T5 | 1 / 2 / 2 | 1,0 | — | — | — |
 | **Subtotal dels blocs** | |  |  |  | **10 / 13 / 17** | **7,5** | **7** | **—** | |
@@ -612,7 +612,63 @@ dues vegades pel mateix motiu: anota-ho a docs/sessions/C08.md amb el pas següe
   `passimaker.common` (cal el C03 a `main`).
 - **Proves:** substitut `FakeCaptureBackend` (tons i silencis), Hypothesis per al retall i el silenci, cada causa
   d'interrupció sense deixar fitxers, prova de no-xarxa, i proves `so` per al PC de l'usuari.
-- Prompt: s'escriu en tancar el C08 (depèn de la tecnologia triada).
+- **Prompt** (escrit el 26/10/2026, amb el C08 tancat):
+
+```text
+Bloc C09: Gravar el so de l'ordinador, nucli passimaker.recorder. Model: Opus.
+ATENCIÓ: no facis res fora d'aquest bloc. Modifica només els fitxers permesos de sota, encara que vegis errors o
+millores en d'altres (anota-les a docs/sessions/C09.md). No toquis src/passimaker/ui, tools/, packaging/ ni .github/.
+A la taula del §4.1 de docs/PLA_YOUTUBE.md i a l'apartat Estat del CLAUDE.md, escriu només la fila i la línia del C09;
+si en acabar un altre bloc ja és a main, porta main a la teva branca (fusió, sense reescriure la història) i resol el
+conflicte conservant els canvis de l'altre bloc.
+Context: el C03, el C05, el C07 i el C08 són a main. Llegeix docs/PLA_GRAVACIO.md (§0, §2 i §3), docs/PLA_YOUTUBE.md
+(fitxa del C09), docs/decisions/0013-gravar-el-so.md, docs/ESPECIFICACIO.md §1.7 ter, docs/CONTRACTES.md (§15 i §16),
+docs/sessions/C07.md i docs/sessions/C08.md (sobretot "Per al C09 i el C10" i "Decisió de l'usuari"),
+src/passimaker/recorder/, src/passimaker/youtube/files.py, tools/prova_gravacio.py (com fa servir soundcard: COM,
+lectura, discontinuïtats i sortida per defecte), src/passimaker/model/defaults.py i tests/unit/recorder/.
+Branca: bloc/C09-nucli-gravacio des de main actualitzat (o la que imposi la sessió al núvol; anota-ho).
+Objectiu: implementar passimaker.recorder segons CONTRACTES §16, amb soundcard 0.4.6, provat amb un substitut sense
+targeta de so.
+Fes:
+1. backend.py: SoundcardBackend (CaptureBackend amb soundcard; import de soundcard només dins de les funcions): llista
+   les sortides (loopback, la per defecte primera) i les entrades; demana 48 kHz; el fil de captura crida
+   CoInitializeEx(COINIT_MULTITHREADED) en començar i CoUninitialize en acabar (C08); les discontinuïtats de WASAPI
+   s'anoten al registre i no aturen res; l'error 0x80070005 del micròfon dona un missatge que diu on s'activa el permís
+   (Configuració → Privadesa → Micròfon → "Permet que les aplicacions d'escriptori accedeixin al micròfon"), amb una
+   clau nova a passimaker.i18n.
+2. capture.py: Recorder i Monitor complets: fil de captura, WAV temporal escrit a mesura (wavwriter.py), pics per a les
+   ones (memòria circular i overview), nivell per canal, "Comença quan soni", aturada per silenci, retall
+   (trim_silence), durada màxima, disc ple. El canvi de sortida a mitges NO dona error a WASAPI (C08): consulta la
+   sortida per defecte cada segon i, si canvia, tracta-ho com a RecorderDeviceLostError. Qualsevol interrupció esborra
+   el WAV abans que l'error sigui visible (G1, G5). devices.py: list_sources i remove_leftovers.
+3. Normalització en desar (decisió de l'usuari del 26/10/2026, docs/sessions/C08.md): en stop(), si el pic de la part
+   conservada és per sota de −1 dBFS, puja el guany fins a un pic de −1 dBFS (mai més amunt); valor nou
+   defaults.RECORD_NORMALIZE_PEAK_DBFS = -1.0 (i, si cal, RECORD_NORMALIZE_ENABLED = True). Anota-ho al contracte §16.
+4. Trasllat de safe_target_path de passimaker.youtube.files a passimaker.common (un lloc comú per a YouTube i la
+   gravació), sense trencar res: passimaker.youtube el continua exportant (reexportació) i les proves continuen
+   passant; CONTRACTES §15 i §16 al dia.
+5. tests/fakes/recorder.py: FakeCaptureBackend amb tons, silencis, discontinuïtats, canvi de sortida, desconnexió i
+   errors. Proves a tests/unit/recorder/ i tests/integration/recorder/: Hypothesis per al retall, el silenci i la
+   normalització; cada causa d'interrupció sense deixar fitxers; "Comença quan soni"; aturada per silenci; durada
+   màxima; disc ple; pics i overview; Monitor sense escriure res al disc; remove_leftovers; cap import de Qt ni de
+   xarxa. Proves amb la marca "so" (i PASSIMAKER_SO=1) per al PC de l'usuari: llistar orígens, gravar 5 s de la
+   sortida per defecte.
+6. Documents de la normalització (els que el C08 no podia tocar): decisió 0013, annex docs/PLA_GRAVACIO.md §2.2 i
+   ESPECIFICACIO §1.7 ter (afegir la normalització i corregir el consell del volum: el volum de Windows i el de cada
+   aplicació SÍ afecten la gravació).
+7. docs/PLA_YOUTUBE.md: només la fila del C09 de la taula del §4.1. CLAUDE.md, apartat Estat: una línia del C09.
+Criteris d'acceptació: tot el contracte §16 implementat (cap NotImplementedError); cap fitxer temporal després d'una
+interrupció; la normalització mai passa de −1 dBFS; proves, suite ràpida, ruff i pyright en verd; cap dependència nova.
+Fitxers permesos: src/passimaker/recorder/, src/passimaker/common.py (o src/passimaker/common/, si cal convertir-lo en
+paquet), src/passimaker/youtube/files.py i src/passimaker/youtube/__init__.py (només el trasllat de safe_target_path),
+src/passimaker/i18n/__init__.py (claus noves del recorder), src/passimaker/model/defaults.py (valors nous de la
+gravació), tests/fakes/recorder.py, tests/unit/recorder/, tests/integration/recorder/, tests/unit/youtube/ (només si el
+trasllat ho demana), docs/CONTRACTES.md (§15 i §16), docs/decisions/0013-gravar-el-so.md, docs/PLA_GRAVACIO.md (§2.2),
+docs/ESPECIFICACIO.md (§1.7 ter), docs/sessions/C09.md, la fila del C09 a docs/PLA_YOUTUBE.md i l'apartat Estat del
+CLAUDE.md. Si cal tocar-ne cap altre, atura't i proposa-ho.
+Condició d'aturada: la del CLAUDE.md. A docs/sessions/C09.md, anota les decisions que hagis pres i les proves "so" que
+l'usuari ha de fer al seu PC (un pas cada vegada).
+```
 
 ### C10 · Finestra "Grava el que sona"
 - **Fa:** `ui/record_dialog.py` i `ui/wave_view.py` (ones per canal en directe i de tota la gravació, annex §2.4),
