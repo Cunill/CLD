@@ -143,5 +143,5 @@ C08 viabilitat (PR #64, commit `031dce3`, docs/sessions/C08.md): sounddevice no 
 (PortAudio 19.7.0 sense loopback); `soundcard` 0.4.6 aprovada (G10) i a `uv.lock`; ZIP de prova `ProvaGravacio-win64`
 (83,2 MB) a la CI; prova al PC de l'usuari el 26/10/2026: correcta (Spotify, YouTube, Reproductor, Bluetooth, 10 min
 sense pèrdues, micròfon amb el permís de Windows). Per al C09: COM al fil de captura, vigilar el canvi de sortida (WASAPI
-no avisa); el volum de Windows sí que afecta la gravació.
+no avisa); el volum de Windows i el de cada aplicació sí que afecten la gravació.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
