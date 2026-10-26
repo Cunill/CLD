@@ -59,6 +59,16 @@ interfície en recull les noves 30 cops per segon (regla 6). No s'hi pot clicar 
 MP3 de 192 kbps, 48 kHz estèreo, amb el mateix `passimaker.ffmpeg.convert_to_mp3` del C04: la regla 7 no canvia (el
 nostre codi no crida `subprocess` fora de `passimaker.ffmpeg`).
 
+## 6 bis. Volum i normalització (decisió de l'usuari del 26/10/2026, aplicada al C09)
+- La prova del C08 ho ha confirmat: **el volum general de Windows i el de cada aplicació (Mesclador) sí que afecten la
+  gravació**, perquè la captura (loopback) recull la mescla final, després de tots dos volums.
+- Per això, **en desar es normalitza**: si el pic de la part conservada queda per sota de **−1 dBFS**, el programa puja
+  el nivell de tota la gravació (el mateix guany per a tots dos canals) fins que el pic arriba a −1 dBFS; **mai més
+  amunt**, per no saturar, i una gravació més forta no s'abaixa. Sense pèrdua audible: la captura és digital, en coma
+  flotant de 32 bits i sense soroll analògic. Amb el micròfon, pujar el nivell també puja el soroll de fons.
+- Valors: `defaults.RECORD_NORMALIZE_ENABLED = True` i `defaults.RECORD_NORMALIZE_PEAK_DBFS = -1.0`.
+- El consell de la finestra canvia (C10): ja no diu que el volum no afecta la gravació (vegeu ESPECIFICACIO §1.7 ter).
+
 ## 7. Tecnologia de captura (decidida al C08: `soundcard`, G10)
 | Opció | Notes |
 |---|---|
@@ -77,3 +87,4 @@ loopback). El C08 proposa **B, `soundcard` 0.4.6** (BSD-3, 44 KB, sense dependè
   `so` (excloses per defecte i, a més, omeses sense `PASSIMAKER_SO=1`) i les fa l'usuari al seu PC. La lògica (silenci,
   retall, WAV, durada màxima, disc ple, desconnexió) es prova a Linux i a la CI amb un substitut (C09).
 - Canviar d'auriculars a mitja gravació la fa perdre sencera (G1): la guia ho avisa.
+- Una gravació fluixa (volum baix) es puja en desar fins a −1 dBFS (§6 bis): el volum ja no ha de ser alt per força.

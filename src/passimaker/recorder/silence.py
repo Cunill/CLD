@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 from numpy.typing import NDArray
 
@@ -10,6 +12,27 @@ from passimaker.model import defaults
 
 def dbfs_to_amplitude(dbfs: float) -> float:
     return float(10.0 ** (dbfs / 20.0))
+
+
+def amplitude_to_dbfs(amplitude: float) -> float:
+    """-inf for 0 (digital silence)."""
+    return 20.0 * math.log10(amplitude) if amplitude > 0 else -math.inf
+
+
+def normalize_gain(peak: float, target_dbfs: float = defaults.RECORD_NORMALIZE_PEAK_DBFS) -> float:
+    """The factor that raises a recording whose highest |sample| is `peak` to `target_dbfs`.
+
+    Never below 1 (a loud recording stays as it is) and never above what brings the peak to the
+    target, so the result never goes over `target_dbfs`. 1 for a silent recording (peak 0).
+    """
+    target = dbfs_to_amplitude(target_dbfs)
+    if not peak > 0 or peak >= target:
+        return 1.0
+    # The samples are float32: rounding could put the peak a hair over the target, so step back.
+    gain = np.float32(min(target / peak, float(np.finfo(np.float32).max)))
+    while np.float32(peak) * gain > np.float32(target):
+        gain = np.nextafter(gain, np.float32(0.0))
+    return max(1.0, float(gain))
 
 
 def trim_silence(

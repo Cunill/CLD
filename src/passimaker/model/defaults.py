@@ -111,3 +111,14 @@ RECORD_CLIP_HOLD_S = 2.0
 """The clipping mark (0 dBFS) of a level meter stays lit this long."""
 RECORD_DISCARD_CONFIRM_S = 10.0
 """[Descarta] asks for confirmation when the recording is longer than this."""
+RECORD_NORMALIZE_ENABLED = True
+"""On saving, a quiet recording is raised to RECORD_NORMALIZE_PEAK_DBFS (user's decision of 26/10/2026)."""
+RECORD_NORMALIZE_PEAK_DBFS = -1.0
+"""Peak of the saved recording after normalising; only ever raised, never lowered (no clipping)."""
+RECORD_BLOCK_S = 0.05
+"""Audio asked of the sound system at a time by the capture thread (the waves advance in these steps)."""
+RECORD_DEVICE_POLL_S = 1.0
+"""How often (seconds of audio) the capture thread checks the default output and the free space:
+WASAPI does not report a change of output while recording (block C08)."""
+RECORD_OPEN_TIMEOUT_S = 10.0
+"""start() gives up (RecorderDeviceError) if the sound system takes longer to open the source."""
