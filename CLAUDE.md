@@ -132,7 +132,7 @@ prova (decisió de l'usuari, 25/10/2026). C03 nucli `passimaker.youtube` (PR #58
 miniatura, baixada (àudio estèreo abans que el 5.1), noms de fitxer i errors (`youtube.blocked` nou), amb backend
 injectable (`tests/fakes/youtube.py`) i marca `xarxa` (`PASSIMAKER_XARXA=1`, només al PC).
 C05 finestra "Música de YouTube" (`ui/youtube_dialog.py`, [+ Música ▾] amb menú) (PR #65, commit `9bda982`,
-docs/sessions/C05.md): prova manual de l'usuari a Windows pendent.
+docs/sessions/C05.md): prova manual a Windows feta el 26/10/2026, correcta (un error corregit a la PR #80).
 Tota la xarxa, només a `passimaker.youtube` i mai abans de l'avís.
 **Gravar el so de l'ordinador** (ampliació aprovada el 25/10/2026, també a la versió 1.2.0): annex docs/PLA_GRAVACIO.md
 (decisions G1–G9: sense avís, gravacions interrompudes o de més de 30 min esborrades, ones per canal, micròfon opcional),
