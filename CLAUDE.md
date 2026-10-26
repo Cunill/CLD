@@ -27,8 +27,8 @@ Dues menes de sessió (24/10/2026); es fa servir la que convingui a cada tasca:
 - Instruccions pas a pas: un pas cada vegada, curt i clar.
 - Els avisos que impedeixen fer alguna cosa (p. ex. "encara no obris aquesta sessió") van **al principi** del missatge,
   abans de prompts, taules o explicacions (decisió de l'usuari, 25/10/2026).
-- La taula de seguiment d'un pla es mostra sempre **sencera** (totes les files i columnes), mai retallada (decisió de
-  l'usuari, 25/10/2026).
+- La taula de seguiment d'un pla es mostra sempre **sencera** (totes les files i columnes), mai retallada, i amb la
+  columna **Estat just després del nom del bloc** (decisions de l'usuari, 25 i 26/10/2026).
 - Les hores, sempre amb el rellotge oficial de l'usuari (ara UTC+1; UTC+2 a l'estiu), mai en temps universal (UTC)
   (decisió de l'usuari, 25/10/2026).
 
