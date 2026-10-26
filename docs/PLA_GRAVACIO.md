@@ -151,8 +151,8 @@ passimaker.recorder  (nucli, sense Qt)  ── mòdul nou
 passimaker.ffmpeg.convert_to_mp3  (C04, ja fet)  →  model: AddSongs
 ```
 
-- **Peces compartides amb YouTube:** el menú [+ Música ▾], `convert_to_mp3` i `safe_target_path` (avui a `passimaker.youtube.files`; es proposa moure'l a un lloc comú, p. ex.
-  `passimaker.common.files`, al C07: és un canvi de contracte).
+- **Peces compartides amb YouTube:** el menú [+ Música ▾], `convert_to_mp3` i `safe_target_path` (a `passimaker.common.files` des del C09; `passimaker.youtube` el continua
+  exportant).
 - **Res de xarxa:** la prova estàtica d'imports de xarxa (C01) ja impedeix que `recorder` en faci.
 - **Proves:** un `FakeCaptureBackend` a `tests/fakes` que lliura blocs de tons i silencis; la lògica (silenci, retall,
   WAV, durada màxima, disc ple, desconnexió) es prova a Linux i a la CI. La captura real necessita una targeta de so:
