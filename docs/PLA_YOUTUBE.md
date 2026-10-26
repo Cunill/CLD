@@ -490,7 +490,8 @@ que l'usuari ha de fer a Windows (un pas cada vegada).
 ```
 
 ### C06 · Empaquetat, guia i versió 1.2.0 (YouTube i gravació)
-- **Fa:** PyInstaller amb yt-dlp, `yt-dlp-ejs` i Deno (C02) i, si el C08 en tria una, la dependència de captura;
+- **Fa:** PyInstaller amb yt-dlp, `yt-dlp-ejs` i Deno (C02) i `soundcard` 0.4.6 (C08; el C09 l'importa amb un `import`
+  normal perquè PyInstaller el trobi sol: cal comprovar que entra al ZIP de PassiMaker, amb el seu ganxo de PyInstaller);
   `tools/construir_zip.ps1`; CI; apartats nous a la guia (`ui/help.py`): música de YouTube i "Grava el que sona" (sense
   apartat legal de la gravació, G2); a "Imprevistos": "YouTube ha canviat" i "No s'ha gravat cap so"; CHANGELOG;
   versió 1.2.0; flux de manteniment del §6.
@@ -676,7 +677,69 @@ l'usuari ha de fer al seu PC (un pas cada vegada).
   avís de temps a falta d'1 min, selector de carpeta i nom, conversió amb progrés, "Afegeix al projecte"; en tancar
   mentre es grava, pregunta i esborra (G1). Sense avís legal (G2).
 - **Proves:** pytest-qt amb el substitut; rendiment de les ones (repintat < 5 ms per fotograma); textos traduïbles.
-- Prompt: s'escriu en tancar el C05 i el C09.
+- **Notes del C09 (26/10/2026)**, que el C10 ha de seguir: restes en obrir el programa (`remove_leftovers`);
+  `list_sources()` i `Recorder.stop()` fora del fil de la interfície (`stop()` reescriu el WAV i pot trigar); consell nou
+  del volum (ESPECIFICACIO §1.7 ter); error del micròfon (`RecorderMicrophoneDeniedError`); silencis retallats ombrejats
+  amb `trimmed_start_s` i `trimmed_end_s` (l'ona és d'abans del retall i la normalització); nom amb
+  `safe_target_path(carpeta, títol, fallback="Gravació")` de `passimaker.common.files`; un canvi de sortida a mitges és
+  "desconnectada" i es perd la gravació (G1).
+- **Prompt** (escrit el 26/10/2026, amb el C05 i el C09 a `main`):
+
+```text
+Bloc C10: Gravar el so de l'ordinador, finestra "Grava el que sona". Model: Sonnet.
+ATENCIÓ: no facis res fora d'aquest bloc. Modifica només els fitxers permesos de sota, encara que vegis errors o
+millores en d'altres (anota-les a docs/sessions/C10.md). No toquis src/passimaker/recorder, src/passimaker/youtube,
+src/passimaker/ffmpeg, tools/, packaging/ ni .github/. A la taula del §4.1 de docs/PLA_YOUTUBE.md i a l'apartat Estat
+del CLAUDE.md, escriu només la fila i la línia del C10; si en acabar un altre bloc ja és a main, porta main a la teva
+branca (fusió, sense reescriure la història) i resol el conflicte conservant els canvis de l'altre bloc.
+Context: el C05 i el C09 són a main. Llegeix docs/PLA_GRAVACIO.md (§0 i §2, sobretot §2.4 "Ones"), docs/PLA_YOUTUBE.md
+(fitxa del C10, amb les "Notes del C09"), docs/decisions/0013-gravar-el-so.md, docs/ESPECIFICACIO.md §1.7 ter,
+docs/CONTRACTES.md (§13 i §16), docs/sessions/C09.md (decisions D1–D17), docs/sessions/C05.md,
+src/passimaker/recorder/, src/passimaker/common/files.py, src/passimaker/ui/youtube_dialog.py (com a model: fils,
+cua, selector de carpeta, conversió i "Afegeix al projecte"), src/passimaker/ui/main_window.py (music_menu i
+_add_music_source), src/passimaker/ui/app.py, src/passimaker/ui/dialogs.py, tests/fakes/recorder.py i tests/ui/conftest.py.
+Branca: bloc/C10-finestra-gravacio des de main actualitzat (o la que imposi la sessió al núvol; anota-ho).
+Objectiu: la finestra "Grava el que sona" completa (ESPECIFICACIO §1.7 ter), provada amb el substitut, sense targeta
+de so a les proves.
+Fes:
+1. Menú [+ Música ▾]: entrada "Grava el que sona…" amb _add_music_source (una línia, com va preparar el C05).
+2. src/passimaker/ui/wave_view.py: ones per canal (un carril per canal; un de sol si l'origen és mono), en directe
+   (últims RECORD_WAVE_WINDOW_S, gris abans de gravar i vermell gravant) i de tota la gravació en aturar (overview),
+   amb els silencis que es retallen ombrejats segons trimmed_start_s i trimmed_end_s (l'ona és d'abans del retall i
+   de la normalització); mesurador per canal en dBFS amb la marca de saturació que dura RECORD_CLIP_HOLD_S; repintat
+   amb un QTimer a RECORD_WAVE_REFRESH_HZ que només recull les columnes noves (peaks_since). No s'hi pot clicar.
+3. src/passimaker/ui/record_dialog.py (no modal, sense avís legal, G2): orígens amb list_sources() (fora del fil de la
+   interfície), primer el so de l'ordinador i després el micròfon i la línia, que només es graven si l'usuari els tria
+   (G6); Monitor abans de gravar; [● Grava] [■ Atura] [Descarta]; temps, espai lliure, "Comença quan soni" i "Atura't
+   després de N s de silenci"; temps en taronja a falta de RECORD_MAX_WARNING_S; consell nou del volum (ESPECIFICACIO
+   §1.7 ter); Recorder.stop() fora del fil de la interfície (reescriu el WAV i pot trigar); selector de carpeta a cada
+   gravació (ui/dialogs.py, proposa la darrera) i nom amb safe_target_path(carpeta, títol, fallback="Gravació") de
+   passimaker.common.files (proposa "Gravació 25-10-2026 18.30"); conversió amb ffmpeg.convert_to_mp3 i progrés;
+   esborrar el WAV temporal en acabar; casella "Afegeix al projecte en acabar" amb MainWindow.add_songs.
+4. Errors amb passimaker.i18n.message: cada error del recorder, inclòs RecorderMicrophoneDeniedError (diu on s'activa
+   el permís a Windows) i RecorderSilentError; un canvi de sortida a mitges surt com a "desconnectada" i la gravació es
+   perd sencera (G1); disc ple i durada màxima, igual (G1, G5).
+5. Tancar la finestra o el programa mentre es grava: pregunta "La gravació s'esborrarà. Vols aturar-la i sortir?" i,
+   si es confirma, discard() (G1). [Descarta] demana confirmació si la gravació dura més de RECORD_DISCARD_CONFIRM_S.
+6. En obrir el programa (ui/app.py): recorder.remove_leftovers(Path(tempfile.gettempdir())), fora del fil de la
+   interfície si cal.
+7. Proves pytest-qt (tests/ui/test_record_dialog.py i tests/ui/test_wave_view.py) amb tests/fakes/recorder.py: orígens,
+   micròfon opcional, gravar i aturar, "Comença quan soni", aturada per silenci, cada error (G1, G5), tancar mentre es
+   grava, descartar, afegir al projecte (AddSongs al controlador), ones (carrils, colors, ombrejat, saturació) i
+   rendiment del repintat (< 5 ms per fotograma), textos traduïbles. Cap prova obre la targeta de so.
+8. docs/PLA_YOUTUBE.md: només la fila del C10 de la taula del §4.1. CLAUDE.md, apartat Estat: una línia del C10.
+Criteris d'acceptació: tot el §1.7 ter funciona amb el substitut; cap operació de més de 50 ms al fil de la interfície;
+cap fitxer temporal després d'una interrupció o en tancar; proves, suite ràpida, ruff i pyright en verd; cap
+dependència nova.
+Fitxers permesos: src/passimaker/ui/record_dialog.py i src/passimaker/ui/wave_view.py (nous),
+src/passimaker/ui/main_window.py (només l'entrada del menú i obrir la finestra), src/passimaker/ui/app.py (només
+remove_leftovers), src/passimaker/ui/dialogs.py (només el selector de carpeta i el nom, si cal),
+tests/ui/test_record_dialog.py i tests/ui/test_wave_view.py (nous), tests/ui/conftest.py (només si cal un fixture),
+docs/sessions/C10.md, la fila del C10 a docs/PLA_YOUTUBE.md i l'apartat Estat del CLAUDE.md. Si cal tocar-ne cap
+altre (p. ex. un valor nou a defaults.py o un canvi a passimaker.recorder), atura't i proposa-ho.
+Condició d'aturada: la del CLAUDE.md. A docs/sessions/C10.md, anota les decisions que hagis pres i la prova manual que
+l'usuari ha de fer a Windows (un pas cada vegada).
+```
 
 ---
 
