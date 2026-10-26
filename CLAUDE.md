@@ -147,4 +147,6 @@ no avisa); el volum de Windows i el de cada aplicació sí que afecten la gravac
 C09 nucli `passimaker.recorder` amb `soundcard` (PR #77, commit `07e0aed`,
 docs/sessions/C09.md): normalització en desar fins a −1 dBFS, `safe_target_path` a `passimaker.common.files`; proves
 `so` al PC de l'usuari pendents.
+C10 finestra "Grava el que sona" (`ui/record_dialog.py`, `ui/wave_view.py`), branca `claude/brave-curie-er5u0n`:
+aturat el 26/10/2026 a l'espera del permís per actualitzar una prova del C05 (docs/sessions/C10.md).
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.

@@ -243,7 +243,7 @@ les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escen
 | C07 Gravació: decisió i contracte | ✅ tancat el 25/10/2026 (`docs/sessions/C07.md`) | C01 | **C08**, **C03** | T3 | 1 / 1 / 1 | 0,5 | 1 | — | PR #63 · `fb7f244` |
 | C08 Gravació: prova de viabilitat | ✅ tancat el 26/10/2026; prova al PC correcta: `soundcard` 0.4.6 grava el so de l'ordinador i el micròfon; el volum de Windows i el de cada aplicació afecten la gravació; normalització en desar a −1 dBFS (decisió de l'usuari, 26/10/2026) (`docs/sessions/C08.md`) | C01 | **C07**, **C03** o **C05** | T3 | 1 / 1 / 2 | 1,0 | 1 | — | PR #64 · `031dce3`; PR #70 · `bf89811`; PR #73 · `1b6fb5d`; PR #74 · `6a4bf89`; PR #75 · `2bdd169` |
 | C09 Nucli `recorder` | ✅ tancat el 26/10/2026; proves "so" al PC de l'usuari pendents (`docs/sessions/C09.md`) | C07, C08 (i C03) | **C05** | T4 | 1 / 2 / 2 | 0,5 | 1 | — | PR #77 · `07e0aed` |
-| C10 Finestra de gravació | ⏳ pendent | C05, C09 | — | T5 | 1 / 2 / 2 | 1,0 | — | — | — |
+| C10 Finestra de gravació | ⛔ aturat el 26/10/2026: tot fet i provat; falta el permís per actualitzar una prova del C05 (el menú [+ Música ▾] passa a tres entrades) (`docs/sessions/C10.md`) | C05, C09 | — | T5 | 1 / 2 / 2 | 1,0 | 1 | — | branca `claude/brave-curie-er5u0n` |
 | **Subtotal dels blocs** | |  |  |  | **10 / 13 / 17** | **7,5** | **7** | **—** | |
 | Sessions de correcció després de la prova de l'usuari | ⏳ pendent | C06 | — | després del C06 | 0 / 2 / 3 | inclòs a sota | — | — | — |
 | Revisió de les PR i prova final de l'usuari | ⏳ pendent | — | — | totes | — | 2,5 / 5 / 10 | — | — | — |

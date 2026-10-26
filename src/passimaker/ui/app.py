@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import sys
+import tempfile
+import threading
 from pathlib import Path
 
 from PySide6.QtGui import QIcon
@@ -12,6 +14,7 @@ from passimaker.export import cache_root
 from passimaker.images import CachedImageSource
 from passimaker.logs import install_exception_hooks, setup_logging
 from passimaker.model import ProjectController
+from passimaker.recorder import remove_leftovers
 from passimaker.thumbs import ThumbnailService
 from passimaker.ui.errors import ErrorReporter
 from passimaker.ui.main_window import MainWindow
@@ -27,6 +30,18 @@ def app_icon() -> QIcon:
     return QIcon(str(ICON_FILE))
 
 
+def remove_recording_leftovers() -> threading.Thread:
+    """The temporary WAVs of a recording cut short by a crash are deleted, never recovered (G1).
+
+    In a thread of its own: listing the temporary folder may take a moment (rule 6).
+    """
+    thread = threading.Thread(
+        target=lambda: remove_leftovers(Path(tempfile.gettempdir())), name="passimaker-leftovers", daemon=True
+    )
+    thread.start()
+    return thread
+
+
 def main(argv: list[str] | None = None) -> int:
     """Starts the GUI. Optional argument: a .pmk file to open; without it, the recovery copy is offered
     if the program did not close cleanly last time (§1.10)."""
@@ -39,6 +54,7 @@ def main(argv: list[str] | None = None) -> int:
     install(app)
     reporter = ErrorReporter(log_file)
     install_exception_hooks(reporter.report)
+    remove_recording_leftovers()
 
     images = CachedImageSource()
     thumbnails = ThumbnailService(cache_root() / "thumbs", CachedImageSource())
