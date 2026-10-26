@@ -543,7 +543,8 @@ class YoutubeWindow(QWidget):
         return self._pending_lookups > 0
 
     def result_rows(self) -> list[ResultRow]:
-        return [self._result_row(self.results.item(i)) for i in range(self.results.count())]
+        rows = (self._result_row(self.results.item(i)) for i in range(self.results.count()))
+        return [row for row in rows if row is not None]
 
     def download_rows(self) -> list[DownloadRow]:
         rows: list[DownloadRow] = []
@@ -559,10 +560,11 @@ class YoutubeWindow(QWidget):
     def wait_for_downloads(self, milliseconds: int = CLOSE_WAIT_MS) -> bool:
         return self._downloads.waitForDone(milliseconds)
 
-    def _result_row(self, item: QListWidgetItem) -> ResultRow:
+    def _result_row(self, item: QListWidgetItem) -> ResultRow | None:
+        """None while the list is being cleared: Qt reports the selection change of items whose
+        widget is already gone (a new search with results selected)."""
         widget = self.results.itemWidget(item)
-        assert isinstance(widget, ResultRow)
-        return widget
+        return widget if isinstance(widget, ResultRow) else None
 
     def _show_message(self, text: str) -> None:
         self.message_label.setText(text)
@@ -714,7 +716,8 @@ class YoutubeWindow(QWidget):
     # --- Downloading ------------------------------------------------------------------------------
 
     def selected_results(self) -> list[SearchResult]:
-        rows = [self._result_row(item) for item in self.results.selectedItems()]
+        selected = (self._result_row(item) for item in self.results.selectedItems())
+        rows = [row for row in selected if row is not None]
         order = {id(row): i for i, row in enumerate(self.result_rows())}
         rows.sort(key=lambda row: order.get(id(row), 0))
         return [row.result for row in rows if row.downloadable]

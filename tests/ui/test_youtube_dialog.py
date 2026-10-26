@@ -474,6 +474,19 @@ def test_link_to_an_unavailable_video(qtbot: QtBot, added: list[list[Path]]) -> 
     assert window.message_label.text() == message("youtube.unavailable")
 
 
+def test_a_new_search_with_results_selected(qtbot: QtBot, added: list[list[Path]]) -> None:
+    """The prova manual del C05 (26/10/2026): searching again with a selection gave "Error inesperat"."""
+    fake = backend_with_results(3)
+    window = make_window(qtbot, fake, FakeQuestions(), added)
+    run_search(qtbot, window, "einaudi")
+    select(window, [0, 2])
+    assert window.download_button.isEnabled()
+    run_search(qtbot, window, "einaudi")
+    assert window.results.count() == 3
+    assert window.selected_results() == []
+    assert not window.download_button.isEnabled()
+
+
 def test_a_new_search_replaces_the_results(qtbot: QtBot, added: list[list[Path]]) -> None:
     fake = backend_with_results(3)
     window = make_window(qtbot, fake, FakeQuestions(), added)
