@@ -144,7 +144,7 @@ C08 viabilitat (PR #64, commit `031dce3`, docs/sessions/C08.md): sounddevice no 
 (83,2 MB) a la CI; prova al PC de l'usuari el 26/10/2026: correcta (Spotify, YouTube, Reproductor, Bluetooth, 10 min
 sense pèrdues, micròfon amb el permís de Windows). Per al C09: COM al fil de captura, vigilar el canvi de sortida (WASAPI
 no avisa); el volum de Windows i el de cada aplicació sí que afecten la gravació.
-C09 nucli `passimaker.recorder` amb `soundcard` (branca `claude/optimistic-gauss-it0eel`, PR pendent de fusió,
+C09 nucli `passimaker.recorder` amb `soundcard` (branca `claude/optimistic-gauss-it0eel`, PR #77 pendent de fusió,
 docs/sessions/C09.md): normalització en desar fins a −1 dBFS, `safe_target_path` a `passimaker.common.files`; proves
 `so` al PC de l'usuari pendents.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
