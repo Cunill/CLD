@@ -7,13 +7,15 @@
 - The sound system is behind CaptureBackend (technology chosen in block C08); tests use a fake.
 - Every failure is a RecorderError whose message_key is one of the ERROR_* constants.
 
-Block C07 fixes the contract (docs/CONTRACTES.md §16): trim_silence works; the rest raises
-NotImplementedError until block C09.
+- Saving trims the silence at both ends and raises a quiet recording to a peak of
+  defaults.RECORD_NORMALIZE_PEAK_DBFS (never higher; user's decision of 26/10/2026).
+
+Contract: docs/CONTRACTES.md §16 (block C07); implemented in block C09 with soundcard (G10).
 """
 
 from __future__ import annotations
 
-from passimaker.recorder.backend import CaptureBackend, CaptureStream
+from passimaker.recorder.backend import CaptureBackend, CaptureStream, SoundcardBackend
 from passimaker.recorder.capture import Monitor, Recorder
 from passimaker.recorder.devices import list_sources
 from passimaker.recorder.silence import trim_silence
@@ -22,6 +24,7 @@ from passimaker.recorder.types import (
     ERROR_DEVICE_LOST,
     ERROR_DISK_FULL,
     ERROR_MAX_DURATION,
+    ERROR_MICROPHONE_DENIED,
     ERROR_NO_DEVICE,
     ERROR_NO_SPACE,
     ERROR_SILENT,
@@ -33,6 +36,7 @@ from passimaker.recorder.types import (
     RecorderDiskFullError,
     RecorderError,
     RecorderMaxDurationError,
+    RecorderMicrophoneDeniedError,
     RecorderNoDeviceError,
     RecorderSilentError,
     RecorderState,
@@ -48,6 +52,7 @@ __all__ = [
     "ERROR_DEVICE_LOST",
     "ERROR_DISK_FULL",
     "ERROR_MAX_DURATION",
+    "ERROR_MICROPHONE_DENIED",
     "ERROR_NO_DEVICE",
     "ERROR_NO_SPACE",
     "ERROR_SILENT",
@@ -64,11 +69,13 @@ __all__ = [
     "RecorderDiskFullError",
     "RecorderError",
     "RecorderMaxDurationError",
+    "RecorderMicrophoneDeniedError",
     "RecorderNoDeviceError",
     "RecorderSilentError",
     "RecorderState",
     "RecordingResult",
     "RecordingSettings",
+    "SoundcardBackend",
     "SourceKind",
     "StopReason",
     "list_sources",

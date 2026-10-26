@@ -33,6 +33,8 @@ ERROR_MAX_DURATION = "recorder.max_duration"
 """defaults.RECORD_MAX_DURATION_S reached (decision 0013, G5: it counts as interrupted)."""
 ERROR_DEVICE = "recorder.device_error"
 """Any other failure of the sound system (detail: the backend's message, for the log)."""
+ERROR_MICROPHONE_DENIED = "recorder.microphone_denied"
+"""Windows denies the desktop programs the microphone (0x80070005, block C08): says where to allow it."""
 
 
 class RecorderError(PassiMakerError):
@@ -73,6 +75,13 @@ class RecorderMaxDurationError(RecorderError):
 class RecorderDeviceError(RecorderError):
     def __init__(self, detail: str = "") -> None:
         super().__init__(ERROR_DEVICE, detail)
+
+
+class RecorderMicrophoneDeniedError(RecorderError):
+    """An input (microphone, line) cannot be opened because of Windows' privacy settings."""
+
+    def __init__(self, detail: str = "") -> None:
+        super().__init__(ERROR_MICROPHONE_DENIED, detail)
 
 
 class SourceKind(StrEnum):
@@ -139,6 +148,8 @@ class RecordingSettings:
     max_duration_s: float = defaults.RECORD_MAX_DURATION_S
     min_free_bytes: int = defaults.RECORD_MIN_FREE_BYTES
     peak_columns_per_s: int = defaults.RECORD_PEAK_COLUMNS_PER_S
+    normalize: bool = defaults.RECORD_NORMALIZE_ENABLED
+    normalize_peak_dbfs: float = defaults.RECORD_NORMALIZE_PEAK_DBFS
 
 
 @dataclass(frozen=True, slots=True)
@@ -152,3 +163,5 @@ class RecordingResult:
     trimmed_end_s: float
     """Silence removed from the end."""
     stop_reason: StopReason
+    gain_db: float = 0.0
+    """Raised by the normalisation (0 if it was already loud enough or it is off); never negative."""

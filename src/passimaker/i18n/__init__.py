@@ -85,6 +85,10 @@ MESSAGES: Mapping[str, str] = {
     "recorder.no_space": "No hi ha prou espai al disc per començar a gravar (cal almenys 1 GB lliure).",
     "recorder.max_duration": "S'ha arribat al màxim de 30 minuts i la gravació s'ha descartat.",
     "recorder.device_error": "No s'ha pogut gravar el so de l'ordinador. La gravació s'ha descartat.",
+    "recorder.microphone_denied": (
+        "Windows no deixa que el programa faci servir el micròfon. Activa-ho a Configuració → Privadesa → "
+        'Micròfon → "Permet que les aplicacions d\'escriptori accedeixin al micròfon" i torna-ho a provar.'
+    ),
 }
 
 

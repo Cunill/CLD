@@ -23,7 +23,7 @@ def _source(
 
 def test_every_error_key_has_a_catalan_message() -> None:
     keys = {v for name, v in vars(types).items() if name.startswith("ERROR_") and isinstance(v, str)}
-    assert len(keys) == 7
+    assert len(keys) == 8
     for key in keys:
         assert key.startswith("recorder.") and key in MESSAGES
         assert message(key) != key
@@ -38,6 +38,7 @@ def test_errors_carry_their_key_and_derive_from_the_base_error() -> None:
         (recorder.RecorderDiskFullError(recorder.ERROR_NO_SPACE), recorder.ERROR_NO_SPACE),
         (recorder.RecorderMaxDurationError(), recorder.ERROR_MAX_DURATION),
         (recorder.RecorderDeviceError("PortAudio error -9999"), recorder.ERROR_DEVICE),
+        (recorder.RecorderMicrophoneDeniedError("Error 0x80070005"), recorder.ERROR_MICROPHONE_DENIED),
     ]
     for error, key in errors:
         assert isinstance(error, recorder.RecorderError) and isinstance(error, PassiMakerError)
@@ -96,30 +97,38 @@ def test_recording_result_has_the_fields_of_the_contract(tmp_path: Path) -> None
     assert result.stop_reason is recorder.StopReason.SILENCE
 
 
-def test_the_unimplemented_parts_say_so(tmp_path: Path) -> None:
+def test_the_microphone_message_says_where_to_allow_it() -> None:
+    text = message(recorder.ERROR_MICROPHONE_DENIED)
+    assert "Configuració → Privadesa → Micròfon" in text
+    assert "Permet que les aplicacions d'escriptori accedeixin al micròfon" in text
+
+
+def test_normalisation_defaults() -> None:
+    """User's decision of 26/10/2026 (docs/sessions/C08.md): raise quiet recordings to -1 dBFS."""
+    assert defaults.RECORD_NORMALIZE_ENABLED is True
+    assert defaults.RECORD_NORMALIZE_PEAK_DBFS == -1.0
+    settings = recorder.RecordingSettings()
+    assert settings.normalize and settings.normalize_peak_dbfs == -1.0
+
+
+def test_nothing_is_left_unimplemented() -> None:
+    """C09: the whole contract is implemented (C07 left NotImplementedError placeholders)."""
+    folder = Path(recorder.__file__).parent
+    assert all("NotImplementedError" not in path.read_text(encoding="utf-8") for path in folder.glob("*.py"))
+
+
+def test_a_new_recorder_and_monitor_open_nothing(tmp_path: Path) -> None:
     source = _source()
     rec = recorder.Recorder(source, tmp_path)
     assert rec.settings == recorder.RecordingSettings() and rec.source is source
+    assert rec.state is recorder.RecorderState.IDLE and rec.error is None and rec.elapsed_s == 0
+    assert rec.level_dbfs == (float("-inf"), float("-inf"))
+    columns, index = rec.peaks_since(0)
+    assert columns.shape == (0, 2, 2) and index == 0
+    assert rec.overview(10).shape == (10, 2, 2)
     monitor = recorder.Monitor(source)
-    calls = [
-        recorder.list_sources,
-        lambda: recorder.remove_leftovers(tmp_path),
-        rec.start,
-        rec.stop,
-        rec.discard,
-        lambda: rec.state,
-        lambda: rec.error,
-        lambda: rec.elapsed_s,
-        lambda: rec.level_dbfs,
-        lambda: rec.peaks_since(0),
-        lambda: rec.overview(800),
-        monitor.start,
-        monitor.stop,
-        lambda: monitor.level_dbfs,
-        lambda: monitor.peaks_since(0),
-        lambda: monitor.error,
-    ]
-    for call in calls:
-        with pytest.raises(NotImplementedError, match="C09"):
-            call()
+    monitor.stop()
+    assert monitor.error is None and monitor.peaks_since(0)[0].shape == (0, 2, 2)
+    rec.discard()
+    assert rec.state is recorder.RecorderState.CLOSED
     assert list(tmp_path.iterdir()) == []
