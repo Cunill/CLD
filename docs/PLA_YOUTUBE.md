@@ -231,23 +231,23 @@ Mateix protocol que la resta (CLAUDE.md): un bloc per sessió, branca `bloc/CNN-
 Es posa al dia en tancar cada bloc (a la mateixa PR del bloc). "Sessions" són sessions de Claude Code; "temps teu" són
 les hores de l'usuari (revisar, decidir, provar al PC). Estimació en tres escenaris: optimista / probable / pessimista.
 
-| Bloc | Estat | Depèn de | En paral·lel amb | Tanda | Sessions estimades (opt. / prob. / pes.) | Temps teu estimat (h) | Sessions consumides | Temps teu consumit (h) | PR · commit |
-|---|---|---|---|---|---|---|---|---|---|
-| Pla (aquest document) | ✅ aprovat el 25/10/2026; ampliació de la gravació aprovada i incorporada el mateix dia | — | — | — | — | — | 1 | — | PR #61 · `55d9b50`; PR #62 · `ae1f5d7` |
-| C01 Decisió i contracte | ✅ tancat el 25/10/2026 | aprovació del pla | — (és la base de tots) | T1 | 1 / 1 / 1 | 0,5 | 1 | — | PR #52 · `7f1bc0b` |
-| C02 Prova de viabilitat | ✅ tancat el 25/10/2026; prova al PC correcta (xarxa de casa; a la de l'estudi no es prova, decisió de l'usuari) (`docs/sessions/C02.md`) | C01 | **C04** | T2 | 1 / 1 / 2 | 1,0 | 1 | — | PR #57 · `1599fb7` |
-| C03 Nucli `youtube` | ✅ tancat el 25/10/2026 | C01, C02 | **C04** (si encara no s'ha fet) | T3 | 1 / 1 / 2 | 0,5 | 1 | — | PR #58 · `5c7fd88` |
-| C04 Conversió a MP3 | ✅ tancat el 25/10/2026 | C01 | **C02** o **C03** | T2 (o T3) | 1 / 1 / 1 | 0,25 | 1 | — | PR #54 · `5c2129b` |
-| C05 Diàleg | ✅ tancat el 25/10/2026; prova manual de l'usuari a Windows feta el 26/10/2026: correcta (un error corregit, PR #80) (`docs/sessions/C05.md`) | C03, C04 | **C08** o **C09** | T4 | 1 / 2 / 2 | 1,0 | 1 | — | PR #65 · `9bda982`; PR #68 · `a591521` (carpeta Baixades); PR #80 (error de la prova manual) |
-| C06 Empaquetat i versió (YouTube i gravació) | ⏳ pendent | C05, C10 | — | T6 | 1 / 1 / 2 | 1,25 | — | — | — |
-| C07 Gravació: decisió i contracte | ✅ tancat el 25/10/2026 (`docs/sessions/C07.md`) | C01 | **C08**, **C03** | T3 | 1 / 1 / 1 | 0,5 | 1 | — | PR #63 · `fb7f244` |
-| C08 Gravació: prova de viabilitat | ✅ tancat el 26/10/2026; prova al PC correcta: `soundcard` 0.4.6 grava el so de l'ordinador i el micròfon; el volum de Windows i el de cada aplicació afecten la gravació; normalització en desar a −1 dBFS (decisió de l'usuari, 26/10/2026) (`docs/sessions/C08.md`) | C01 | **C07**, **C03** o **C05** | T3 | 1 / 1 / 2 | 1,0 | 1 | — | PR #64 · `031dce3`; PR #70 · `bf89811`; PR #73 · `1b6fb5d`; PR #74 · `6a4bf89`; PR #75 · `2bdd169` |
-| C09 Nucli `recorder` | ✅ tancat el 26/10/2026; proves "so" al PC de l'usuari correctes (`docs/sessions/C09.md`) | C07, C08 (i C03) | **C05** | T4 | 1 / 2 / 2 | 0,5 | 1 | — | PR #77 · `07e0aed` |
-| C10 Finestra de gravació | ⏳ pendent | C05, C09 | — | T5 | 1 / 2 / 2 | 1,0 | — | — | — |
-| **Subtotal dels blocs** | |  |  |  | **10 / 13 / 17** | **7,5** | **7** | **—** | |
-| Sessions de correcció després de la prova de l'usuari | ⏳ pendent | C06 | — | després del C06 | 0 / 2 / 3 | inclòs a sota | — | — | — |
-| Revisió de les PR i prova final de l'usuari | ⏳ pendent | — | — | totes | — | 2,5 / 5 / 10 | — | — | — |
-| **Total** | |  |  |  | **10 / 15 / 20 sessions** | **10 / 12,5 / 17,5 h** | **8** (el pla i l'ampliació, C01, C02, C03, C04, C05, C07 i C08) | **—** | |
+| Bloc | Estat | Model recomanat | Depèn de | En paral·lel amb | Tanda | Sessions estimades (opt. / prob. / pes.) | Temps teu estimat (h) | Sessions consumides | Temps teu consumit (h) | PR · commit |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Pla (aquest document) | ✅ aprovat el 25/10/2026; ampliació de la gravació aprovada i incorporada el mateix dia | Opus | — | — | — | — | — | 1 | — | PR #61 · `55d9b50`; PR #62 · `ae1f5d7` |
+| C01 Decisió i contracte | ✅ tancat el 25/10/2026 | Sonnet | aprovació del pla | — (és la base de tots) | T1 | 1 / 1 / 1 | 0,5 | 1 | — | PR #52 · `7f1bc0b` |
+| C02 Prova de viabilitat | ✅ tancat el 25/10/2026; prova al PC correcta (xarxa de casa; a la de l'estudi no es prova, decisió de l'usuari) (`docs/sessions/C02.md`) | Opus | C01 | **C04** | T2 | 1 / 1 / 2 | 1,0 | 1 | — | PR #57 · `1599fb7` |
+| C03 Nucli `youtube` | ✅ tancat el 25/10/2026 | Opus | C01, C02 | **C04** (si encara no s'ha fet) | T3 | 1 / 1 / 2 | 0,5 | 1 | — | PR #58 · `5c7fd88` |
+| C04 Conversió a MP3 | ✅ tancat el 25/10/2026 | Sonnet | C01 | **C02** o **C03** | T2 (o T3) | 1 / 1 / 1 | 0,25 | 1 | — | PR #54 · `5c2129b` |
+| C05 Diàleg | ✅ tancat el 25/10/2026; prova manual de l'usuari a Windows feta el 26/10/2026: correcta (un error corregit, PR #80) (`docs/sessions/C05.md`) | Sonnet | C03, C04 | **C08** o **C09** | T4 | 1 / 2 / 2 | 1,0 | 1 | — | PR #65 · `9bda982`; PR #68 · `a591521` (carpeta Baixades); PR #80 · `1228ac4` (error de la prova manual) |
+| C06 Empaquetat i versió (YouTube i gravació) | ⏳ pendent | Sonnet | C05, C10 | — | T6 | 1 / 1 / 2 | 1,25 | — | — | — |
+| C07 Gravació: decisió i contracte | ✅ tancat el 25/10/2026 (`docs/sessions/C07.md`) | Sonnet | C01 | **C08**, **C03** | T3 | 1 / 1 / 1 | 0,5 | 1 | — | PR #63 · `fb7f244` |
+| C08 Gravació: prova de viabilitat | ✅ tancat el 26/10/2026; prova al PC correcta: `soundcard` 0.4.6 grava el so de l'ordinador i el micròfon; el volum de Windows i el de cada aplicació afecten la gravació; normalització en desar a −1 dBFS (decisió de l'usuari, 26/10/2026) (`docs/sessions/C08.md`) | Opus | C01 | **C07**, **C03** o **C05** | T3 | 1 / 1 / 2 | 1,0 | 1 | — | PR #64 · `031dce3`; PR #70 · `bf89811`; PR #73 · `1b6fb5d`; PR #74 · `6a4bf89`; PR #75 · `2bdd169` |
+| C09 Nucli `recorder` | ✅ tancat el 26/10/2026; proves "so" al PC de l'usuari correctes el 26/10/2026 (`docs/sessions/C09.md`) | Opus | C07, C08 (i C03) | **C05** | T4 | 1 / 2 / 2 | 0,5 | 1 | — | PR #77 · `07e0aed`; PR #78 · `da1ca9c`; PR #81 · `5c0c92d` |
+| C10 Finestra de gravació | 🔧 en curs (sessió "Finestra «Grava el que sona»"): feina feta com a WIP; espera que l'usuari deixi tocar `tests/ui/test_youtube_dialog.py` | Sonnet | C05, C09 | — | T5 | 1 / 2 / 2 | 1,0 | 1 (en curs) | — | branca `claude/brave-curie-er5u0n` (WIP `0c55442`) |
+| **Subtotal dels blocs** | | |  |  |  | **10 / 13 / 17** | **7,5** | **9** (8 blocs tancats i el C10 en curs) | **—** | |
+| Sessions de correcció després de la prova de l'usuari | ⏳ pendent | Sonnet | C06 | — | després del C06 | 0 / 2 / 3 | inclòs a sota | — | — | — |
+| Revisió de les PR i prova final de l'usuari | ⏳ pendent | — | — | — | totes | — | 2,5 / 5 / 10 | — | — | — |
+| **Total** | | |  |  |  | **10 / 15 / 20 sessions** | **10 / 12,5 / 17,5 h** | **10** (el pla i l'ampliació, C01–C05, C07–C09 i el C10 en curs) | **—** | |
 
 Llegenda de l'estat: ⏳ pendent · 🔧 en curs · ✅ tancat (fusionat a `main`) · ⛔ aturat (vegeu `docs/sessions/CNN.md`).
 
