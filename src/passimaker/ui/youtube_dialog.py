@@ -52,7 +52,6 @@ from passimaker.i18n import message
 from passimaker.model import defaults
 from passimaker.ui.dialogs import DialogQuestions
 from passimaker.ui.formatting import clock
-from passimaker.ui.project_files import user_settings
 from passimaker.youtube import (
     ERROR_BROKEN,
     ERROR_INVALID_LINK,
@@ -81,8 +80,6 @@ LOOKUP_THREADS = 4
 """Searches and thumbnails at the same time (downloads have their own queue)."""
 CLOSE_WAIT_MS = 10_000
 """Closing with downloads: cancelled downloads stop within a chunk, conversions within 2 s (C04)."""
-LAST_FOLDER_KEY = "youtube/last_folder"
-"""The folder of the last download (ESPECIFICACIO §1.7 bis: proposed the next time). Not the consent."""
 TEMP_PREFIX = "passimaker_youtube_"
 PROGRESS_STEPS = 1000
 
@@ -726,12 +723,9 @@ class YoutubeWindow(QWidget):
         self.download_button.setEnabled(bool(self.selected_results()))
 
     def suggested_folder(self) -> Path:
-        """The folder of the last download, or Documents the first time (§1.7 bis)."""
-        saved = user_settings().value(LAST_FOLDER_KEY, "")
-        if isinstance(saved, str) and saved and Path(saved).is_dir():
-            return Path(saved)
-        documents = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DocumentsLocation)
-        return Path(documents) if documents else Path.home()
+        """Always the user's Downloads folder (decision of the user, 25/10/2026): nothing is remembered."""
+        downloads = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DownloadLocation)
+        return Path(downloads) if downloads else Path.home()
 
     def download_selected(self) -> None:
         """[Descarrega en MP3]: one folder for the whole selection, then the queue."""
@@ -744,7 +738,6 @@ class YoutubeWindow(QWidget):
         folder = self.questions.choose_download_folder(self.suggested_folder())
         if folder is None:
             return
-        user_settings().setValue(LAST_FOLDER_KEY, str(folder))
         for result in chosen:
             self._enqueue(DownloadJob(result, folder, token, self.backend, self._convert, self._names))
         self.results.clearSelection()
