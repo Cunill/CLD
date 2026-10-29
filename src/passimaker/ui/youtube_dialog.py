@@ -236,16 +236,24 @@ class Converter(Protocol):
     ) -> None: ...
 
 
-class _LookupSignals(QObject):
-    done = Signal(object, object)
-    """(result, error): one of them is None."""
+class _Signals(QObject):
+    """One per window, for every task: a QObject per task deleted with deleteLater() while the
+    worker thread still drops its Python wrapper crashed PySide (blocks C10 and M06)."""
+
+    lookup_done = Signal(int, object, object)
+    """(task, result, error): one of result and error is None."""
+    progress = Signal(int, object, int, int)
+    """(task, stage, done, total) while downloading or converting."""
+    finished = Signal(int, object, object)
+    """(task, path, error): the MP3, or the error (CancelledError if cancelled)."""
 
 
 class _Lookup(QRunnable):
     """Any call that may block (search, link, thumbnail), with its answer as a signal."""
 
-    def __init__(self, work: Callable[[], object], signals: _LookupSignals) -> None:
+    def __init__(self, task: int, work: Callable[[], object], signals: _Signals) -> None:
         super().__init__()
+        self._task = task
         self._work = work
         self._signals = signals
 
@@ -253,9 +261,9 @@ class _Lookup(QRunnable):
         try:
             result = self._work()
         except BaseException as error:  # every failure goes back to the interface
-            self._signals.done.emit(None, error)
+            self._signals.lookup_done.emit(self._task, None, error)
         else:
-            self._signals.done.emit(result, None)
+            self._signals.lookup_done.emit(self._task, result, None)
 
 
 class Stage(Enum):
@@ -268,13 +276,6 @@ class Stage(Enum):
 
 
 ACTIVE_STAGES = frozenset({Stage.QUEUED, Stage.DOWNLOADING, Stage.CONVERTING})
-
-
-class _DownloadSignals(QObject):
-    progress = Signal(object, int, int)
-    """(stage, done, total) while downloading or converting."""
-    finished = Signal(object, object)
-    """(path, error): the MP3, or the error (CancelledError if cancelled)."""
 
 
 @dataclass
@@ -291,17 +292,18 @@ class DownloadJob:
 
 
 class _Download(QRunnable):
-    def __init__(self, job: DownloadJob, signals: _DownloadSignals) -> None:
+    def __init__(self, task: int, job: DownloadJob, signals: _Signals) -> None:
         super().__init__()
+        self._task = task
         self._job = job
         self._signals = signals
 
     def run(self) -> None:
         job = self._job
         try:
-            self._signals.finished.emit(self._work(job), None)
+            self._signals.finished.emit(self._task, self._work(job), None)
         except BaseException as error:  # every failure goes back to the interface
-            self._signals.finished.emit(None, error)
+            self._signals.finished.emit(self._task, None, error)
 
     def _work(self, job: DownloadJob) -> Path:
         if job.cancel.cancelled:
@@ -312,7 +314,7 @@ class _Download(QRunnable):
                 job.token,
                 job.result.video_id,
                 temp_dir,
-                lambda done, total: self._signals.progress.emit(Stage.DOWNLOADING, done, total),
+                lambda done, total: self._signals.progress.emit(self._task, Stage.DOWNLOADING, done, total),
                 job.cancel,
                 backend=job.backend,
             )
@@ -320,14 +322,16 @@ class _Download(QRunnable):
                 if job.cancel.cancelled:
                     raise CancelledError
                 target = safe_target_path(job.folder, job.result.title)
-                self._signals.progress.emit(Stage.CONVERTING, 0, 1)
+                self._signals.progress.emit(self._task, Stage.CONVERTING, 0, 1)
                 tags = Mp3Tags(title=job.result.title, artist=job.result.channel, comment=job.result.url)
                 job.convert(
                     source,
                     target,
                     defaults.YOUTUBE_MP3_BITRATE_KBPS,
                     tags,
-                    lambda done, total: self._signals.progress.emit(Stage.CONVERTING, done, total),
+                    lambda done, total: self._signals.progress.emit(
+                        self._task, Stage.CONVERTING, done, total
+                    ),
                     job.cancel,
                 )
             if target.is_file():
@@ -474,6 +478,13 @@ class YoutubeWindow(QWidget):
         self._query = ""
         self._offset = 0
         self._pending_lookups = 0
+        self._signals = _Signals(self)
+        self._signals.lookup_done.connect(self._on_lookup_done)
+        self._signals.progress.connect(self._on_progress)
+        self._signals.finished.connect(self._on_finished)
+        self._next_task = 0
+        self._lookup_callbacks: dict[int, Callable[[object, object], None]] = {}
+        self._download_rows: dict[int, DownloadRow] = {}
         self._thumbnails: dict[str, QPixmap] = {}
         self._withdrawing = False
 
@@ -623,20 +634,20 @@ class YoutubeWindow(QWidget):
         )
 
     def _lookup(self, work: Callable[[], object], generation: int, paged: bool) -> None:
-        signals = _LookupSignals(self)
+        self._start_lookup(work, lambda result, error: self._on_results(generation, paged, result, error))
 
-        def done(result: object, error: object) -> None:
-            self._on_results(signals, generation, paged, result, error)
-
-        signals.done.connect(done)
+    def _start_lookup(self, work: Callable[[], object], done: Callable[[object, object], None]) -> None:
+        task = self._next_task
+        self._next_task += 1
+        self._lookup_callbacks[task] = done
         self._pending_lookups += 1
-        self._lookups.start(_Lookup(work, signals))
+        self._lookups.start(_Lookup(task, work, self._signals))
 
-    def _on_results(
-        self, signals: QObject, generation: int, paged: bool, result: object, error: object
-    ) -> None:
+    def _on_lookup_done(self, task: int, result: object, error: object) -> None:
         self._pending_lookups -= 1
-        signals.deleteLater()
+        self._lookup_callbacks.pop(task)(result, error)
+
+    def _on_results(self, generation: int, paged: bool, result: object, error: object) -> None:
         if generation != self._generation:
             return  # an older search: its answer no longer matters
         self.more_button.setEnabled(True)
@@ -691,18 +702,9 @@ class YoutubeWindow(QWidget):
                 Qt.TransformationMode.SmoothTransformation,
             )
 
-        signals = _LookupSignals(self)
+        self._start_lookup(work, lambda image, error: self._on_thumbnail(result, image, error))
 
-        def done(image: object, error: object) -> None:
-            self._on_thumbnail(signals, result, image, error)
-
-        signals.done.connect(done)
-        self._pending_lookups += 1
-        self._lookups.start(_Lookup(work, signals))
-
-    def _on_thumbnail(self, signals: QObject, result: SearchResult, image: object, error: object) -> None:
-        self._pending_lookups -= 1
-        signals.deleteLater()
+    def _on_thumbnail(self, result: SearchResult, image: object, error: object) -> None:
         if not isinstance(image, QImage) or image.isNull():
             if isinstance(error, BaseException) and not isinstance(error, CancelledError):
                 _log.log(logging.INFO, "YouTube, miniatura de %s: %r", result.video_id, error)
@@ -753,17 +755,10 @@ class YoutubeWindow(QWidget):
         self.downloads.setItemWidget(item, row)
         row.cancel_button.clicked.connect(lambda: self.cancel_download(row))
         row.show_button.clicked.connect(lambda: self._show_in_folder(row))
-        signals = _DownloadSignals(self)
-
-        def progress(stage: object, done: int, total: int) -> None:
-            self._on_download_progress(row, stage, done, total)
-
-        def finished(path: object, error: object) -> None:
-            self._on_download_finished(signals, row, path, error)
-
-        signals.progress.connect(progress)
-        signals.finished.connect(finished)
-        self._downloads.start(_Download(job, signals))
+        task = self._next_task
+        self._next_task += 1
+        self._download_rows[task] = row
+        self._downloads.start(_Download(task, job, self._signals))
 
     def cancel_download(self, row: DownloadRow) -> None:
         if not row.active:
@@ -777,15 +772,16 @@ class YoutubeWindow(QWidget):
         for row in self.download_rows():
             self.cancel_download(row)
 
-    def _on_download_progress(self, row: DownloadRow, stage: object, done: int, total: int) -> None:
+    def _on_progress(self, task: int, stage: object, done: int, total: int) -> None:
+        row = self._download_rows[task]
         if not row.active or row.job.cancel.cancelled or not isinstance(stage, Stage):
             return
         if row.stage is not stage:
             row.set_stage(stage)
         row.set_progress(done, total)
 
-    def _on_download_finished(self, signals: QObject, row: DownloadRow, path: object, error: object) -> None:
-        signals.deleteLater()
+    def _on_finished(self, task: int, path: object, error: object) -> None:
+        row = self._download_rows.pop(task)
         if isinstance(path, Path):
             row.path = path
             row.set_stage(Stage.DONE)
