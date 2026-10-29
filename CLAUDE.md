@@ -151,5 +151,6 @@ C10 finestra "Grava el que sona" (`ui/record_dialog.py`, `ui/wave_view.py`) (PR 
 docs/sessions/C10.md): tancat el 29/10/2026; prova manual a Windows feta el 29/10/2026: correcta excepte el missatge en
 desconnectar la sortida, corregit a la PR #84. M06 senyals per finestra a `ui/youtube_dialog.py` (docs/sessions/M06.md).
 C06 empaquetat, guia i versió 1.2.0 (PR #86, commit `f030e9f`, docs/sessions/C06.md): a `main` el 29/10/2026 amb la CI de
-Windows en verd; **falta la prova de l'usuari amb el ZIP `PassiMaker-1.2.0-win64` i publicar la `v1.2`** (`publicar.yml`).
+Windows en verd; prova de l'usuari amb el ZIP `PassiMaker-1.2.0-win64` el 29/10/2026: correcta; **falta publicar la `v1.2`**
+(`publicar.yml`). Següent, quan l'usuari ho digui: millores 7 i 5 de docs/proves_usuari.md.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
