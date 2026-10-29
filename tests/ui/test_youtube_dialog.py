@@ -335,9 +335,9 @@ def test_withdrawing_the_consent_closes_cancels_and_asks_again(
 # --- The menu ------------------------------------------------------------------------------------
 
 
-def test_music_button_is_a_menu_with_files_and_youtube(window: MainWindow) -> None:
+def test_music_button_is_a_menu_with_files_youtube_and_recording(window: MainWindow) -> None:
     texts = [action.text() for action in window.music_menu.actions()]
-    assert texts == ["Des de fitxers…", "Des de YouTube…"]
+    assert texts == ["Des de fitxers…", "Des de YouTube…", "Grava el que sona…"]
     assert window.add_music_action.menu() is window.music_menu
     assert window.music_strip.add_button.menu() is window.music_menu
     button = window.toolbar.widgetForAction(window.add_music_action)
