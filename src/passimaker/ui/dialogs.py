@@ -133,6 +133,21 @@ class DialogQuestions(QWidget):
         )
         return Path(folder) if folder else None
 
+    def choose_recording_path(self, suggested: Path) -> Path | None:
+        """ "Grava el que sona" (§1.7 ter): folder and name of the MP3, starting at `suggested`.
+
+        The window never overwrites: an existing name gets " (2)" (safe_target_path), so the
+        dialog does not ask to replace it.
+        """
+        chosen, _ = QFileDialog.getSaveFileName(
+            self.parentWidget(),
+            self.tr("Desa la gravació"),
+            str(suggested),
+            self.tr("MP3") + " (*.mp3)",
+            options=QFileDialog.Option.DontConfirmOverwrite,
+        )
+        return Path(chosen) if chosen else None
+
     def choose_music(self) -> list[Path]:
         patterns = " ".join(f"*{extension}" for extension in sorted(AUDIO_EXTENSIONS))
         chosen, _ = QFileDialog.getOpenFileNames(

@@ -42,6 +42,7 @@ from passimaker.model.commands import (
     SortPhotos,
 )
 from passimaker.model.types import MotionMode, Rotation
+from passimaker.recorder import CaptureBackend
 from passimaker.ui.delegate import ThumbnailSize
 from passimaker.ui.dialogs import DialogQuestions, WindowQuestions
 from passimaker.ui.drops import sort_dropped
@@ -57,6 +58,7 @@ from passimaker.ui.player_panel import PlayerPanel
 from passimaker.ui.project_files import MissingFilesBar, ProjectFiles, RecentProjects
 from passimaker.ui.project_panel import ProjectPanel
 from passimaker.ui.properties import PropertiesPanel
+from passimaker.ui.record_dialog import RecordDialogs, RecordQuestions, RecordWindow
 from passimaker.ui.song_panel import SongPanel
 from passimaker.ui.storyboard import StoryboardPanel
 from passimaker.ui.thumbnails import ThumbnailBridge, ThumbnailProvider
@@ -99,6 +101,10 @@ class MainWindow(QMainWindow):
         self.youtube_backend: YoutubeBackend | None = None
         """None: the real one (yt-dlp); the tests put tests/fakes/youtube.py here before opening."""
         self.youtube_window: YoutubeWindow | None = None
+        self.record_questions: RecordQuestions = RecordDialogs(self)
+        self.record_backend: CaptureBackend | None = None
+        """None: the real one (soundcard); the tests put tests/fakes/recorder.py here before opening."""
+        self.record_window: RecordWindow | None = None
 
         self.setWindowTitle(self.tr("PassiMaker"))
         self.resize(WINDOW_SIZE)
@@ -196,6 +202,7 @@ class MainWindow(QMainWindow):
         self.add_music_action.setMenu(self.music_menu)
         self.music_files_action = self._add_music_source(self.tr("Des de fitxers…"), self.choose_music)
         self.music_youtube_action = self._add_music_source(self.tr("Des de YouTube…"), self.open_youtube)
+        self.music_record_action = self._add_music_source(self.tr("Grava el que sona…"), self.open_recorder)
         self.fit_to_music_action = QAction(self.tr("Ajustar a la música"), self)
         self.fit_to_music_action.setToolTip(
             self.tr("Canvia la durada de les fotos perquè el passi acabi alhora que la música")
@@ -441,6 +448,16 @@ class MainWindow(QMainWindow):
         self.youtube_window.show()
         self.youtube_window.raise_()
         self.youtube_window.activateWindow()
+
+    def open_recorder(self) -> None:
+        """§1.7 ter: the window "Grava el que sona", not modal and without any notice (G2)."""
+        if self.record_window is None:
+            self.record_window = RecordWindow(
+                self.record_questions, self.add_songs, backend=self.record_backend, parent=self
+            )
+        self.record_window.show()
+        self.record_window.raise_()
+        self.record_window.activateWindow()
 
     def fit_to_music(self) -> None:
         """§1.7: asks first when the photos would end outside 1-3 s."""
@@ -699,6 +716,9 @@ class MainWindow(QMainWindow):
         """§1.10: asks to save the changes; the recovery copy goes away on a clean exit."""
         if self.youtube_window is not None and not self.youtube_window.close():
             event.ignore()  # downloads from YouTube in progress, and the user kept them
+            return
+        if self.record_window is not None and not self.record_window.close():
+            event.ignore()  # a recording in progress, and the user kept it (G1)
             return
         if self.video_export.running or not self.files.maybe_save():
             event.ignore()
