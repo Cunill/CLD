@@ -460,7 +460,7 @@ class MainWindow(QMainWindow):
         self.record_window.activateWindow()
 
     def fit_to_music(self) -> None:
-        """§1.7: asks first when the photos would end outside 1-3 s."""
+        """§1.7: asks first when the photos would end outside 1-24 s."""
         project = self.controller.project
         if not project.photos or not project.music.songs:
             return

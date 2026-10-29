@@ -2,7 +2,7 @@
 
 "124 fotos · 4:30 · Música 5:52 ⚠ La música dura 1:22 més [Ajustar]": the length of the music next
 to the length of the show, and a discreet warning when they differ. Before fitting, ``fit_problem``
-tells whether the photos would end outside 1-3 s, so the window can ask before applying it.
+tells whether the photos would end outside 1-24 s, so the window can ask before applying it.
 """
 
 from __future__ import annotations
@@ -68,7 +68,7 @@ class FitCheck:
 
 
 def fit_problem(project: Project) -> FitCheck | None:
-    """§1.7: None when every photo can last 1-3 s after fitting; otherwise what the warning says."""
+    """§1.7: None when every photo can last 1-24 s after fitting; otherwise what the warning says."""
     durations = [project.photo_duration(photo) for photo in project.photos]
     target = music_duration(project.music)
     if not durations or target <= 0:

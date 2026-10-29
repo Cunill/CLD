@@ -47,7 +47,7 @@ class WindowQuestions(ImportQuestions, SongQuestions, ExportQuestions, FileQuest
         ...
 
     def confirm_fit(self, check: FitCheck) -> bool:
-        """§1.7: the photos would end outside 1-3 s. True is [Aplicar igualment]."""
+        """§1.7: the photos would end outside 1-24 s. True is [Aplicar igualment]."""
         ...
 
 

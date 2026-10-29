@@ -6,7 +6,7 @@
 | Què | Abans | Ara |
 |---|---|---|
 | Durada per foto (general i de cada foto) | 1–3 s | **0,4–24 s** (passos de 0,1 s), `defaults.PHOTO_DURATION_RANGE` |
-| "Ajustar a la música" | 1–3 s per foto | **igual, 1–3 s** (`defaults.FIT_TO_MUSIC_DURATION_RANGE`): més curtes marejarien |
+| "Ajustar a la música" | 1–3 s per foto | **igual, 1–3 s** (`defaults.FIT_TO_MUSIC_DURATION_RANGE`): més curtes marejarien. **Canviat a 1–24 s per la decisió 0014** (29/10/2026) |
 | Botó de la foto | "🎲 Tornar a sortejar", desactivat si totes les fotos tenien el moviment fixat a mà | **"🎲 Nou moviment a l'atzar"**, sempre actiu; una foto amb el moviment fixat a mà torna a Automàtic |
 | "Tornar a sortejar tots" | només les fotos automàtiques | igual |
 

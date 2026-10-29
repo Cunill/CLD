@@ -392,8 +392,8 @@ def test_fit_to_music_keeps_proportions_and_default_marks() -> None:
     project = controller.project
     assert [p.duration_s for p in project.photos][1:] == [None, None, None]  # still default
     assert project.default_duration_s == pytest.approx(8 / 3)
-    assert project.photos[0].duration_s == 3.0  # 4 s, limited to 3 s
-    assert sum(project.photo_duration(p) for p in project.photos) == pytest.approx(3 + 3 * 8 / 3)
+    assert project.photos[0].duration_s == pytest.approx(4.0)  # within 1-24 s (decision 0014)
+    assert sum(project.photo_duration(p) for p in project.photos) == pytest.approx(12.0)
 
 
 @pytest.mark.usefixtures("fake_fit")
@@ -412,7 +412,7 @@ def test_keep_fitted_refits_when_photos_or_songs_change() -> None:
     controller.execute(AddSongs((song("b", 5.0),)))
     assert controller.project.default_duration_s == pytest.approx(3.0)
     controller.execute(RemovePhotos(frozenset({"n000"})))
-    assert controller.project.default_duration_s == pytest.approx(3.0)  # 15 s / 4 = 3.75, limited
+    assert controller.project.default_duration_s == pytest.approx(3.75)  # 15 s / 4, within 1-24 s
 
 
 def test_fit_to_music_with_the_real_timeline() -> None:
