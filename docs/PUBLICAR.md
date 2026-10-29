@@ -32,6 +32,12 @@ La CI genera el ZIP de l'etiqueta (artefacte `PassiMaker-<versió>-win64`). Per 
 ZIP adjunt, el més senzill és fer servir el mateix flux: `gh workflow run publicar.yml -f etiqueta=v1.1` (sense crear
 l'etiqueta abans).
 
+## Pedaços de yt-dlp (1.2.x)
+El flux `.github/workflows/actualitzar-ytdlp.yml` comprova cada dilluns si hi ha un yt-dlp nou i, si n'hi ha, obre una
+PR (`manteniment/yt-dlp-<versió>`) i hi llança la CI. Quan l'usuari vegi "YouTube ha canviat": fusionar aquesta PR,
+pujar la versió de pedaç (1.2.1, 1.2.2…) a `pyproject.toml`, `src/passimaker/__init__.py` i `uv.lock`, i publicar-la
+amb `publicar.yml`. Cal que el repositori permeti als fluxos crear PR (Settings → Actions → General).
+
 ## Versions publicades
 | Etiqueta | Commit | Versió |
 |---|---|---|

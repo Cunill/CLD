@@ -3,9 +3,12 @@
 # Result: dist/PassiMaker/ with PassiMaker.exe and bin/ (Python, Qt, the libraries and FFmpeg).
 # One folder, not one file: it starts faster and antivirus programs flag it less often (risk R8).
 # ruff: noqa
+import importlib.metadata
 import re
 import sys
 from pathlib import Path
+
+from PyInstaller.utils.hooks import collect_data_files, copy_metadata
 
 ROOT = Path(SPECPATH).parent
 sys.path.insert(0, str(ROOT / "src"))
@@ -58,6 +61,17 @@ for tool in ("ffmpeg", "ffprobe"):
         raise SystemExit(f"Falta {binary}: executa abans pwsh tools/obtenir_ffmpeg.ps1")
 if (FFMPEG_DIR / "LICENSE.txt").is_file():
     datas.append((str(FFMPEG_DIR / "LICENSE.txt"), "llicencies/FFmpeg"))
+# Music from YouTube (block C06): Deno from the `deno` Python package (uv.lock), next to ffmpeg.exe, where
+# passimaker.youtube.find_deno looks for it. The scripts of yt-dlp-ejs are added by yt-dlp's own PyInstaller hook.
+from deno import find_deno_bin  # noqa: E402
+
+datas.append((find_deno_bin(), "."))
+for file in importlib.metadata.distribution("deno").files or []:
+    if file.name == "LICENSE":
+        datas.append((str(file.locate()), "llicencies/Deno"))
+# Recording the sound of the computer (block C06): soundcard's C declarations (soundcard/*.py.h) and the
+# metadata of soundcard and cffi, as in packaging/ProvaGravacio.spec (spike C08).
+datas += copy_metadata("soundcard") + copy_metadata("cffi") + collect_data_files("soundcard")
 # The window icon, next to passimaker/ui/app.py (passimaker.ui.app.ICON_FILE).
 datas.append((str(ROOT / "src" / "passimaker" / "ui" / "app_icon.png"), "passimaker/ui"))
 
@@ -68,7 +82,8 @@ a = Analysis(
     datas=datas,
     # passimaker.preview.sound imports sounddevice with importlib (so a PC without PortAudio still starts):
     # PyInstaller cannot see it. Its hook brings PortAudio (bin/_sounddevice_data).
-    hiddenimports=["sounddevice"],
+    # passimaker.recorder imports soundcard.mediafoundation with importlib (after the COM initialisation): same.
+    hiddenimports=["sounddevice", "soundcard", "soundcard.mediafoundation"],
     excludes=EXCLUDES,
     noarchive=False,
 )

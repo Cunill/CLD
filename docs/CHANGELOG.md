@@ -3,6 +3,25 @@
 Versions de PassiMaker. La CI genera el ZIP portable `PassiMaker-<versió>-win64` quan es posa l'etiqueta a `main`
 (vegeu `docs/sessions/B12.md`).
 
+## 1.2.0 · música de YouTube i gravació del so (blocs C01–C10, C06)
+
+### Nou
+- **Música de YouTube**: a **[+ Música ▾] → Des de YouTube…** es cerca una cançó pel nom o amb un enllaç, es baixa
+  com a MP3 i s'afegeix al passi. És l'únic que necessita internet; abans de fer-la servir hi ha un avís (decisió 0012).
+- **Gravar el so de l'ordinador**: **[+ Música ▾] → Grava el que sona…** grava el que sona per la sortida de so
+  (Spotify, el navegador…) o per un micròfon, amb les ones de cada canal en directe, "Comença quan soni", aturada per
+  silenci, màxim de 30 minuts i MP3 de 192 kbps normalitzat a −1 dBFS (decisió 0013). Sense avís legal.
+- Guia: apartats "Música de YouTube" i "Gravar el que sona", i a "Imprevistos" els de "YouTube ha canviat" i
+  "No s'ha gravat cap so". "Quant a" cita yt-dlp, Deno i soundcard.
+- Un flux setmanal (`actualitzar-ytdlp.yml`) obre una PR quan surt una versió nova de yt-dlp.
+
+### Canviat
+- El botó [+ Música] és ara un menú ([+ Música ▾]) amb tres entrades.
+- El ZIP porta Deno, `yt-dlp-ejs`, `yt-dlp` i `soundcard` (uns 45 MB més).
+
+### Intern
+- M06: la finestra de YouTube fa servir un sol objecte de senyals per finestra (evitava caigudes de PySide).
+
 ## 1.1.0 · manteniment M05 (millores de les proves de l'usuari)
 
 ### Canviat

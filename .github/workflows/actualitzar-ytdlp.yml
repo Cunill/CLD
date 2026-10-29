@@ -1,0 +1,60 @@
+# Manteniment de la música de YouTube (bloc C06, docs/PLA_YOUTUBE.md §6): cada setmana comprova si hi ha una versió
+# nova de yt-dlp a PyPI i, si n'hi ha, obre una PR que l'actualitza a pyproject.toml i uv.lock. No publica res:
+# quan l'usuari vegi "YouTube ha canviat", una sessió al núvol fusiona la PR i publica un pedaç (docs/PUBLICAR.md).
+# Les PR obertes amb el permís del flux no engeguen la CI per elles mateixes: per això el flux la llança a mà
+# (workflow_dispatch) sobre la branca. Cal que el repositori permeti als fluxos crear PR (Settings → Actions →
+# General → "Allow GitHub Actions to create and approve pull requests").
+name: Actualitzar yt-dlp
+
+on:
+  schedule:
+    - cron: "17 5 * * 1" # dilluns
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  actualitzar:
+    name: Cercar una versió nova de yt-dlp
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instal·lar uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Comparar amb PyPI
+        id: versio
+        run: |
+          actual=$(grep -oP '"yt-dlp==\K[^"]+' pyproject.toml)
+          nova=$(curl -fsS https://pypi.org/pypi/yt-dlp/json | python3 -c 'import json,sys; print(json.load(sys.stdin)["info"]["version"])')
+          echo "actual=$actual" >> "$GITHUB_OUTPUT"
+          echo "nova=$nova" >> "$GITHUB_OUTPUT"
+          echo "yt-dlp: fixat $actual, a PyPI $nova"
+
+      - name: Obrir la PR
+        if: steps.versio.outputs.actual != steps.versio.outputs.nova
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTUAL: ${{ steps.versio.outputs.actual }}
+          NOVA: ${{ steps.versio.outputs.nova }}
+        run: |
+          branca="manteniment/yt-dlp-$NOVA"
+          if git ls-remote --exit-code --heads origin "$branca" > /dev/null; then
+            echo "Ja hi ha la branca $branca: no es fa res."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branca"
+          sed -i "s/\"yt-dlp==$ACTUAL\"/\"yt-dlp==$NOVA\"/" pyproject.toml
+          uv lock --upgrade-package yt-dlp --upgrade-package yt-dlp-ejs
+          git commit -am "yt-dlp $ACTUAL → $NOVA"
+          git push -u origin "$branca"
+          gh pr create --base main --head "$branca" --title "yt-dlp $ACTUAL → $NOVA" \
+            --body "Actualització automàtica (docs/PLA_YOUTUBE.md §6). Si \`yt-dlp-ejs\` o \`deno\` també canvien, cal repassar-los a \`pyproject.toml\` (el fix de \`uv lock\` ho diria). La CI s'ha engegat a mà sobre la branca."
+          gh workflow run ci.yml --ref "$branca"

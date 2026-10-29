@@ -57,6 +57,29 @@ def test_the_guide_opens_without_blocking_and_only_once(window: MainWindow) -> N
     assert window.help.guide is guide
 
 
+def test_the_guide_explains_youtube_recording_and_their_mishaps(window: MainWindow) -> None:
+    window.guide_action.trigger()
+    guide = window.help.guide
+    assert guide is not None
+    text = guide.browser.toPlainText()
+    for words in (
+        "Música de YouTube",
+        "Des de YouTube…",
+        "Gravar el que sona",
+        "Grava el que sona…",
+        "YouTube ha canviat",
+        "No s'ha gravat cap so",
+    ):
+        assert words in text
+    assert "avís legal" not in text.lower()  # G2: recording has no legal notice
+
+
+def test_the_about_window_names_the_new_components(window: MainWindow) -> None:
+    html = about_html(None)
+    for name in ("yt-dlp", "Deno", "soundcard"):
+        assert name in html
+
+
 def test_the_guide_lists_every_shortcut_of_the_window(window: MainWindow) -> None:
     listed = {portable(row.keys) for row in shortcuts()}
     used: list[list[str]] = []

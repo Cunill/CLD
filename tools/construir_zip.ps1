@@ -52,7 +52,9 @@ try {
     $Required = @($Exe)
     if ($IsWindows) {
         # PortAudio, for the sound of the preview (B13): bin/_sounddevice_data/portaudio-binaries.
-        $Required += @("bin/ffmpeg$ExeSuffix", "bin/ffprobe$ExeSuffix", 'bin/_sounddevice_data/portaudio-binaries')
+        $Required += @("bin/ffmpeg$ExeSuffix", "bin/ffprobe$ExeSuffix", 'bin/_sounddevice_data/portaudio-binaries',
+            'bin/deno.exe', 'bin/yt_dlp_ejs/yt/solver/core.min.js', 'bin/yt_dlp_ejs/yt/solver/lib.min.js',
+            'bin/soundcard/mediafoundation.py.h')
     }
     foreach ($File in $Required) {
         if (-not (Test-Path (Join-Path $App $File))) { throw "Falta $File a la carpeta del programa" }
