@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.metadata
 import importlib.util
 import socket
 import subprocess
@@ -63,7 +64,9 @@ def test_offline_run_writes_the_versions(tmp_path: Path, no_network: None) -> No
     code = prova.main(["--sense-xarxa", "--sense-avis", "--informe", str(report)])
     text = report.read_text(encoding="utf-8")
     assert code == 0
-    assert "yt-dlp: 2026.10.21 · yt-dlp-ejs: 0.8.0" in text
+    # The installed versions, not fixed ones: the weekly yt-dlp update (actualitzar-ytdlp.yml) changes them.
+    ytdlp, ejs = importlib.metadata.version("yt-dlp"), importlib.metadata.version("yt-dlp-ejs")
+    assert f"yt-dlp: {ytdlp} · yt-dlp-ejs: {ejs}" in text
     assert "Deno: " in text and "versió: 2." in text
     assert "Scripts de yt-dlp-ejs: core" in text
     assert "Resultat final: CORRECTE" in text
