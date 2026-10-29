@@ -57,6 +57,9 @@ from passimaker.recorder import (
     CaptureBackend,
     Monitor,
     Recorder,
+    RecorderDeviceError,
+    RecorderDeviceLostError,
+    RecorderNoDeviceError,
     RecorderState,
     RecordingResult,
     RecordingSettings,
@@ -657,8 +660,7 @@ class RecordWindow(QWidget):
             return
         if isinstance(error, BaseException):
             self._recorder = None
-            self._show_error("començar", error)
-            self._back_to_ready()
+            self._after_error("començar", error)
             return
         self._set_phase(Phase.RECORDING)
         self.wave.follow(recorder, recording=recorder.state is RecorderState.RECORDING)
@@ -725,8 +727,7 @@ class RecordWindow(QWidget):
         self._recorder = None
         if isinstance(error, BaseException) or not isinstance(result, RecordingResult):
             self.wave.clear()
-            self._show_error("aturar", error if isinstance(error, BaseException) else RuntimeError(result))
-            self._back_to_ready()
+            self._after_error("aturar", error if isinstance(error, BaseException) else RuntimeError(result))
             return
         self._result = result
         if recorder is not None:
@@ -825,6 +826,20 @@ class RecordWindow(QWidget):
         if isinstance(error, BaseException):
             log_error("descartar", error)
         self._show_message(self.tr("S'ha descartat la gravació."))
+        self._back_to_ready()
+
+    def _after_error(self, what: str, error: BaseException) -> None:
+        """A recording that could not start or was interrupted: its message stays on screen.
+
+        If the device went away (or the sound system failed), the source may no longer exist: the
+        sources are listed again instead of monitoring the old one, whose error would replace the
+        message (manual test of 29/10/2026: Bluetooth headphones switched off while recording).
+        """
+        log_error(what, error)
+        if isinstance(error, RecorderDeviceLostError | RecorderNoDeviceError | RecorderDeviceError):
+            self.load_sources(error_text(error))
+            return
+        self._show_message(error_text(error), error=True)
         self._back_to_ready()
 
     def _back_to_ready(self) -> None:

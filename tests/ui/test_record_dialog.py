@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import threading
 from collections.abc import Callable, Iterator, Sequence
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
@@ -31,8 +32,10 @@ from passimaker.recorder import (
     ERROR_NO_SPACE,
     ERROR_SILENT,
     TEMP_PREFIX,
+    AudioSource,
     RecorderDeviceError,
     RecorderMicrophoneDeniedError,
+    RecorderNoDeviceError,
     RecorderState,
     RecordingSettings,
     StopReason,
@@ -57,6 +60,7 @@ from tests.fakes.recorder import (
     Disconnect,
     Fail,
     FakeCaptureBackend,
+    FakeStream,
     Segment,
     Silence,
     Tone,
@@ -518,6 +522,46 @@ def test_an_interruption_deletes_the_recording_and_says_why(
     assert added == []
     assert temp_wavs(temp) == []
     assert window.monitor is not None  # back to the monitor
+
+
+@dataclass
+class VanishingBackend(FakeCaptureBackend):
+    """Bluetooth headphones switched off while recording: once `vanish` is opened for recording,
+    they leave the list and can no longer be opened (manual test of 29/10/2026)."""
+
+    vanish: str | None = None
+    gone: set[str] = field(default_factory=set[str])
+
+    def list_sources(self) -> tuple[AudioSource, ...]:
+        return tuple(source for source in super().list_sources() if source.id not in self.gone)
+
+    def open(self, source: AudioSource) -> FakeStream:
+        if source.id in self.gone:
+            raise RecorderNoDeviceError(source.name)
+        stream = super().open(source)
+        if source.id == self.vanish:
+            self.gone.add(source.id)
+        return stream
+
+
+def test_switching_off_the_headphones_keeps_the_message_and_lists_the_sources_again(
+    qtbot: QtBot, temp: Path, added: list[list[Path]]
+) -> None:
+    backend = VanishingBackend()
+    questions = FakeQuestions(path=temp / "never.mp3")
+    window = make_window(qtbot, backend, questions, added, temp)
+    window.select_source(HEADPHONES.id)
+    settle(qtbot, window)
+    backend.vanish = HEADPHONES.id
+    start_recording(qtbot, window, backend, [Tone(1.0), Disconnect()])
+    qtbot.waitUntil(lambda: window.phase is Phase.READY and window.monitor is not None, timeout=WAIT_MS)
+    settle(qtbot, window)
+    assert window.message_text() == message(ERROR_DEVICE_LOST)  # not "No s'ha trobat cap sortida"
+    assert HEADPHONES not in window.sources()
+    assert window.selected_source() == SPEAKERS
+    assert window.monitor is not None and window.monitor.source == SPEAKERS
+    assert questions.suggested == []
+    assert temp_wavs(temp) == []
 
 
 def test_disk_full_while_recording(
