@@ -5,6 +5,8 @@ Versions de PassiMaker. La CI genera el ZIP portable `PassiMaker-<versió>-win64
 
 ## 1.2.0 · música de YouTube i gravació del so (blocs C01–C10, C06)
 
+Publicada com a `v1.2` el 29/10/2026 (https://github.com/Cunill/CLD/releases/tag/v1.2).
+
 ### Nou
 - **Música de YouTube**: a **[+ Música ▾] → Des de YouTube…** es cerca una cançó pel nom o amb un enllaç, es baixa
   com a MP3 i s'afegeix al passi. És l'únic que necessita internet; abans de fer-la servir hi ha un avís (decisió 0012).
