@@ -148,7 +148,7 @@ C09 nucli `passimaker.recorder` amb `soundcard` (PR #77, commit `07e0aed`,
 docs/sessions/C09.md): normalització en desar fins a −1 dBFS, `safe_target_path` a `passimaker.common.files`; proves
 `so` al PC de l'usuari el 26/10/2026: correctes (5 s gravats, normalitzats de −28,8 a −1 dBFS).
 C10 finestra "Grava el que sona" (`ui/record_dialog.py`, `ui/wave_view.py`) (PR #83, commit `db6fc32`,
-docs/sessions/C10.md): permís de l'usuari el 29/10/2026 per al menú de tres entrades i el `closeEvent`; prova manual a
-Windows pendent. M06 senyals per finestra a `ui/youtube_dialog.py` (docs/sessions/M06.md).
+docs/sessions/C10.md): tancat el 29/10/2026; prova manual a Windows feta el 29/10/2026: correcta excepte el missatge en
+desconnectar la sortida, corregit a la PR #84. M06 senyals per finestra a `ui/youtube_dialog.py` (docs/sessions/M06.md).
 C06 empaquetat, guia i versió 1.2.0 (docs/sessions/C06.md): feta al núvol el 29/10/2026; falta la CI, la prova de l'usuari amb el ZIP i publicar.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
