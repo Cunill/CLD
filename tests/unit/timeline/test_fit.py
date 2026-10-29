@@ -1,7 +1,4 @@
-"""B2 · Fit to music (§1.7; limits of decision 0014: 1-24 s per photo).
-
-The algorithm tests use explicit 1-3 s limits (LIMITS), so they keep checking the clamping and the
-proportions with short durations; the defaults are checked at the end."""
+"""B2 · Fit to music (§1.7, decision 0005: 1-3 s per photo)."""
 
 from __future__ import annotations
 
@@ -16,7 +13,6 @@ from hypothesis import strategies as st
 from passimaker.timeline import DEFAULT_DURATION_LIMITS, DurationLimits, fit_to_music
 
 FRAME = 1 / 30
-LIMITS = DurationLimits(minimum=1.0, maximum=3.0)
 
 
 @given(st.lists(st.floats(1.0, 3.0), min_size=1, max_size=200), st.floats(0.0, 1.0))
@@ -25,7 +21,7 @@ def test_reachable_target_is_met_within_one_frame_and_inside_the_limits(
 ) -> None:
     count = len(durations)
     target = count * (1.0 + 2.0 * position)  # anywhere between n * 1 s and n * 3 s
-    result = fit_to_music(durations, target, LIMITS)
+    result = fit_to_music(durations, target)
     assert len(result.durations) == count
     assert abs(math.fsum(result.durations) - target) <= FRAME
     assert result.achieved_total_s == pytest.approx(math.fsum(result.durations))
@@ -38,7 +34,7 @@ def test_proportions_are_kept_between_photos_that_do_not_hit_a_limit(
     durations: list[float], position: float
 ) -> None:
     target = len(durations) * (1.0 + 2.0 * position)
-    result = fit_to_music(durations, target, LIMITS)
+    result = fit_to_music(durations, target)
     free = [(d, f) for d, f in zip(durations, result.durations, strict=True) if 1.0 + 1e-9 < f < 3.0 - 1e-9]
     if len(free) >= 2:
         ratios = [f / d for d, f in free]
@@ -49,26 +45,26 @@ def test_proportions_are_kept_between_photos_that_do_not_hit_a_limit(
 
 
 def test_a_photo_twice_as_long_stays_twice_as_long() -> None:
-    result = fit_to_music([1.0, 2.0, 1.0], 6.0, LIMITS)
+    result = fit_to_music([1.0, 2.0, 1.0], 6.0)
     assert result.durations == pytest.approx((1.5, 3.0, 1.5))
 
 
 def test_photos_held_at_a_limit_let_the_others_absorb_the_difference() -> None:
-    result = fit_to_music([1.0, 1.0, 3.0], 7.5, LIMITS)
+    result = fit_to_music([1.0, 1.0, 3.0], 7.5)
     assert result.durations == pytest.approx((2.25, 2.25, 3.0))
-    result = fit_to_music([1.0, 3.0, 3.0], 3.5, LIMITS)
+    result = fit_to_music([1.0, 3.0, 3.0], 3.5)
     assert result.durations == pytest.approx((1.0, 1.25, 1.25))
 
 
 def test_too_many_photos_for_the_music_warns_and_clamps_to_the_minimum() -> None:
-    result = fit_to_music([2.0] * 10, 6.0, LIMITS)  # 0.6 s per photo
+    result = fit_to_music([2.0] * 10, 6.0)  # 0.6 s per photo
     assert result.warning
     assert result.durations == (1.0,) * 10
     assert result.achieved_total_s == 10.0 > 6.0
 
 
 def test_music_too_long_for_the_photos_warns_and_clamps_to_the_maximum() -> None:
-    result = fit_to_music([2.0] * 10, 45.0, LIMITS)
+    result = fit_to_music([2.0] * 10, 45.0)
     assert result.warning
     assert result.durations == (3.0,) * 10
     assert result.achieved_total_s == 30.0 < 45.0
@@ -89,8 +85,8 @@ def test_degenerate_inputs() -> None:
     assert zeros.durations == pytest.approx((2.0, 2.0))
 
 
-def test_default_limits_are_those_of_decision_0014() -> None:
-    assert (DEFAULT_DURATION_LIMITS.minimum, DEFAULT_DURATION_LIMITS.maximum) == (1.0, 24.0)
+def test_default_limits_are_those_of_decision_0005() -> None:
+    assert (DEFAULT_DURATION_LIMITS.minimum, DEFAULT_DURATION_LIMITS.maximum) == (1.0, 3.0)
     assert DEFAULT_DURATION_LIMITS.warn_below == 1.0
 
 

@@ -268,9 +268,8 @@ def fit_to_music(project: Project) -> Project:
     """Rescales the photo durations so the show lasts as long as the music (§1.7).
 
     The durations come from passimaker.timeline.fit_to_music (block B2), which keeps the proportions
-    and applies the 1-24 s limits (decision 0014). Photos that used the default duration keep doing so
-    (with a new default) when they all get the same fitted value, so the "custom duration" marks do not
-    change.
+    and applies the 1-3 s limits. Photos that used the default duration keep doing so (with a new
+    default) when they all get the same fitted value, so the "custom duration" marks do not change.
     """
     target = music_duration(project.music)
     if not project.photos or target <= 0:

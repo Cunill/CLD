@@ -48,7 +48,7 @@ def test_every_default_is_inside_its_range() -> None:
         assert allowed.minimum <= value <= allowed.maximum
         assert allowed.clamp(value) == value
     assert defaults.PHOTO_DURATION_RANGE.clamp(99) == 24.0
-    assert defaults.FIT_TO_MUSIC_DURATION_RANGE.clamp(99) == 24.0  # decision 0014: fitting goes up to 24 s
+    assert defaults.FIT_TO_MUSIC_DURATION_RANGE.clamp(99) == 3.0  # decision 0005: fitting stays within 1-3 s
 
 
 def test_output_sizes_are_full_hd() -> None:

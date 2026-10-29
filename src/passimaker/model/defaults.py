@@ -25,9 +25,8 @@ FPS = 30
 PHOTO_DURATION_S = 2.0
 PHOTO_DURATION_RANGE = Range(0.4, 24.0, 0.1)
 """What can be set by hand (M05, user request); the timeline shortens the crossfade of a short photo."""
-FIT_TO_MUSIC_DURATION_RANGE = Range(1.0, 24.0, 0.1)
-"""What "Ajustar a la música" may give each photo (decisions 0005 and 0014): shorter than 1 s would be
-dizzying; up to 24 s, like a duration set by hand, so long music fits few photos (user, 29/10/2026)."""
+FIT_TO_MUSIC_DURATION_RANGE = Range(1.0, 3.0, 0.1)
+"""What "Ajustar a la música" may give each photo (decision 0005): shorter photos would be dizzying."""
 
 CROSSFADE_S = 1.0
 CROSSFADE_RANGE = Range(0.5, 1.5, 0.1)

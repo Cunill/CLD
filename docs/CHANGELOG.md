@@ -17,8 +17,6 @@ Versions de PassiMaker. La CI genera el ZIP portable `PassiMaker-<versió>-win64
 
 ### Canviat
 - El botó [+ Música] és ara un menú ([+ Música ▾]) amb tres entrades.
-- "Ajustar a la música" pot allargar cada foto fins a 24 s (abans, 3 s): amb cançons senceres i poques fotos ja
-  no sobra música (decisió 0014, M07).
 - El ZIP porta Deno, `yt-dlp-ejs`, `yt-dlp` i `soundcard` (uns 45 MB més).
 
 ### Intern
