@@ -90,6 +90,26 @@ def guide_html() -> str:
             "d'estat avisa si la música i les fotos no duren el mateix: <b>[Ajustar a la música]</b> "
             "canvia la durada de les fotos perquè el passi acabi alhora que la música.</p>",
         ),
+        QCoreApplication.translate("Help", "<h3>Música de YouTube</h3>"),
+        QCoreApplication.translate(
+            "Help",
+            "<p>A <b>[+ Música ▾]</b> tria <b>Des de YouTube…</b>: cerca una cançó pel nom o enganxa-hi "
+            "l'enllaç d'un vídeo, selecciona'n els resultats i prem <b>[Baixa]</b>. Les cançons es desen "
+            "com a MP3 a la carpeta que triïs i, si ho deixes marcat, s'afegeixen al passi. Només cal "
+            "internet per a això; la resta del programa funciona sense connexió. No es poden baixar "
+            "directes ni vídeos de més de 20 minuts.</p>",
+        ),
+        QCoreApplication.translate("Help", "<h3>Gravar el que sona</h3>"),
+        QCoreApplication.translate(
+            "Help",
+            "<p>A <b>[+ Música ▾]</b> tria <b>Grava el que sona…</b> per gravar el so que surt ara mateix "
+            "per l'ordinador (Spotify, el navegador, el reproductor…). Posa la música i prem "
+            "<b>[● Grava]</b>; per acabar, <b>[■ Atura]</b>. Mentre grava, les ones mostren el so de cada "
+            "canal. Pots fer que comenci quan soni i que s'aturi sola després d'uns segons de silenci. Les "
+            "gravacions són de 30 minuts com a màxim. El volum de Windows i el de l'aplicació afecten la "
+            "gravació: deixa'ls amb un volum normal. En acabar, tria on desar-la (és un MP3) i s'afegeix "
+            "al passi.</p>",
+        ),
         QCoreApplication.translate("Help", "<h3>3. Exportar</h3>"),
         QCoreApplication.translate(
             "Help",
@@ -127,6 +147,22 @@ def guide_html() -> str:
             "<p>Si alguna cosa no funciona o es queda encallat, pitja tecles aleatòriament i fes cercles amb "
             "el ratolí. I si tot i així no s'arregla, aixeca't i fes tres voltes a la cadira.</p>",
         ),
+        QCoreApplication.translate("Help", "<h4>YouTube ha canviat</h4>"),
+        QCoreApplication.translate(
+            "Help",
+            "<p>Si surt el missatge «YouTube ha canviat i aquesta versió de PassiMaker ja no pot "
+            "descarregar», YouTube ha canviat alguna cosa i cal una versió nova del programa. Avisa qui "
+            "te'l manté: només hauràs de baixar el ZIP nou. Mentrestant, la música que ja tens segueix "
+            "funcionant, i també <b>Grava el que sona…</b>.</p>",
+        ),
+        QCoreApplication.translate("Help", "<h4>No s'ha gravat cap so</h4>"),
+        QCoreApplication.translate(
+            "Help",
+            "<p>Comprova que la música sona per la sortida que has triat a la finestra (els altaveus o "
+            "els auriculars de sempre) i que el volum no és a zero. Algunes aplicacions no deixen gravar "
+            "el seu so; en aquest cas prova-ho amb el navegador. Si la gravació s'interromp (se "
+            "desconnecten els auriculars, el disc s'omple o arriba als 30 minuts), es descarta.</p>",
+        ),
     ]
     return "".join(parts)
 
@@ -142,7 +178,8 @@ def about_html(log_folder: Path | None) -> str:
         QCoreApplication.translate(
             "Help",
             "<p>Fet amb Python, Qt for Python (PySide6, llicència LGPL), FFmpeg (llicència a la carpeta "
-            "<i>bin\\llicencies</i>), NumPy, OpenCV, Pillow i pillow-heif.</p>",
+            "<i>bin\\llicencies</i>), NumPy, OpenCV, Pillow i pillow-heif. La música de YouTube fa servir "
+            "yt-dlp i Deno; la gravació del so, soundcard.</p>",
         ),
     ]
     if log_folder is not None:

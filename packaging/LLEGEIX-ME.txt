@@ -33,5 +33,10 @@ Des d'una finestra d'ordres, a la carpeta del programa:
 Exporta un vídeo de prova de 5 segons sense obrir la finestra (triga uns segons)
 i escriu el resultat a autoprova.txt. Ha d'acabar amb "Autoprova correcta".
 
-La carpeta bin conté les peces del programa i FFmpeg (llicència a bin\llicencies).
+Internet
+--------
+Només la música de YouTube necessita connexió. Si surt "YouTube ha canviat...", cal baixar una versió
+nova del programa.
+
+La carpeta bin conté les peces del programa, FFmpeg i Deno (llicències a bin\llicencies).
 No n'esborris res.
