@@ -155,5 +155,6 @@ Windows en verd; prova de l'usuari amb el ZIP `PassiMaker-1.2.0-win64` el 29/10/
 **Versió 1.2.0 publicada com a `v1.2`** el 29/10/2026 amb el flux `publicar.yml` (commit `333943b`, ZIP adjunt).
 Flux setmanal `actualitzar-ytdlp.yml` actiu (permís de crear PR activat per l'usuari el 29/10/2026); la primera
 execució va obrir la PR #89 (yt-dlp 2026.10.21 → 2026.10.26), que es fusiona quan calgui (docs/PUBLICAR.md).
-Següent, quan l'usuari ho digui: millores 7 i 5 de docs/proves_usuari.md.
+**Versió 1.3.0** (millores de l'usuari, pla aprovat el 29/10/2026): docs/PLA_1_3.md, blocs M07–M12, seguiment al §1.1.
+Tanda 1 (en paral·lel): M07 ajustar a la música, M08 imatges negres, M11 marge de la previsualització.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
