@@ -163,6 +163,8 @@ class SetMusicSettings:
     master_volume: float | None = None
     normalize: bool | None = None
     keep_fitted: bool | None = None
+    silence_start_s: float | None = None
+    silence_end_s: float | None = None
 
 
 @dataclass(frozen=True, slots=True)

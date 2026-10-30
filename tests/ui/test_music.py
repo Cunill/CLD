@@ -9,7 +9,7 @@ import pytest
 from pytestqt.qtbot import QtBot
 
 from passimaker.model import Music, Project, Song
-from passimaker.model.commands import AddSongs, SetDefaultDuration, SetPhotoDuration
+from passimaker.model.commands import AddSongs, SetDefaultDuration, SetMusicSettings, SetPhotoDuration
 from passimaker.ui.duration_status import Balance, FitProblem, durations_of, fit_problem
 from passimaker.ui.main_window import MainWindow
 from passimaker.ui.music_strip import FADE_IN_MARK, FADE_OUT_MARK, SongRole
@@ -265,3 +265,35 @@ def test_the_boxes_of_the_fit_never_talk_about_1_to_3_seconds(qtbot: QtBot) -> N
         qtbot.addWidget(box)
         assert "1–3" not in box.text() and "1-3" not in box.text()
         assert len(box.buttons()) == (1 if problem.blocks else 2)
+
+
+# --- M13: silence before and after the music ------------------------------------------------------
+
+
+def test_the_status_bar_counts_the_silences_with_the_music(window_with_photos: MainWindow) -> None:
+    window = window_with_photos
+    window.controller.execute(AddSongs((song(1, 20),)))  # 0:20 of music for 0:24 of photos
+    window.controller.execute(SetMusicSettings(silence_start_s=2.0, silence_end_s=2.0))
+    status = window.duration_status
+    assert status.balance is Balance.EQUAL
+    assert status.music_label.text() == "· Música 0:20"
+    assert not status.warning_label.isVisible()
+    window.controller.execute(SetMusicSettings(silence_end_s=10.0))
+    assert status.warning_label.text() == "⚠ La música dura 0:08 més."
+
+
+def test_fitting_makes_the_show_last_the_silences_plus_the_music(window_with_photos: MainWindow) -> None:
+    window = window_with_photos
+    window.controller.execute(AddSongs((song(1, 30),)))
+    window.controller.execute(SetMusicSettings(silence_start_s=3.0, silence_end_s=3.0))
+    window.duration_status.fit_button.click()
+    assert durations_of(window.controller.project).show_s == pytest.approx(36.0)
+    assert window.duration_status.balance is Balance.EQUAL
+
+
+def test_fit_problem_counts_the_silences() -> None:
+    music = Music(silence_start_s=10.0, silence_end_s=10.0, songs=(song(1, 60),))
+    assert fit_problem(Project(slides=make_photos(4), music=music)) is None  # 20 s each
+    check = fit_problem(Project(slides=make_photos(4), music=replace(music, silence_end_s=60.0)))
+    assert check is not None and check.problem is FitProblem.MUSIC_TOO_LONG
+    assert check.seconds_per_photo == pytest.approx(32.5)

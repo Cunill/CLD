@@ -167,4 +167,7 @@ M08 fitxes negres d'inici i final (`Project.slides`, `BlackSlide`, `.pmk` versi�
 `main` el 30/10/2026 (PR #95, CI de Windows en verd); la prova manual de l'usuari encara no s'ha fet.
 M09 "Barreja les fotos" (`ShufflePhotos`, llavor del projecte i ordre actual; docs/sessions/M09.md): fet a la branca
 `ccr-3a1c06ba-fh5sfo`; la prova manual de l'usuari encara no s'ha fet.
+M13 silenci abans i després de la música (`Music.silence_start_s` i `silence_end_s`, 0–60 s, al panell de la cançó;
+`.pmk` versió 2 amb dos camps opcionals; docs/sessions/M13.md): fusionat a `main` el 30/10/2026
+(PR #97, el silenci de la música; CI de Windows en verd); la prova manual de l'usuari encara no s'ha fet.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.

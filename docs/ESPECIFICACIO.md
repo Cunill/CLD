@@ -223,6 +223,11 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 - Sota el storyboard hi ha la franja "Música", amb les cançons en ordre: nom, durada real (després del retall) i indicadors de fosa. Les cançons s'afegeixen amb [+ Música] o arrossegant fitxers d'àudio a la finestra. Es poden eliminar i reordenar arrossegant-les.
 - Formats: MP3, WAV, M4A/AAC, FLAC, OGG, WMA i OPUS. També es poden descarregar de YouTube (§1.7 bis) o gravar-les del so de l'ordinador (§1.7 ter).
 - Les cançons sonen una darrere l'altra des del principi del vídeo, sense trepitjar-se.
+- **Silenci abans i després de la música** (M13, millora 6): al panell de la cançó, apartat "Tota la música", "Silenci
+  abans" i "Silenci després" (per defecte 0 s; de 0 a 60 s, en passos de 0,5 s). Són de tota la música, no de cada
+  cançó, i es poden desfer. La primera cançó comença X segons després del principi del vídeo, i la música s'acaba com a
+  molt Y segons abans del final (si no hi cap, la fosa final de 3 s acaba just allà). Són independents de les fitxes
+  negres: amb una fitxa negra de 2 s i X = 5 s, la música comença al segon 5.
 - Ajustos de cada cançó (panell de propietats):
   - Fosa d'entrada: ☑ activada, 1,0 s (de 0 a 10 s, en passos de 0,5 s).
   - Fosa de sortida: ☑ activada, 3,0 s (de 0 a 10 s).
@@ -234,18 +239,18 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 - Les foses segueixen una corba logarítmica, que a l'oïda sona més natural que una de lineal.
 
 **Ajustar a la música**
-- El botó [Ajustar a la música] torna a calcular les durades perquè el passi duri exactament el mateix que la música (la suma de les cançons, ja retallades) (decisió 0014).
+- El botó [Ajustar a la música] torna a calcular les durades perquè el passi duri exactament el mateix que la música (la suma de les cançons, ja retallades) (decisió 0014), més el silenci d'abans i el de després (M13).
 - **Les fotos amb la durada posada a mà no es toquen**: se'n resta el total de la durada de la música i la resta es reparteix entre les altres fotos (les que fan servir la durada per defecte, que passa a valer el que toqui). Qualsevol element amb una durada pròpia, com les fitxes negres, també es manté.
 - Cada foto lliure pot durar entre 0,4 i 24 s (el mateix rang que a mà). Si caldria menys de 0,4 s per foto, surt l'avís "Hi ha massa fotos per a aquesta música: cada foto duraria 0,3 s. Afegeix música o treu fotos."; si en caldria més de 24 s, "La música és massa llarga per a aquestes fotos: afegeix-ne o retalla la música." En tots dos casos, [Aplicar igualment] (amb el límit de 0,4 o 24 s) i [Cancel·lar]. El temps per foto que surt a l'avís és el que queda de música després de les fotos fixes.
 - Si **totes** les fotos tenen la durada posada a mà, o les fixes ja duren tant com la música o més, no es canvia res: surt un avís ("Totes les fotos tenen la durada posada a mà, així que no hi ha res a ajustar…" o "Les fotos amb la durada posada a mà ja duren tant com la música o més…") amb un sol botó [D'acord].
-- Casella "Mantenir ajustat" (desactivada per defecte): si s'activa, el passi es torna a ajustar sol cada vegada que s'afegeixen fotos o cançons (amb les mateixes regles; si no hi ha res a ajustar, no fa res i no avisa).
+- Casella "Mantenir ajustat" (desactivada per defecte): si s'activa, el passi es torna a ajustar sol cada vegada que s'afegeixen fotos o cançons, o es canvien els silencis (M13) (amb les mateixes regles; si no hi ha res a ajustar, no fa res i no avisa).
 
 **Quan la música i les fotos no duren el mateix**
 
 | Situació | Comportament per defecte | Com ho veu l'usuari |
 |---|---|---|
-| La música dura més que el passi | La música es talla amb una fosa de volum de 3 s que acaba just amb la fosa a negre del vídeo | Avís discret a la barra d'estat: "La música dura 1:22 més. [Ajustar a la música]" |
-| La música dura menys que el passi | Després de l'última cançó (amb la seva fosa de sortida) hi ha silenci | "La música s'acaba 0:45 abans. [Ajustar a la música]" |
+| La música dura més que el passi | La música es talla amb una fosa de volum de 3 s que acaba just amb la fosa a negre del vídeo (o, amb silenci després, Y segons abans del final) | Avís discret a la barra d'estat: "La música dura 1:22 més. [Ajustar a la música]" |
+| La música dura menys que el passi | Després de l'última cançó (amb la seva fosa de sortida) hi ha silenci (la barra d'estat compta els silencis d'abans i de després amb la música) | "La música s'acaba 0:45 abans. [Ajustar a la música]" |
 | No hi ha música | Vídeo amb una pista d'àudio en silenci, perquè sigui més compatible amb els televisors | — |
 
 **Casos límit:**

@@ -96,6 +96,12 @@ def music_duration(music: Music) -> float:
     return sum(song_duration(s) for s in music.songs)
 
 
+def music_span(music: Music) -> float:
+    """How long the show must last for all the music: the silences plus the songs (M13); 0 without music."""
+    songs = music_duration(music)
+    return music.silence_start_s + songs + music.silence_end_s if songs > 0 else 0.0
+
+
 def changes_between(old: Project, new: Project) -> set[Change]:
     """Kinds of data that differ between two versions of the project (SAVED_STATE excluded)."""
     if old is new:
@@ -299,7 +305,7 @@ def fit_to_music(project: Project) -> Project:
     becomes the new default; the "custom duration" marks do not change. If nothing can be fitted, the
     project is returned as is.
     """
-    target = music_duration(project.music)
+    target = music_span(project.music)
     if not project.photos or target <= 0:
         return project
     durations = [project.photo_duration(s) for s in project.slides]
@@ -546,8 +552,14 @@ def _set_music_settings(project: Project, command: SetMusicSettings) -> Project:
         music = replace(music, normalize=command.normalize)
     if command.keep_fitted is not None:
         music = replace(music, keep_fitted=command.keep_fitted)
+    if command.silence_start_s is not None:
+        music = replace(music, silence_start_s=defaults.MUSIC_SILENCE_RANGE.clamp(command.silence_start_s))
+    if command.silence_end_s is not None:
+        music = replace(music, silence_end_s=defaults.MUSIC_SILENCE_RANGE.clamp(command.silence_end_s))
     edited = replace(project, music=music)
-    if command.keep_fitted and not project.music.keep_fitted:
+    silences = (music.silence_start_s, music.silence_end_s)
+    silence_changed = silences != (project.music.silence_start_s, project.music.silence_end_s)
+    if (command.keep_fitted and not project.music.keep_fitted) or silence_changed:
         edited = _keep_fitted(edited)
     return edited
 
