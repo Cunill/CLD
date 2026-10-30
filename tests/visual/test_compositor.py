@@ -22,6 +22,7 @@ from tests.visual.helpers import (
     MemoryImageSource,
     build_project,
     compositor_for,
+    frame_size,
     frame_times,
     magenta_count,
     photo,
@@ -61,7 +62,7 @@ def test_real_photos_through_the_real_decoder(
     source = CachedImageSource(workers=1)
     try:
         compositor, timeline = compositor_for(project, source)
-        width, height = (640, 360) if output_format is OutputFormat.HORIZONTAL else (360, 640)
+        width, height = frame_size(output_format, 640)
         for t in frame_times(timeline, step=4):
             frame = compositor.frame_at(t, width, height, sentinel=True)
             assert magenta_count(frame) == 0, t

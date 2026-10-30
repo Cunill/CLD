@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from passimaker import timeline
-from passimaker.model import Change, ProjectController
+from passimaker.model import Change, ProjectController, new_project
 from passimaker.model.commands import (
     AddPhotos,
     AddSongs,
@@ -297,6 +297,22 @@ def test_output_format_change_keeps_the_motion_types() -> None:
         assert new.motion.resolved_fit is ResolvedFit.BLUR
         if old in (MotionType.ZOOM_IN, MotionType.ZOOM_OUT):
             assert new.motion.type is old
+
+
+def test_the_4_3_format_fills_4_3_photos_and_keeps_the_black_slides() -> None:
+    """M10: the fit is resolved again for the new proportion; black slides have no size or fit."""
+    controller = ProjectController(new_project(seed=7))
+    controller.execute(AddPhotos(photos(4)))  # 4000x3000
+    black = (controller.project.black_start, controller.project.black_end)
+    controller.execute(SetProjectSettings(output_format=OutputFormat.VERTICAL_3_4))
+    assert all(p.motion.resolved_fit is ResolvedFit.BLUR for p in controller.project.photos)
+    controller.execute(SetProjectSettings(output_format=OutputFormat.HORIZONTAL_4_3))
+    project = controller.project
+    assert all(p.motion.resolved_fit is ResolvedFit.FILL for p in project.photos)
+    assert (project.black_start, project.black_end) == black
+    assert project.slides[0] is black[0] and project.slides[-1] is black[1]
+    controller.undo()
+    assert controller.project.output_format is OutputFormat.VERTICAL_3_4
 
 
 def test_project_settings_are_clamped() -> None:

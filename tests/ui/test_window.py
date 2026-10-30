@@ -43,11 +43,29 @@ def test_the_empty_state_button_asks_for_photos(window: MainWindow, questions: R
 def test_the_format_action_changes_the_project_through_the_controller(
     window_with_photos: MainWindow,
 ) -> None:
+    """M10: the toolbar button opens a menu of the six formats and shows the current proportion."""
     window = window_with_photos
-    window.format_action.setChecked(True)
-    assert window.controller.project.output_format is OutputFormat.VERTICAL
-    window.format_action.setChecked(False)
-    assert window.controller.project.output_format is OutputFormat.HORIZONTAL
+    actions = window.format_menu.actions()
+    labels = [a.text() for a in actions if not a.isSeparator()]
+    assert labels == [
+        "Horitzontal 16:9",
+        "Horitzontal 3:2",
+        "Horitzontal 4:3",
+        "Vertical 9:16",
+        "Vertical 2:3",
+        "Vertical 3:4",
+    ]
+    assert window.format_action.text() == "Format: 16:9"
+    assert window.format_actions[OutputFormat.HORIZONTAL].isChecked()
+    for output_format in OutputFormat:
+        window.format_actions[output_format].trigger()
+        assert window.controller.project.output_format is output_format
+        assert window.format_action.text() == f"Format: {output_format.label}"
+        assert [f for f, a in window.format_actions.items() if a.isChecked()] == [output_format]
+    window.controller.undo()
+    assert window.controller.project.output_format is OutputFormat.VERTICAL_2_3
+    assert window.format_actions[OutputFormat.VERTICAL_2_3].isChecked()
+    assert window.format_action.text() == "Format: 2:3"
 
 
 def test_music_and_export_actions_follow_the_project(window: MainWindow) -> None:

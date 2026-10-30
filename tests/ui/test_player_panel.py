@@ -12,7 +12,7 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
-from PySide6.QtCore import QPoint, Qt
+from PySide6.QtCore import QPoint, QSize, Qt
 from PySide6.QtGui import QImage
 from pytestqt.qtbot import QtBot
 
@@ -23,7 +23,7 @@ from passimaker.model.commands import AddSongs, MovePhotos, SetDefaultDuration, 
 from passimaker.model.types import MotionType, Song
 from passimaker.preview import photo_start
 from passimaker.ui.main_window import MainWindow
-from passimaker.ui.player_panel import PlayerPanel
+from passimaker.ui.player_panel import PlayerPanel, frame_size
 from tests.fakes.audio import ToneAudioSource
 from tests.ui.helpers import FakeThumbnailService, controller_with, images
 from tests.unit.preview.fakes import FakeAudioOutput, SimulatedClockFactory
@@ -111,7 +111,7 @@ def test_the_vertical_format_changes_the_shape(qtbot: QtBot, window_with_photos:
     window = window_with_photos
     window.view.select_ids(["p0002"])
     wait_frame(qtbot, window.player_panel)
-    window.format_action.setChecked(True)
+    window.format_actions[OutputFormat.VERTICAL].trigger()
     panel = window.player_panel
     panel.wait(TIMEOUT_MS)
     qtbot.waitUntil(
@@ -122,6 +122,45 @@ def test_the_vertical_format_changes_the_shape(qtbot: QtBot, window_with_photos:
     width, height = OutputFormat.VERTICAL.size
     assert frame.width() / frame.height() == pytest.approx(width / height, rel=0.02)
     assert max(frame.width(), frame.height()) <= 960
+
+
+@pytest.mark.parametrize(
+    "output_format",
+    [
+        OutputFormat.HORIZONTAL_3_2,
+        OutputFormat.HORIZONTAL_4_3,
+        OutputFormat.VERTICAL_2_3,
+        OutputFormat.VERTICAL_3_4,
+    ],
+)
+def test_the_other_proportions_change_the_shape(
+    qtbot: QtBot, window_with_photos: MainWindow, output_format: OutputFormat
+) -> None:
+    """M10: the preview has the proportion of the video, within 960x540 or 540x960."""
+    window = window_with_photos
+    window.view.select_ids(["p0002"])
+    wait_frame(qtbot, window.player_panel)
+    window.format_actions[output_format].trigger()
+    panel = window.player_panel
+    width, height = output_format.size
+
+    def shaped() -> bool:
+        frame = panel.frame
+        return frame is not None and frame.width() / frame.height() == pytest.approx(width / height, rel=0.02)
+
+    qtbot.waitUntil(shaped, timeout=TIMEOUT_MS)
+    frame = panel.frame
+    assert frame is not None
+    limit = (540, 960) if output_format.is_vertical else (960, 540)
+    assert frame.width() <= limit[0] and frame.height() <= limit[1]
+
+
+def test_frame_size_keeps_each_proportion_within_the_preview_limit() -> None:
+    for output_format in OutputFormat:
+        project = Project(output_format=output_format)
+        width, height = frame_size(project, QSize(4000, 4000))
+        assert width / height == pytest.approx(output_format.size[0] / output_format.size[1], rel=0.01)
+        assert (width, height) in {(960, 540), (810, 540), (720, 540), (540, 960), (540, 810), (540, 720)}
 
 
 def test_an_empty_project_shows_black_and_does_not_play(qtbot: QtBot, window: MainWindow) -> None:

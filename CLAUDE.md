@@ -163,4 +163,7 @@ M11 marge de la previsualització ajustable (`PreviewSplitter` a `ui/main_window
 fusionat a `main` el 30/10/2026 (PR #94, CI de Windows en verd); la prova manual de l'usuari encara no s'ha fet.
 M08 fitxes negres d'inici i final (`Project.slides`, `BlackSlide`, `.pmk` versió 2; docs/sessions/M08.md): fusionat a
 `main` el 30/10/2026 (PR #95, CI de Windows en verd); la prova manual de l'usuari encara no s'ha fet.
+M10 proporcions: sis formats, 16:9, 3:2 i 4:3 horitzontals i verticals (`OutputFormat`, `.pmk` amb la proporció,
+els antics `"horizontal"`/`"vertical"` s'obren com a 16:9 i 9:16; botó "Format ▾"; `passimaker-nou --format`;
+docs/sessions/M10.md): fet a la branca `ccr-ad368bc5-c6nhgt`, pendent de la PR i de la prova manual de l'usuari.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.

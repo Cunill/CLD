@@ -70,7 +70,7 @@ from passimaker.ui.photo_panel import PhotoPanel
 from passimaker.ui.photos import PhotoListModel
 from passimaker.ui.player_panel import PlayerPanel
 from passimaker.ui.project_files import MissingFilesBar, ProjectFiles, RecentProjects, user_settings
-from passimaker.ui.project_panel import ProjectPanel
+from passimaker.ui.project_panel import ProjectPanel, format_label
 from passimaker.ui.properties import PropertiesPanel
 from passimaker.ui.record_dialog import RecordDialogs, RecordQuestions, RecordWindow
 from passimaker.ui.song_panel import SongPanel
@@ -232,6 +232,7 @@ class MainWindow(QMainWindow):
         self._connect()
         self.refresh_status()
         self._refresh_actions()
+        self._show_format()
         self._refresh_title()
 
     # --- Layout ----------------------------------------------------------------------------------
@@ -382,10 +383,14 @@ class MainWindow(QMainWindow):
             lambda: self.controller.execute(AddBlackSlide(BlackSlidePosition.END))
         )
 
-        self.format_action = QAction(self.tr("Format vertical"), self)
-        self.format_action.setCheckable(True)
-        self.format_action.toggled.connect(self._on_format_toggled)
-        self.format_action.setToolTip(self.tr("Vídeo vertical 9:16, per veure'l al mòbil"))
+        # M10: a menu of the six formats; the button shows the current proportion.
+        self.format_action = QAction(self)
+        self.format_action.setToolTip(
+            self.tr("Forma del vídeo: horitzontal per al televisor, vertical per al mòbil")
+        )
+        self.format_menu = QMenu(self.tr("Format"), self)
+        self.format_action.setMenu(self.format_menu)
+        self.format_actions = self._build_format_actions()
 
         self.guide_action = QAction(self.tr("Guia d'ús"), self)
         self.guide_action.setShortcut(QKeySequence.StandardKey.HelpContents)
@@ -403,6 +408,20 @@ class MainWindow(QMainWindow):
         action = self.music_menu.addAction(text)
         action.triggered.connect(slot)
         return action
+
+    def _build_format_actions(self) -> dict[OutputFormat, QAction]:
+        group = QActionGroup(self)
+        actions: dict[OutputFormat, QAction] = {}
+        for output_format in OutputFormat:
+            if output_format is OutputFormat.VERTICAL:
+                self.format_menu.addSeparator()
+            action = QAction(format_label(self, output_format), self)
+            action.setCheckable(True)
+            action.setActionGroup(group)
+            action.triggered.connect(lambda _=False, wanted=output_format: self._on_format_chosen(wanted))
+            self.format_menu.addAction(action)
+            actions[output_format] = action
+        return actions
 
     def _build_size_actions(self) -> dict[ThumbnailSize, QAction]:
         group = QActionGroup(self)
@@ -484,6 +503,9 @@ class MainWindow(QMainWindow):
         self.toolbar.addAction(self.redo_action)
         self.toolbar.addSeparator()
         self.toolbar.addAction(self.format_action)
+        format_button = self.toolbar.widgetForAction(self.format_action)
+        if isinstance(format_button, QToolButton):
+            format_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         self.toolbar.addSeparator()
         self.toolbar.addAction(self.export_action)
 
@@ -666,8 +688,7 @@ class MainWindow(QMainWindow):
 
     # --- Reactions -------------------------------------------------------------------------------
 
-    def _on_format_toggled(self, vertical: bool) -> None:
-        wanted = OutputFormat.VERTICAL if vertical else OutputFormat.HORIZONTAL
+    def _on_format_chosen(self, wanted: OutputFormat) -> None:
         if wanted is not self.controller.project.output_format:
             self.controller.execute(SetProjectSettings(output_format=wanted))
 
@@ -678,11 +699,12 @@ class MainWindow(QMainWindow):
             self.music_changed.emit()
         self.properties.refresh_tabs()
         self._refresh_actions()
-        vertical = self.controller.project.output_format is OutputFormat.VERTICAL
-        if self.format_action.isChecked() != vertical:
-            self.format_action.blockSignals(True)
-            self.format_action.setChecked(vertical)
-            self.format_action.blockSignals(False)
+        self._show_format()
+
+    def _show_format(self) -> None:
+        output_format = self.controller.project.output_format
+        self.format_action.setText(self.tr("Format: {format}").format(format=output_format.label))
+        self.format_actions[output_format].setChecked(True)
 
     def _on_model_reset(self) -> None:
         self.storyboard.update_state()

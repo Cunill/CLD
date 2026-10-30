@@ -204,3 +204,32 @@ def test_vertical_video(vertical: Exported) -> None:
     for n, frame in enumerate(iter_frames(vertical.video, 1080, 1920)):
         if n % 3 == 0:
             assert magenta_pixels(frame, compositor.frame_at(n / 30, 1080, 1920)) == 0, n
+
+
+@pytest.mark.parametrize(
+    "output_format",
+    [
+        OutputFormat.HORIZONTAL_3_2,
+        OutputFormat.HORIZONTAL_4_3,
+        OutputFormat.VERTICAL_2_3,
+        OutputFormat.VERTICAL_3_4,
+    ],
+)
+def test_short_video_in_the_other_proportions(
+    fixture_files: dict[str, Path], tmp_path: Path, output_format: OutputFormat
+) -> None:
+    """M10: 3:2 and 4:3, landscape and portrait: H.264 at the format's size, 30 fps, no magenta."""
+    names = ("ratio_4x3.jpg", "ratio_3x4.jpg", "pano_3x1.jpg")
+    project = make_project(fixture_files, tmp_path / "fotos", names, output_format=output_format)
+    exported = _export(project, tmp_path / f"{output_format.value}.mp4")
+    assert exported.result.status is ExportStatus.DONE, exported.result
+    info = ffprobe(exported.video)
+    width, height = output_format.size
+    assert (info.video["width"], info.video["height"]) == (width, height)
+    assert info.video["codec_name"] == "h264" and info.video["pix_fmt"] == "yuv420p"
+    assert info.video["r_frame_rate"] == "30/1"
+    assert abs(int(str(info.video["nb_frames"])) - exported.timeline.total_frames) <= 1
+    compositor = Compositor(exported.project, exported.timeline, CachedImageSource())
+    for n, frame in enumerate(iter_frames(exported.video, width, height)):
+        if n % 3 == 0:
+            assert magenta_pixels(frame, compositor.frame_at(n / 30, width, height)) == 0, n

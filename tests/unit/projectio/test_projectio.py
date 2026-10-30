@@ -517,3 +517,42 @@ def test_a_black_slide_duration_out_of_range_is_clamped_and_a_bad_one_rejected(t
     with pytest.raises(ProjectFileError) as caught:
         open_project(path)
     assert caught.value.message_key == ERROR_CORRUPT
+
+
+@pytest.mark.parametrize(
+    ("version", "value", "expected"),
+    [
+        (1, "horizontal", OutputFormat.HORIZONTAL),
+        (1, "vertical", OutputFormat.VERTICAL),
+        (2, "horizontal", OutputFormat.HORIZONTAL),
+        (2, "vertical", OutputFormat.VERTICAL),
+    ],
+)
+def test_the_formats_of_older_files_open_as_16_9_and_9_16(
+    tmp_path: Path, version: int, value: str, expected: OutputFormat
+) -> None:
+    """M10: files of 1.2.0 (and of the M08 builds) keep their shape and are saved with the new names."""
+    path = tmp_path / "antic.pmk"
+    save_project(simple_project([tmp_path / "a.jpg"]), path)
+    document = json.loads(path.read_text(encoding="utf-8"))
+    document["format_version"] = version
+    document["project"]["output_format"] = value
+    if version == 1:
+        del document["project"]["black_start"], document["project"]["black_end"]
+    path.write_text(json.dumps(document), encoding="utf-8")
+
+    project = open_project(path).project
+    assert project.output_format is expected
+    save_project(project, path)
+    saved = json.loads(path.read_text(encoding="utf-8"))["project"]["output_format"]
+    assert saved == {"horizontal": "horizontal_16_9", "vertical": "vertical_9_16"}[value]
+
+
+@pytest.mark.parametrize("output_format", list(OutputFormat))
+def test_each_format_is_saved_with_its_proportion(tmp_path: Path, output_format: OutputFormat) -> None:
+    path = tmp_path / "p.pmk"
+    save_project(Project(output_format=output_format), path)
+    value = json.loads(path.read_text(encoding="utf-8"))["project"]["output_format"]
+    orientation = "vertical" if output_format.is_vertical else "horizontal"
+    assert value == f"{orientation}_{output_format.label.replace(':', '_')}"
+    assert open_project(path).project.output_format is output_format
