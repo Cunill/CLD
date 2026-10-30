@@ -64,6 +64,14 @@ class SortPhotos:
 
 
 @dataclass(frozen=True, slots=True)
+class ShufflePhotos:
+    """Puts the photos in a new random order (M09). Black slides stay where they are.
+
+    The order comes from the project seed and the current order, so it is deterministic and every press on the
+    result gives a different order (no field in the command or in the file)."""
+
+
+@dataclass(frozen=True, slots=True)
 class SetDefaultDuration:
     seconds: float
 
@@ -168,6 +176,7 @@ Command = (
     | MovePhotos
     | DuplicatePhotos
     | SortPhotos
+    | ShufflePhotos
     | AddBlackSlide
     | SetDefaultDuration
     | SetPhotoDuration
