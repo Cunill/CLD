@@ -200,6 +200,26 @@ def test_fit_to_music_leaves_the_black_slides_and_their_time_alone() -> None:
     assert total == pytest.approx(14.0)
 
 
+def test_fit_to_music_keeps_the_black_slides_and_the_photos_set_by_hand() -> None:
+    controller = with_blacks(3)
+    controller.execute(SetPhotoDuration(frozenset({"p000"}), 5.0))
+    controller.execute(AddSongs((song("s", 19.0),)))
+    controller.execute(FitToMusic())
+    project = controller.project
+    # 19 s of music - 2 x 2 s of black - 5 s by hand = 10 s for the two free photos.
+    assert [project.photo_duration(s) for s in project.slides] == pytest.approx([2.0, 5.0, 5.0, 5.0, 2.0])
+    assert project.photos[0].duration_s == 5.0 and project.photos[1].duration_s is None
+
+
+def test_fit_to_music_with_every_photo_set_by_hand_does_nothing_despite_the_black_slides() -> None:
+    controller = with_blacks(2)
+    controller.execute(SetPhotoDuration(frozenset({"p000", "p001"}), 3.0))
+    controller.execute(AddSongs((song("s", 60.0),)))
+    before = controller.project
+    assert controller.execute(FitToMusic()) == frozenset()
+    assert controller.project == before
+
+
 _ACTIONS = st.lists(
     st.one_of(
         st.builds(lambda i: AddPhotos((photo(f"n{i}"),), index=i % 5), st.integers(0, 50)),

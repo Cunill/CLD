@@ -3,18 +3,21 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from dataclasses import replace
 
 import pytest
 from PySide6.QtCore import QMimeData, QPoint, Qt
 from pytestqt.qtbot import QtBot
 
-from passimaker.model import BLACK_END_ID, BLACK_START_ID, BlackSlide, BlackSlidePosition, new_project
+from passimaker.model import BLACK_END_ID, BLACK_START_ID, BlackSlide, BlackSlidePosition, Music, new_project
 from passimaker.model.commands import AddPhotos
+from passimaker.ui.duration_status import fit_problem
 from passimaker.ui.main_window import MainWindow
 from passimaker.ui.photos import PHOTO_MIME, PhotoRole
 from passimaker.ui.properties import PropertiesPanel
 from tests.ui.conftest import build_window
 from tests.ui.helpers import FakeThumbnailService, RecordedQuestions, controller_with, make_photo
+from tests.ui.test_music import song
 
 pytestmark = pytest.mark.ui
 
@@ -134,3 +137,8 @@ def test_the_photo_panel_of_a_black_slide_only_has_the_duration(window: MainWind
 def test_selecting_a_black_slide_shows_it_in_the_preview(window: MainWindow) -> None:
     window.view.select_ids([BLACK_END_ID])
     assert window.player_panel._shown_photo == BLACK_END_ID
+
+
+def test_no_fit_warning_with_only_the_black_slides() -> None:
+    project = replace(new_project(), music=Music(songs=(song(1, 60),)))
+    assert fit_problem(project) is None

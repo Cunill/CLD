@@ -28,8 +28,8 @@ PHOTO_DURATION_RANGE = Range(0.4, 24.0, 0.1)
 """What can be set by hand (M05, user request); the timeline shortens the crossfade of a short photo."""
 BLACK_SLIDE_DURATION_S = 2.0
 """Black slides at the start and the end of a new project (M08); their duration uses PHOTO_DURATION_RANGE."""
-FIT_TO_MUSIC_DURATION_RANGE = Range(1.0, 3.0, 0.1)
-"""What "Ajustar a la música" may give each photo (decision 0005): shorter photos would be dizzying."""
+FIT_TO_MUSIC_DURATION_RANGE = PHOTO_DURATION_RANGE
+"""What "Ajustar a la música" may give each photo: the same range as by hand (decision 0014, M07)."""
 
 CROSSFADE_S = 1.0
 CROSSFADE_RANGE = Range(0.5, 1.5, 0.1)
@@ -61,7 +61,7 @@ SONG_VOLUME_RANGE = Range(0.0, 1.5, 0.01)
 LOUDNESS_TARGET_LUFS = -16.0
 LIMITER_CEILING_DBFS = -1.0
 
-FIT_TO_MUSIC_MIN_DURATION_WARNING_S = 1.0
+FIT_TO_MUSIC_MIN_DURATION_WARNING_S = FIT_TO_MUSIC_DURATION_RANGE.minimum
 
 MAX_PHOTOS_WITHOUT_WARNING = 1000
 MIN_PHOTO_SIDE_PX = 64

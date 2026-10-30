@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 
 from passimaker.model import defaults
 
@@ -91,6 +92,15 @@ class DurationLimits:
 DEFAULT_DURATION_LIMITS = DurationLimits()
 
 
+class FitBlock(Enum):
+    """Why a fit left every duration as it was (decision 0014)."""
+
+    ALL_FIXED = "all_fixed"
+    """Every duration is fixed: there is nothing to rescale."""
+    FIXED_TOO_LONG = "fixed_too_long"
+    """The fixed durations alone already last as long as the music or longer."""
+
+
 @dataclass(frozen=True, slots=True)
 class FitResult:
     durations: tuple[float, ...]
@@ -99,3 +109,6 @@ class FitResult:
     cannot be reached within [minimum, maximum] (durations clamped; compare achieved_total_s
     with the target to tell "too many photos" from "music too long")."""
     achieved_total_s: float
+    blocked: FitBlock | None = None
+    """Set when the durations come back unchanged because the fixed ones leave nothing to fit
+    (``warning`` is then True too)."""
