@@ -78,6 +78,8 @@
   - Si no, per nom en ordre natural ("IMG_2" abans que "IMG_10").
   - Les fotos noves van al final, o al punt on es deixen anar si s'arrosseguen sobre el storyboard.
   - El menú "Ordenar per data / per nom" les torna a ordenar totes.
+  - "Barreja les fotos" (menú Visualitza i barra d'eines; desactivada amb menys de dues fotos) les posa en un ordre
+    nou a l'atzar cada cop que es prem; les fitxes negres no es mouen i es pot desfer d'un sol pas (M09).
 - En importar-la, cada foto rep la durada general, l'encaix automàtic i un moviment sortejat.
 - La importació és progressiva i es pot cancel·lar. En cancel·lar, s'afegeixen les fotos que ja s'havien llegit (decisió 0010).
 

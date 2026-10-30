@@ -58,14 +58,16 @@ Valors per defecte i rangs: **només** a `passimaker.model.defaults` (per ajusta
 `Change`: PHOTOS, TIMING, MOTION, MUSIC, SETTINGS, SAVED_STATE.
 
 Ordres (`passimaker.model.commands`): `AddPhotos`, `RemovePhotos`, `MovePhotos`, `DuplicatePhotos`,
-`SortPhotos`, `SetDefaultDuration`, `SetPhotoDuration`, `SetPhotoFit`, `SetPhotoMotion`,
+`SortPhotos`, `ShufflePhotos` (M09), `SetDefaultDuration`, `SetPhotoDuration`, `SetPhotoFit`, `SetPhotoMotion`,
 `RerollMotions`, `RotatePhotos`, `SetProjectSettings`, `AddSongs`, `RemoveSongs`, `MoveSongs`,
 `UpdateSong`, `SetMusicSettings` (M13: també `silence_start_s` i `silence_end_s`; el controlador els limita al rang i, amb
 "Mantenir ajustat", torna a ajustar), `FitToMusic`, `AddBlackSlide(position)` (M08). Són dades; la lògica és al controlador (B1). Les
 ordres que afecten el moviment (afegir, duplicar, girar, canviar format o encaix, tornar a sortejar)
 fan servir `passimaker.motion` per resoldre l'encaix i sortejar. `RerollMotions(ids)` torna a sortejar aquestes fotos
 i, si tenien el moviment fixat a mà, les torna a automàtic (M05); `RerollMotions(None)`, només les automàtiques.
-Fitxes negres (M08): els índexs d'`AddPhotos` i `MovePhotos` compten només les fotos, i cap ordre de fotos no mou les
+`ShufflePhotos()` (M09, sense camps) barreja les fotos amb `random.Random` de clau `"<seed>:<ids en l'ordre actual>"`: determinista
+(mateix projecte, mateix resultat), un ordre diferent de l'actual a cada pas, sense camps nous al `.pmk`; amb menys de dues
+fotos no fa res. Fitxes negres (M08): els índexs d'`AddPhotos` i `MovePhotos` compten només les fotos, i cap ordre de fotos no mou les
 fitxes negres de l'inici i del final. `RemovePhotos` també treu les fitxes negres que hi hagi als identificadors i
 `SetPhotoDuration` també els canvia la durada (`None`: `BLACK_SLIDE_DURATION_S`); la resta d'ordres de fotos les
 ignoren. `AddBlackSlide` la torna a posar amb la durada per defecte (si ja hi és, no fa res). "Ajustar a la música"

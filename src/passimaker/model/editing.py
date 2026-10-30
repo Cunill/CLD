@@ -12,6 +12,7 @@ photo motions are kept consistent with the rest of the project:
 
 from __future__ import annotations
 
+import random
 import re
 from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
 from dataclasses import replace
@@ -41,6 +42,7 @@ from passimaker.model.commands import (
     SetPhotoFit,
     SetPhotoMotion,
     SetProjectSettings,
+    ShufflePhotos,
     SortPhotos,
     UpdateSong,
 )
@@ -389,6 +391,19 @@ def _sort_photos(project: Project, command: SortPhotos) -> Project:
     return _refresh_motions(project, _with_photos(project, photos))
 
 
+def _shuffle_photos(project: Project) -> Project:
+    """A new order from the seed and the current order; never the same order again (M09)."""
+    photos = list(project.photos)
+    if len(photos) < 2:
+        return project
+    key = f"{project.seed}:" + ",".join(p.id for p in photos)
+    shuffled = photos.copy()
+    random.Random(key).shuffle(shuffled)
+    if shuffled == photos:
+        shuffled = [*photos[1:], photos[0]]
+    return _refresh_motions(project, _with_photos(project, shuffled))
+
+
 def _set_default_duration(project: Project, command: SetDefaultDuration) -> Project:
     seconds = defaults.PHOTO_DURATION_RANGE.clamp(command.seconds)
     return _refresh_motions(project, replace(project, default_duration_s=seconds))
@@ -562,6 +577,8 @@ def apply_command(project: Project, command: Command) -> Project:
             edited = _duplicate_photos(project, command)
         case SortPhotos():
             edited = _sort_photos(project, command)
+        case ShufflePhotos():
+            edited = _shuffle_photos(project)
         case AddBlackSlide():
             edited = _add_black_slide(project, command)
         case SetDefaultDuration():
