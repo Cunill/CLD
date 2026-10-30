@@ -161,6 +161,6 @@ M07 "Ajustar a la música" respecta les durades fetes a mà i fa servir 0,4–24
 `main` el 30/10/2026 (PR #93, CI de Windows en verd); la prova manual de l'usuari encara no s'ha confirmat.
 M11 marge de la previsualització ajustable (`PreviewSplitter` a `ui/main_window.py`, posició a QSettings; docs/sessions/M11.md):
 fusionat a `main` el 30/10/2026 (PR #94, CI de Windows en verd); la prova manual de l'usuari encara no s'ha fet.
-M08 fitxes negres d'inici i final (`Project.slides`, `BlackSlide`, `.pmk` versió 2; docs/sessions/M08.md): fet a la
-branca `claude/vigilant-ramanujan-y6zzrs`, PR #95 oberta; falta la prova manual de l'usuari.
+M08 fitxes negres d'inici i final (`Project.slides`, `BlackSlide`, `.pmk` versió 2; docs/sessions/M08.md): fusionat a
+`main` el 30/10/2026 (PR #95, CI de Windows en verd); la prova manual de l'usuari encara no s'ha fet.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.

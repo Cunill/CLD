@@ -38,7 +38,7 @@
 |---|---|---|---|---|---|---|---|---|---|---|
 | Pla (aquest document) | ✅ aprovat el 29/10/2026 | Opus | — | — | — | — | — | 1 | — | — |
 | M07 Ajustar a la música | ✅ tancat: fusionat a `main` el 30/10/2026 (prova manual encara no confirmada) | Sonnet | — | **M08**, **M11** | T1 | 1 / 1 / 1 | 0,25 | 1 | — | PR #93 (CI de Windows en verd) · decisió 0014 · **prova manual de l'usuari pendent** (6 passos a docs/sessions/M07.md; es pot fer amb el ZIP de la CI o amb el de la v1.3) |
-| M08 Imatges negres | 🔧 en curs (PR oberta; falta la prova manual, docs/sessions/M08.md) | Opus | — | **M07**, **M11** | T1 | 1 / 1 / 2 | 0,5 | 1 | — | PR #95 |
+| M08 Imatges negres | ✅ fusionat a `main` el 30/10/2026; pendent de la prova manual de l'usuari (docs/sessions/M08.md) | Opus | — | **M07**, **M11** | T1 | 1 / 1 / 2 | 0,5 | 1 | — | PR #95 (CI de Windows en verd) |
 | M09 Ordre aleatori | ⏳ pendent | Sonnet | M08 | **M10**, **M13** | T2 | 1 / 1 / 1 | 0,25 | — | — | — |
 | M10 Proporcions | ⏳ pendent | Opus | M08 | **M09**, **M13** | T2 | 1 / 2 / 2 | 0,75 | — | — | — |
 | M11 Marge de la previsualització | ✅ fusionat a `main` el 30/10/2026; pendent de la prova manual de l'usuari (docs/sessions/M11.md) | Sonnet | — | **M07**, **M08** | T1 | 1 / 1 / 1 | 0,25 | 1 | — | PR #94 |
