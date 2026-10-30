@@ -1,8 +1,8 @@
 # PassiMaker: pla de la versió 1.3.0 (millores de l'usuari)
 
 > Millores demanades per l'usuari el 29/10/2026, durant i després de la prova del ZIP 1.2.0.
-> Versió del pla: 1.0 · Data: 29/10/2026 · Estat: **aprovat per l'usuari el 29/10/2026** (decisions al §0)
-> Versió del programa prevista: **1.3.0** · Blocs de manteniment M07–M12 (el protocol del CLAUDE.md, com sempre).
+> Versió del pla: 1.1 · Data: 30/10/2026 (afegit el M13) · Estat: **aprovat per l'usuari el 29/10/2026** (decisions al §0)
+> Versió del programa prevista: **1.3.0** · Blocs de manteniment M07–M13 (el protocol del CLAUDE.md, com sempre).
 
 ---
 
@@ -16,6 +16,7 @@
 | 4 | Ordre aleatori | Un **botó que barreja les fotos un cop**; cada vegada que es prem, torna a barrejar. Les fitxes negres no es mouen. Es pot desfer |
 | 5 | Ajustar a la música (millora 7) | Les fotos amb la **durada posada a mà no es toquen**; la resta de la música es reparteix entre les altres, en **0,4–24 s**. Si totes tenen durada a mà, no fa res i avisa |
 | 6 | Començar | **Ara** (29/10/2026) |
+| 7 | Silenci a l'inici i al final de la música (millora 6) | **Afegit al pla 1.3.0 com a bloc M13** (30/10/2026): X segons de silenci abans de la música i Y després, opcionals i independents de les fitxes negres; "Ajustar a la música" els té en compte. Comença quan el M07 i el M08 siguin a `main`, en paral·lel amb el M09 i el M10 |
 
 ---
 
@@ -28,7 +29,8 @@
 | M09 | Ordre aleatori | `model`, `ui` | Petit | M08 | Sonnet | Núvol |
 | M10 | Proporcions 4:3, 3:2 i 16:9 | `model`, `motion`, `render`, `export`, `preview`, `ui` | Gran | M08 | Opus | Núvol |
 | M11 | Marge de la previsualització ajustable | `ui` | Petit | — | Sonnet | Núvol |
-| M12 | ZIP, guia, CHANGELOG, prova de l'usuari i publicar la `v1.3` | paquet, `ui/help.py`, documentació | Petit | M07–M11 | Sonnet | Núvol + **local** |
+| M12 | ZIP, guia, CHANGELOG, prova de l'usuari i publicar la `v1.3` | paquet, `ui/help.py`, documentació | Petit | M07–M11, M13 | Sonnet | Núvol + **local** |
+| M13 | Silenci a l'inici i al final de la música | `model`, `timeline`, `audio`, `projectio`, `ui` | Mitjà | M07, M08 | Opus | Núvol |
 
 ### 1.1 Seguiment: estimació i consum
 
@@ -37,20 +39,23 @@
 | Pla (aquest document) | ✅ aprovat el 29/10/2026 | Opus | — | — | — | — | — | 1 | — | — |
 | M07 Ajustar a la música | ⏳ pendent (es pot començar) | Sonnet | — | **M08**, **M11** | T1 | 1 / 1 / 1 | 0,25 | — | — | — |
 | M08 Imatges negres | ⏳ pendent (es pot començar) | Opus | — | **M07**, **M11** | T1 | 1 / 1 / 2 | 0,5 | — | — | — |
-| M09 Ordre aleatori | ⏳ pendent | Sonnet | M08 | **M10** | T2 | 1 / 1 / 1 | 0,25 | — | — | — |
-| M10 Proporcions | ⏳ pendent | Opus | M08 | **M09** | T2 | 1 / 2 / 2 | 0,75 | — | — | — |
-| M11 Marge de la previsualització | 🔧 fet, pendent de revisió i prova manual (docs/sessions/M11.md) | Sonnet | — | **M07**, **M08** | T1 | 1 / 1 / 1 | 0,25 | 1 | — | — |
-| M12 Versió 1.3.0 | ⏳ pendent | Sonnet | M07–M11 | — | T3 | 1 / 1 / 1 | 1,0 | — | — | — |
-| **Subtotal dels blocs** | | | | | | **6 / 7 / 8** | **3,0** | **0** | **—** | |
+| M09 Ordre aleatori | ⏳ pendent | Sonnet | M08 | **M10**, **M13** | T2 | 1 / 1 / 1 | 0,25 | — | — | — |
+| M10 Proporcions | ⏳ pendent | Opus | M08 | **M09**, **M13** | T2 | 1 / 2 / 2 | 0,75 | — | — | — |
+| M11 Marge de la previsualització | 🔧 fet, pendent de la prova manual (docs/sessions/M11.md) | Sonnet | — | **M07**, **M08** | T1 | 1 / 1 / 1 | 0,25 | 1 | — | — |
+| M12 Versió 1.3.0 | ⏳ pendent | Sonnet | M07–M11, M13 | — | T3 | 1 / 1 / 1 | 1,0 | — | — | — |
+| M13 Silenci a l'inici i al final de la música | ⏳ pendent | Opus | M07, M08 | **M09**, **M10** | T2 | 1 / 1 / 2 | 0,5 | — | — | — |
+| **Subtotal dels blocs** | | | | | | **7 / 8 / 10** | **3,5** | **0** | **—** | |
 | Correccions després de la prova de l'usuari | ⏳ pendent | Sonnet | M12 | — | després del M12 | 0 / 1 / 2 | inclòs a sota | — | — | — |
 | Revisió de les PR i prova final de l'usuari | ⏳ pendent | — | — | — | totes | — | 1 / 2 / 4 | — | — | — |
-| **Total** | | | | | | **6 / 8 / 10 sessions** | **4 / 5 / 7 h** | **1** (el pla) | **—** | |
+| **Total** | | | | | | **7 / 9 / 12 sessions** | **4,5 / 5,5 / 7,5 h** | **1** (el pla) | **—** | |
 
 Llegenda de l'estat: ⏳ pendent · 🔧 en curs · ✅ tancat (fusionat a `main`) · ⛔ aturat.
 
 **Tandes.** T1: M07, M08 i M11 alhora (toquen parts diferents; comparteixen `defaults.py`, `model/editing.py` i
 `ui/main_window.py` en funcions diferents: el que es fusiona segon porta `main` a la seva branca i resol). T2: M09 i M10,
-quan el M08 sigui a `main` (totes dues han de tenir en compte les fitxes negres). T3: M12.
+quan el M08 sigui a `main` (totes dues han de tenir en compte les fitxes negres), i el M13 quan el M07 i el M08
+hi siguin (toca "Ajustar a la música" del M07 i el format del `.pmk` del M08; amb el M10 comparteix `projectio`, en
+camps diferents). T3: M12.
 
 **Fitxers compartits del seguiment:** la taula del §1.1 i l'apartat Estat del CLAUDE.md. Cada bloc hi escriu només la
 seva fila i la seva línia.
@@ -185,7 +190,15 @@ docs/PLA_1_3.md i l'apartat Estat del CLAUDE.md. Si cal tocar-ne cap altre, atur
 Condició d'aturada: la del CLAUDE.md. A docs/sessions/M11.md, la prova manual que l'usuari ha de fer (un pas cada vegada).
 ```
 
+### M13 · Silenci a l'inici i al final de la música
+
+Prompt: s'escriu quan el M07 i el M08 siguin a `main`. Millora 6 de `docs/proves_usuari.md`: dos valors del projecte
+(silenci abans de la música i després, en segons, per defecte 0 i rang a `defaults.py`), independents de les fitxes
+negres; la música comença X s després de l'inici del vídeo i acaba Y s abans del final; "Ajustar a la música" (M07)
+hi compta; previsualització i exportació amb el mateix compositor d'àudio; camps nous al `.pmk` (els antics, 0);
+controls a la interfície (panell de música o propietats del projecte); desfer/refer.
+
 ### M12 · Versió 1.3.0
 
-Prompt: s'escriu quan M07–M11 siguin a `main`. ZIP, guia (fitxes negres, barrejar, proporcions), CHANGELOG 1.3.0,
-versió, prova de l'usuari amb el ZIP i publicar la `v1.3`.
+Prompt: s'escriu quan M07–M11 i el M13 siguin a `main`. ZIP, guia (fitxes negres, barrejar, proporcions), CHANGELOG 1.3.0,
+silenci de la música, versió, prova de l'usuari amb el ZIP i publicar la `v1.3`.
