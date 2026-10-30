@@ -9,10 +9,12 @@ from PySide6.QtWidgets import QSplitterHandle
 from pytestqt.qtbot import QtBot
 
 from passimaker.model import OutputFormat
+from passimaker.model.commands import AddPhotos
 from passimaker.ui.delegate import ThumbnailSize
 from passimaker.ui.main_window import MIN_PREVIEW_HEIGHT, MIN_PROPERTIES_HEIGHT, MainWindow, PreviewSplitter
 from tests.ui.conftest import build_window
 from tests.ui.helpers import FakeThumbnailService, RecordedQuestions, controller_with
+from tests.unit.model.helpers import photos
 
 pytestmark = pytest.mark.ui
 
@@ -168,3 +170,21 @@ def test_a_double_click_restores_the_default_position(window: MainWindow, qtbot:
     sizes = splitter.sizes()
     assert sizes[0] / sum(sizes) == pytest.approx(0.6, abs=0.03)
     assert default == pytest.approx(0.6, abs=0.03)
+
+
+def test_the_shuffle_action_mixes_the_photos_and_can_be_undone(window_with_photos: MainWindow) -> None:
+    window = window_with_photos
+    before = [p.id for p in window.controller.project.photos]
+    assert window.shuffle_action.isEnabled()
+    window.shuffle_action.trigger()
+    assert [p.id for p in window.controller.project.photos] != before
+    window.undo_action.trigger()
+    assert [p.id for p in window.controller.project.photos] == before
+
+
+def test_the_shuffle_action_needs_two_photos(window: MainWindow) -> None:
+    assert not window.shuffle_action.isEnabled()
+    window.controller.execute(AddPhotos(photos(1)))
+    assert not window.shuffle_action.isEnabled()
+    window.controller.execute(AddPhotos(photos(1, prefix="q")))
+    assert window.shuffle_action.isEnabled()

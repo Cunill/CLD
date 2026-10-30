@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
@@ -84,12 +86,35 @@ def test_every_window_is_inside_the_canvas_in_every_format(
 
 @settings(max_examples=200)
 @given(width=sides, height=sides, before=formats, after=formats, seed=st.integers(0, 2**31))
-def test_changing_the_format_keeps_the_type_and_the_windows_inside(
+def test_changing_the_format_keeps_the_windows_inside(
     width: int, height: int, before: OutputFormat, after: OutputFormat, seed: int
 ) -> None:
+    """The type is kept when it is still feasible (rebuild_motions); otherwise it is drawn again."""
     first = request("p", width, height, output_format=before)
     motion = draw_motions([first], seed, Intensity.MEDIUM)["p"]
     moved = request("p", width, height, output_format=after, current=motion)
     rebuilt = rebuild_motions([moved], seed, Intensity.MEDIUM)["p"]
-    assert rebuilt.type is motion.type or rebuilt.type is MotionType.NONE
     assert all(is_inside(window_at(rebuilt, p), base_of(moved)) for p in PROGRESS)
+
+
+ZOOMS = (MotionType.ZOOM_IN, MotionType.ZOOM_OUT)
+
+
+@settings(max_examples=200)
+@given(
+    width=st.integers(4000, 12_000),
+    height=st.integers(4000, 12_000),
+    before=formats,
+    after=formats,
+    zoom=st.sampled_from(ZOOMS),
+    seed=st.integers(0, 2**31),
+)
+def test_a_zoom_on_a_large_photo_stays_a_zoom_in_every_format(
+    width: int, height: int, before: OutputFormat, after: OutputFormat, zoom: MotionType, seed: int
+) -> None:
+    """Zooms are feasible with any fit when the photo is large, so the format change keeps them."""
+    first = request("p", width, height, output_format=before, mode=MotionMode.MANUAL, manual_type=zoom)
+    motion = draw_motions([first], seed, Intensity.MEDIUM)["p"]
+    assert motion.type is zoom
+    moved = request("p", width, height, output_format=after, current=replace(motion, mode=MotionMode.AUTO))
+    assert rebuild_motions([moved], seed, Intensity.MEDIUM)["p"].type is zoom

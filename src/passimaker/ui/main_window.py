@@ -53,6 +53,7 @@ from passimaker.model.commands import (
     RotatePhotos,
     SetPhotoMotion,
     SetProjectSettings,
+    ShufflePhotos,
     SortPhotos,
 )
 from passimaker.model.types import BlackSlidePosition, MotionMode, Rotation
@@ -373,6 +374,11 @@ class MainWindow(QMainWindow):
         self.sort_by_date_action.triggered.connect(lambda: self.controller.execute(SortPhotos(True)))
         self.sort_by_name_action = QAction(self.tr("Ordenar per nom"), self)
         self.sort_by_name_action.triggered.connect(lambda: self.controller.execute(SortPhotos(False)))
+        self.shuffle_action = QAction(self.tr("Barreja les fotos"), self)
+        self.shuffle_action.setToolTip(
+            self.tr("Canvia l'ordre de les fotos a l'atzar; es pot repetir i desfer")
+        )
+        self.shuffle_action.triggered.connect(lambda: self.controller.execute(ShufflePhotos()))
         # M08: the black slides can be deleted like a photo and put back from here.
         self.black_start_action = QAction(self.tr("Afegeix negre a l'inici"), self)
         self.black_start_action.triggered.connect(
@@ -479,6 +485,7 @@ class MainWindow(QMainWindow):
         view_menu = bar.addMenu(self.tr("Visualitza"))
         view_menu.addAction(self.sort_by_date_action)
         view_menu.addAction(self.sort_by_name_action)
+        view_menu.addAction(self.shuffle_action)
         size_menu = view_menu.addMenu(self.tr("Mida de les miniatures"))
         for action in self.size_actions.values():
             size_menu.addAction(action)
@@ -498,6 +505,8 @@ class MainWindow(QMainWindow):
         if isinstance(music_button, QToolButton):
             music_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         self.toolbar.addAction(self.fit_to_music_action)
+        self.toolbar.addSeparator()
+        self.toolbar.addAction(self.shuffle_action)
         self.toolbar.addSeparator()
         self.toolbar.addAction(self.undo_action)
         self.toolbar.addAction(self.redo_action)
@@ -823,6 +832,7 @@ class MainWindow(QMainWindow):
         self.select_all_action.setEnabled(has_photos)
         self.sort_by_date_action.setEnabled(has_photos)
         self.sort_by_name_action.setEnabled(has_photos)
+        self.shuffle_action.setEnabled(len(photos) >= 2)
         self.undo_action.setEnabled(self.controller.can_undo)
         self.redo_action.setEnabled(self.controller.can_redo)
         has_songs = bool(self.controller.project.music.songs)

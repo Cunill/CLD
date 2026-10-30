@@ -23,6 +23,7 @@ from passimaker.model.commands import (
     SetPhotoFit,
     SetPhotoMotion,
     SetProjectSettings,
+    ShufflePhotos,
     SortPhotos,
 )
 from passimaker.model.editing import changes_between
@@ -47,6 +48,7 @@ commands: st.SearchStrategy[Command] = st.one_of(
     st.builds(MovePhotos, id_lists, st.integers(-2, 12)),
     st.builds(DuplicatePhotos, id_lists),
     st.builds(SortPhotos, st.booleans()),
+    st.builds(ShufflePhotos),
     st.builds(SetDefaultDuration, seconds),
     st.builds(SetPhotoDuration, id_sets, st.none() | seconds),
     st.builds(SetPhotoFit, id_sets, st.sampled_from(FitMode)),
