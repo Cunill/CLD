@@ -129,7 +129,10 @@ def test_no_magenta_and_no_black_strip_on_fill_photos(horizontal: Exported) -> N
         visibles = query(horizontal.timeline, n / 30)
         layers = visibles.layers
         alone_fill = (
-            len(layers) == 1 and layers[0].opacity >= 1.0 and fits[layers[0].photo_id] is ResolvedFit.FILL
+            len(layers) == 1
+            and not layers[0].black  # M08: a black slide is black on purpose
+            and layers[0].opacity >= 1.0
+            and fits[layers[0].photo_id] is ResolvedFit.FILL
         )
         if alone_fill and visibles.black_level <= 0.0:
             edges = {

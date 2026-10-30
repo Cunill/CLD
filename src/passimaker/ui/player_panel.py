@@ -120,7 +120,7 @@ class FrameView(QWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.image: QImage | None = None
-        self.setMinimumSize(240, 135)
+        self.setMinimumSize(80, 45)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 

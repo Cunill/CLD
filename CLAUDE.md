@@ -159,6 +159,8 @@ execució va obrir la PR #89 (yt-dlp 2026.10.21 → 2026.10.26), que es fusiona 
 Tanda 1 (en paral·lel): M07 ajustar a la música, M08 imatges negres, M11 marge de la previsualització. Tanda 2: M09 i M10 (quan el M08 sigui a main) i M13 silenci de la música (decisió de l'usuari del 30/10/2026; quan el M07 i el M08 hi siguin).
 M07 "Ajustar a la música" respecta les durades fetes a mà i fa servir 0,4–24 s (decisió 0014, docs/sessions/M07.md): fusionat a
 `main` el 30/10/2026 (PR #93, CI de Windows en verd); la prova manual de l'usuari encara no s'ha confirmat.
+M11 marge de la previsualització ajustable (`PreviewSplitter` a `ui/main_window.py`, posició a QSettings; docs/sessions/M11.md):
+fusionat a `main` el 30/10/2026 (PR #94, CI de Windows en verd); la prova manual de l'usuari encara no s'ha fet.
 M08 fitxes negres d'inici i final (`Project.slides`, `BlackSlide`, `.pmk` versió 2; docs/sessions/M08.md): fet a la
 branca `claude/vigilant-ramanujan-y6zzrs`, PR #95 oberta; falta la prova manual de l'usuari.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.

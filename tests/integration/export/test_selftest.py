@@ -13,6 +13,7 @@ from PIL import Image
 
 from passimaker import cli
 from passimaker.ffmpeg import ENV_VAR, probe
+from passimaker.projectio import open_project
 
 LAUNCHER = Path(__file__).resolve().parents[3] / "packaging" / "launcher.py"
 
@@ -44,6 +45,11 @@ def test_selftest_exports_five_seconds(tmp_path: Path) -> None:
     assert info.has_audio
     assert info.duration_s == pytest.approx(cli.SELF_TEST_DURATION_S, abs=cli.SELF_TEST_TOLERANCE_S)
     assert (kept / "autoprova.pmk").is_file()
+    project = open_project(
+        kept / "autoprova.pmk"
+    ).project  # M08: the black slides are in the package test too
+    assert project.black_start is not None and project.black_end is not None
+    assert project.black_start.duration_s == cli.SELF_TEST_BLACK_SLIDE_S
     text = report.read_text(encoding="utf-8")
     assert "Autoprova correcta" in text
     assert "So: PortAudio" in text
