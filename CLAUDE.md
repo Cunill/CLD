@@ -157,4 +157,6 @@ Flux setmanal `actualitzar-ytdlp.yml` actiu (permís de crear PR activat per l'u
 execució va obrir la PR #89 (yt-dlp 2026.10.21 → 2026.10.26), que es fusiona quan calgui (docs/PUBLICAR.md).
 **Versió 1.3.0** (millores de l'usuari, pla aprovat el 29/10/2026): docs/PLA_1_3.md, blocs M07–M12, seguiment al §1.1.
 Tanda 1 (en paral·lel): M07 ajustar a la música, M08 imatges negres, M11 marge de la previsualització.
+M11 marge de la previsualització ajustable (`PreviewSplitter` a `ui/main_window.py`, posició a QSettings; docs/sessions/M11.md):
+fet el 30/10/2026, pendent de la prova manual de l'usuari.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.

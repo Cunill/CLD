@@ -39,7 +39,7 @@
 | M08 Imatges negres | ⏳ pendent (es pot començar) | Opus | — | **M07**, **M11** | T1 | 1 / 1 / 2 | 0,5 | — | — | — |
 | M09 Ordre aleatori | ⏳ pendent | Sonnet | M08 | **M10** | T2 | 1 / 1 / 1 | 0,25 | — | — | — |
 | M10 Proporcions | ⏳ pendent | Opus | M08 | **M09** | T2 | 1 / 2 / 2 | 0,75 | — | — | — |
-| M11 Marge de la previsualització | ⏳ pendent (es pot començar) | Sonnet | — | **M07**, **M08** | T1 | 1 / 1 / 1 | 0,25 | — | — | — |
+| M11 Marge de la previsualització | 🔧 fet, pendent de revisió i prova manual (docs/sessions/M11.md) | Sonnet | — | **M07**, **M08** | T1 | 1 / 1 / 1 | 0,25 | 1 | — | — |
 | M12 Versió 1.3.0 | ⏳ pendent | Sonnet | M07–M11 | — | T3 | 1 / 1 / 1 | 1,0 | — | — | — |
 | **Subtotal dels blocs** | | | | | | **6 / 7 / 8** | **3,0** | **0** | **—** | |
 | Correccions després de la prova de l'usuari | ⏳ pendent | Sonnet | M12 | — | després del M12 | 0 / 1 / 2 | inclòs a sota | — | — | — |
