@@ -10,6 +10,7 @@ from passimaker import timeline
 from passimaker.model import ProjectController
 from passimaker.model.commands import AddPhotos, AddSongs
 from passimaker.model.types import Photo, Project, Song
+from passimaker.timeline.types import FitBlock
 
 FOLDER = Path("/fotos")
 
@@ -54,9 +55,20 @@ def proportional_fit(
     durations: Sequence[float],
     target_s: float,
     limits: timeline.DurationLimits = timeline.DEFAULT_DURATION_LIMITS,
+    fixed: Sequence[bool] | None = None,
 ) -> timeline.FitResult:
     """Stand-in for timeline.fit_to_music (block B2, developed in parallel)."""
-    factor = target_s / sum(durations)
-    fitted = tuple(min(limits.maximum, max(limits.minimum, d * factor)) for d in durations)
-    warning = any(d * factor < limits.warn_below for d in durations)
+    flags = list(fixed) if fixed is not None else [False] * len(durations)
+    free_total = sum(d for d, f in zip(durations, flags, strict=True) if not f)
+    fixed_total = sum(durations) - free_total
+    if not free_total:
+        return timeline.FitResult(tuple(durations), True, sum(durations), FitBlock.ALL_FIXED)
+    if target_s <= fixed_total:
+        return timeline.FitResult(tuple(durations), True, sum(durations), FitBlock.FIXED_TOO_LONG)
+    factor = (target_s - fixed_total) / free_total
+    fitted = tuple(
+        d if f else min(limits.maximum, max(limits.minimum, d * factor))
+        for d, f in zip(durations, flags, strict=True)
+    )
+    warning = any(d * factor < limits.warn_below for d, f in zip(durations, flags, strict=True) if not f)
     return timeline.FitResult(fitted, warning, sum(fitted))

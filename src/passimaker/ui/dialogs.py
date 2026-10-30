@@ -47,7 +47,10 @@ class WindowQuestions(ImportQuestions, SongQuestions, ExportQuestions, FileQuest
         ...
 
     def confirm_fit(self, check: FitCheck) -> bool:
-        """§1.7: the photos would end outside 1-3 s. True is [Aplicar igualment]."""
+        """§1.7: the photos could not reach the music within 0.4-24 s. True is [Aplicar igualment].
+
+        When ``check.problem.blocks`` the fit cannot be applied: it is only a notice and the answer is False.
+        """
         ...
 
 
@@ -178,12 +181,25 @@ class DialogQuestions(QWidget):
                 "Hi ha massa fotos per a aquesta música: cada foto duraria {seconds}. "
                 "Afegeix música o treu fotos."
             ).format(seconds=duration(check.seconds_per_photo))
+        elif check.problem is FitProblem.ALL_FIXED:
+            text = self.tr(
+                "Totes les fotos tenen la durada posada a mà, així que no hi ha res a ajustar. "
+                "Treu la durada a mà d'alguna foto perquè pugui canviar."
+            )
+        elif check.problem is FitProblem.FIXED_TOO_LONG:
+            text = self.tr(
+                "Les fotos amb la durada posada a mà ja duren tant com la música o més: "
+                "no hi ha res a repartir entre les altres. Retalla-les o afegeix música."
+            )
         else:
             text = self.tr("La música és massa llarga per a aquestes fotos: afegeix-ne o retalla la música.")
         box = QMessageBox(self.parentWidget())
-        box.setIcon(QMessageBox.Icon.Warning)
+        box.setIcon(QMessageBox.Icon.Information if check.problem.blocks else QMessageBox.Icon.Warning)
         box.setWindowTitle(self.tr("Ajustar a la música"))
         box.setText(text)
+        if check.problem.blocks:
+            box.addButton(self.tr("D'acord"), QMessageBox.ButtonRole.RejectRole)
+            return box
         box.addButton(self.tr("Aplicar igualment"), QMessageBox.ButtonRole.AcceptRole)
         cancel = box.addButton(self.tr("Cancel·lar"), QMessageBox.ButtonRole.RejectRole)
         box.setDefaultButton(cancel)

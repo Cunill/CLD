@@ -460,13 +460,15 @@ class MainWindow(QMainWindow):
         self.record_window.activateWindow()
 
     def fit_to_music(self) -> None:
-        """§1.7: asks first when the photos would end outside 1-3 s."""
+        """§1.7: asks first when the photos cannot reach the music; a notice if there is nothing to fit."""
         project = self.controller.project
         if not project.photos or not project.music.songs:
             return
         check = fit_problem(project)
-        if check is not None and not self.questions.confirm_fit(check):
-            return
+        if check is not None:
+            accepted = self.questions.confirm_fit(check)
+            if check.problem.blocks or not accepted:
+                return
         self.controller.execute(FitToMusic())
 
     def export_video(self) -> None:
