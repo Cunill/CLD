@@ -29,6 +29,8 @@ Dues menes de sessió (24/10/2026); es fa servir la que convingui a cada tasca:
   abans de prompts, taules o explicacions (decisió de l'usuari, 25/10/2026).
 - La taula de seguiment d'un pla es mostra sempre **sencera** (totes les files i columnes), mai retallada, i amb la
   columna **Estat just després del nom del bloc** (decisions de l'usuari, 25 i 26/10/2026).
+- Quan es cita una PR ("PR #95"), s'hi afegeix sempre una descripció breu del que és (p. ex. "PR #95, les fitxes
+  negres del M08"); el mateix per als commits i les branques (decisió de l'usuari, 30/10/2026).
 - Les hores, sempre amb el rellotge oficial de l'usuari (ara UTC+1; UTC+2 a l'estiu), mai en temps universal (UTC)
   (decisió de l'usuari, 25/10/2026).
 
