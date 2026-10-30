@@ -31,6 +31,7 @@ from passimaker.images import ImageSource
 from passimaker.logs import log_dir
 from passimaker.model import Change, OutputFormat, ProjectController
 from passimaker.model.commands import (
+    AddBlackSlide,
     DuplicatePhotos,
     FitToMusic,
     MovePhotos,
@@ -41,7 +42,7 @@ from passimaker.model.commands import (
     SetProjectSettings,
     SortPhotos,
 )
-from passimaker.model.types import MotionMode, Rotation
+from passimaker.model.types import BlackSlidePosition, MotionMode, Rotation
 from passimaker.recorder import CaptureBackend
 from passimaker.ui.delegate import ThumbnailSize
 from passimaker.ui.dialogs import DialogQuestions, WindowQuestions
@@ -270,6 +271,15 @@ class MainWindow(QMainWindow):
         self.sort_by_date_action.triggered.connect(lambda: self.controller.execute(SortPhotos(True)))
         self.sort_by_name_action = QAction(self.tr("Ordenar per nom"), self)
         self.sort_by_name_action.triggered.connect(lambda: self.controller.execute(SortPhotos(False)))
+        # M08: the black slides can be deleted like a photo and put back from here.
+        self.black_start_action = QAction(self.tr("Afegeix negre a l'inici"), self)
+        self.black_start_action.triggered.connect(
+            lambda: self.controller.execute(AddBlackSlide(BlackSlidePosition.START))
+        )
+        self.black_end_action = QAction(self.tr("Afegeix negre al final"), self)
+        self.black_end_action.triggered.connect(
+            lambda: self.controller.execute(AddBlackSlide(BlackSlidePosition.END))
+        )
 
         self.format_action = QAction(self.tr("Format vertical"), self)
         self.format_action.setCheckable(True)
@@ -343,6 +353,9 @@ class MainWindow(QMainWindow):
         edit_menu.addAction(self.reroll_action)
         edit_menu.addAction(self.reroll_all_action)
         edit_menu.addAction(self.reset_motions_action)
+        edit_menu.addSeparator()
+        edit_menu.addAction(self.black_start_action)
+        edit_menu.addAction(self.black_end_action)
         view_menu = bar.addMenu(self.tr("Visualitza"))
         view_menu.addAction(self.sort_by_date_action)
         view_menu.addAction(self.sort_by_name_action)
@@ -501,13 +514,15 @@ class MainWindow(QMainWindow):
 
     def move_selected(self, direction: int) -> None:
         """Ctrl+Left and Ctrl+Right move the selected photos one place (§1.2)."""
-        rows = self.view.selected_rows()
-        if not rows:
+        ids = self.view.selected_photo_ids()
+        if not ids:
             return
-        target = rows[0] - 1 if direction < 0 else rows[-1] + 2
-        if target < 0 or target > len(self.model.photos()):
+        photos = self.model.photos()
+        chosen = set(ids)
+        indices = [i for i, photo in enumerate(photos) if photo.id in chosen]
+        target = indices[0] - 1 if direction < 0 else indices[-1] + 2
+        if target < 0 or target > len(photos):
             return
-        ids = self.view.selected_ids()
         self.controller.execute(MovePhotos(ids, target))
         self.view.select_ids(ids)
 
@@ -572,11 +587,12 @@ class MainWindow(QMainWindow):
         self._on_selection()
 
     def _on_selection(self) -> None:
-        photo = self.view.current_photo()
+        current = self.view.currentIndex()
         rows = self.view.selected_rows()
-        if photo is None and rows:
-            photo = self.model.photo_at(rows[0])
-        self.player_panel.show_photo(photo.id if photo is not None else None)
+        slide = self.model.slide_at(current.row()) if current.isValid() else None
+        if slide is None and rows:
+            slide = self.model.slide_at(rows[0])
+        self.player_panel.show_photo(slide.id if slide is not None else None)
         self.properties.show_photos(self.view.selected_ids())
         self._refresh_actions()
 
@@ -662,9 +678,9 @@ class MainWindow(QMainWindow):
             self.view.schedule_thumbnails()
 
     def _refresh_actions(self) -> None:
-        has_selection = bool(self.view.selected_rows())
+        self.delete_action.setEnabled(bool(self.view.selected_rows()))
+        has_selection = bool(self.view.selected_photo_ids())
         for action in (
-            self.delete_action,
             self.duplicate_action,
             self.move_left_action,
             self.move_right_action,
@@ -688,11 +704,13 @@ class MainWindow(QMainWindow):
         self.fit_to_music_action.setEnabled(has_photos and has_songs)
         self.export_action.setEnabled(has_photos and not self.video_export.running)
         self.find_missing_action.setEnabled(bool(self.files.missing_ids()))
+        self.black_start_action.setEnabled(self.controller.project.black_start is None)
+        self.black_end_action.setEnabled(self.controller.project.black_end is None)
 
     def refresh_status(self) -> None:
-        """ "124 fotos · 4:30" (§1.3): the total is the sum of the photo durations."""
+        """ "124 fotos · 4:30" (§1.3): the total is the sum of the photo and black slide durations."""
         project = self.controller.project
-        total = sum(project.photo_duration(photo) for photo in project.photos)
+        total = sum(project.photo_duration(slide) for slide in project.slides)
         count = len(project.photos)
         text = self.tr("1 foto · {duration}") if count == 1 else self.tr("{photos} fotos · {duration}")
         self.status_label.setText(text.format(photos=count, duration=clock(total)))

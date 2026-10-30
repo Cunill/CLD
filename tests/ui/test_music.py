@@ -187,8 +187,8 @@ def test_fitting_too_many_photos_asks_first(
 
 
 def test_fit_problem_tells_music_too_long() -> None:
-    project = Project(photos=make_photos(4), music=Music(songs=(song(1, 60),)))
+    project = Project(slides=make_photos(4), music=Music(songs=(song(1, 60),)))
     check = fit_problem(project)
     assert check is not None
     assert check.problem is FitProblem.MUSIC_TOO_LONG
-    assert fit_problem(Project(photos=make_photos(4))) is None
+    assert fit_problem(Project(slides=make_photos(4))) is None

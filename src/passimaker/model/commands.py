@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from passimaker.model.types import (
+    BlackSlidePosition,
     FitMode,
     Intensity,
     MotionType,
@@ -35,19 +36,20 @@ class Change(Enum):
 class AddPhotos:
     photos: tuple[Photo, ...]
     index: int | None = None
-    """Insertion position; None appends at the end."""
+    """Insertion position among the photos (black slides not counted); None appends after the last photo."""
 
 
 @dataclass(frozen=True, slots=True)
 class RemovePhotos:
     photo_ids: frozenset[str]
+    """May include the ids of the black slides (BLACK_START_ID, BLACK_END_ID), which are removed too (M08)."""
 
 
 @dataclass(frozen=True, slots=True)
 class MovePhotos:
     photo_ids: tuple[str, ...]
     target_index: int
-    """Index in the list *before* the move where the moved block is inserted."""
+    """Index in the photo list *before* the move where the moved block goes (black slides never move)."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -70,7 +72,15 @@ class SetDefaultDuration:
 class SetPhotoDuration:
     photo_ids: frozenset[str]
     seconds: float | None
-    """None resets the photos to the project default."""
+    """None resets the photos to the project default. Black slide ids get the duration too (None: the
+    default black slide duration, M08)."""
+
+
+@dataclass(frozen=True, slots=True)
+class AddBlackSlide:
+    """Puts the black slide back at the start or the end (M08); nothing happens if it is already there."""
+
+    position: BlackSlidePosition
 
 
 @dataclass(frozen=True, slots=True)
@@ -158,6 +168,7 @@ Command = (
     | MovePhotos
     | DuplicatePhotos
     | SortPhotos
+    | AddBlackSlide
     | SetDefaultDuration
     | SetPhotoDuration
     | SetPhotoFit

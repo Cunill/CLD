@@ -44,6 +44,7 @@ from passimaker.ffmpeg import locate, probe
 from passimaker.i18n import message
 from passimaker.importer import FailedFile, ImportFailure, import_paths, photo_from_candidate, sort_candidates
 from passimaker.model import OutputFormat, Project, ProjectController
+from passimaker.model import new_project as empty_project
 from passimaker.model.commands import AddPhotos, AddSongs, FitToMusic
 from passimaker.projectio import EXTENSION, open_project, save_project
 from passimaker.timeline import compute_timeline
@@ -146,7 +147,7 @@ def new_project(
     songs = tuple(song_from_file(path, f"s{i:02d}") for i, path in enumerate(music, start=1))
     if seed is None:
         seed = secrets.randbelow(NEW_SEED_LIMIT)
-    base = Project(name=name, output_format=output_format, seed=seed)
+    base = empty_project(name=name, output_format=output_format, seed=seed)
     controller = ProjectController(base)
     if photos:
         controller.execute(AddPhotos(photos))

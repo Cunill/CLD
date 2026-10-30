@@ -157,4 +157,6 @@ Flux setmanal `actualitzar-ytdlp.yml` actiu (permís de crear PR activat per l'u
 execució va obrir la PR #89 (yt-dlp 2026.10.21 → 2026.10.26), que es fusiona quan calgui (docs/PUBLICAR.md).
 **Versió 1.3.0** (millores de l'usuari, pla aprovat el 29/10/2026): docs/PLA_1_3.md, blocs M07–M12, seguiment al §1.1.
 Tanda 1 (en paral·lel): M07 ajustar a la música, M08 imatges negres, M11 marge de la previsualització.
+M08 fitxes negres d'inici i final (`Project.slides`, `BlackSlide`, `.pmk` versió 2; docs/sessions/M08.md): fet a la
+branca `claude/vigilant-ramanujan-y6zzrs`, PR oberta; falta la prova manual de l'usuari.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.

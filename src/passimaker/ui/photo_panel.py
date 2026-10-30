@@ -26,7 +26,16 @@ from PySide6.QtWidgets import (
 
 from passimaker.model import Change, ProjectController, defaults
 from passimaker.model.commands import RerollMotions, SetPhotoDuration, SetPhotoFit, SetPhotoMotion
-from passimaker.model.types import FitMode, MotionMode, MotionType, Photo, Rotation
+from passimaker.model.types import (
+    BlackSlide,
+    BlackSlidePosition,
+    FitMode,
+    MotionMode,
+    MotionType,
+    Photo,
+    Rotation,
+    Slide,
+)
 from passimaker.ui.project_panel import seconds_box
 
 MOTION_CHOICES: tuple[MotionType | None, ...] = (
@@ -48,6 +57,10 @@ FIT_CHOICES = (FitMode.AUTO, FitMode.FILL, FitMode.BLUR, FitMode.BLACK)
 MIXED = -1
 """Index of a box whose photos do not agree: it shows its placeholder, "Diversos"."""
 COMBO_MIN_CHARACTERS = 14
+
+
+PHOTO_ONLY_ROWS = (2, 3, 4, 5)
+"""Rows of the form a black slide does not have: motion, new motion, fit and rotation."""
 
 
 class PhotoPanel(QWidget):
@@ -110,7 +123,7 @@ class PhotoPanel(QWidget):
         rotate_row.addWidget(self.rotate_right)
         rotate_row.addStretch(1)
 
-        form = QFormLayout()
+        form = self._form = QFormLayout()
         form.addRow(self.tr("Durada"), duration_row)
         form.addRow("", self.reset_duration)
         form.addRow(self.tr("Moviment"), self.motion)
@@ -165,20 +178,28 @@ class PhotoPanel(QWidget):
         wanted = set(self._ids)
         return [photo for photo in self._controller.project.photos if photo.id in wanted]
 
+    def slides(self) -> list[Slide]:
+        """The selected photos and black slides (M08: a black slide only has a duration)."""
+        wanted = set(self._ids)
+        return [slide for slide in self._controller.project.slides if slide.id in wanted]
+
     # --- From the project to the controls ---------------------------------------------------------
 
     def refresh(self) -> None:
-        photos = self.photos()
-        self._ids = tuple(photo.id for photo in photos)
-        self.setEnabled(bool(photos))
+        slides = self.slides()
+        photos = [slide for slide in slides if isinstance(slide, Photo)]
+        self._ids = tuple(slide.id for slide in slides)
+        self.setEnabled(bool(slides))
         project = self._controller.project
         with self._quiet():
-            self._refresh_title(photos)
-            durations = {project.photo_duration(photo) for photo in photos}
+            self._refresh_title(photos, slides)
+            durations = {project.photo_duration(slide) for slide in slides}
             custom = [photo for photo in photos if photo.duration_s is not None]
             self.duration.setValue(min(durations) if durations else project.default_duration_s)
             if len(durations) > 1:
                 self.duration_note.setText(self.tr("(diferents)"))
+            elif slides and not photos:
+                self.duration_note.setText("")
             elif custom:
                 self.duration_note.setText(self.tr("(personalitzada)"))
             else:
@@ -188,6 +209,8 @@ class PhotoPanel(QWidget):
             fits = {photo.fit for photo in photos}
             self.fit.setCurrentIndex(FIT_CHOICES.index(fits.pop()) if len(fits) == 1 else MIXED)
         self.low_resolution.setVisible(any(photo.low_resolution for photo in photos))
+        for row in PHOTO_ONLY_ROWS:  # only the duration for black slides alone
+            self._form.setRowVisible(row, bool(photos) or not slides)
         # M05: always available; a photo whose motion was fixed by hand goes back to automatic.
         self.reroll.setEnabled(bool(photos) and project.motion_enabled)
         self.reroll.setToolTip(
@@ -195,8 +218,16 @@ class PhotoPanel(QWidget):
         )
         self.motion.setEnabled(project.motion_enabled)
 
-    def _refresh_title(self, photos: Sequence[Photo]) -> None:
-        if not photos:
+    def _refresh_title(self, photos: Sequence[Photo], slides: Sequence[Slide]) -> None:
+        blacks = [slide for slide in slides if isinstance(slide, BlackSlide)]
+        if blacks and not photos:
+            if len(blacks) > 1:
+                self.title.setText(self.tr("Negre a l'inici i al final"))
+            elif blacks[0].position is BlackSlidePosition.START:
+                self.title.setText(self.tr("Negre a l'inici"))
+            else:
+                self.title.setText(self.tr("Negre al final"))
+        elif not photos:
             self.title.setText(self.tr("Cap foto seleccionada"))
         elif len(photos) == 1:
             number = self._controller.project.photos.index(photos[0]) + 1
@@ -242,7 +273,7 @@ class PhotoPanel(QWidget):
 
     def _on_duration_entered(self) -> None:
         project = self._controller.project
-        if len({project.photo_duration(photo) for photo in self.photos()}) > 1:
+        if len({project.photo_duration(slide) for slide in self.slides()}) > 1:
             self._send(SetPhotoDuration(self._selection(), self.duration.value()))
 
     def _on_reset_duration(self) -> None:

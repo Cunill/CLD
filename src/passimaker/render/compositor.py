@@ -65,6 +65,7 @@ class Compositor:
     and warped with sub-pixel precision; the two photos of a crossfade are mixed with the
     opacities of passimaker.timeline.query, and the black fades scale the result. A photo that
     cannot be decoded is drawn as a plain grey canvas (the export checks files beforehand).
+    A black slide (M08) adds nothing: its share of a crossfade is black, and it is never a sentinel area.
     """
 
     def __init__(
@@ -85,6 +86,7 @@ class Compositor:
             if photo is not None:
                 self._plans[photo.id] = _plan(photo, project, slot.index)
         self._order = tuple(slot.photo_id for slot in timeline.slots)
+        self._slot_index = {slot.photo_id: slot.index for slot in timeline.slots}
         self._lock = threading.Lock()
         self._cache: OrderedDict[_CacheKey, Canvas] = OrderedDict()
         self._cache_bytes = 0
@@ -104,7 +106,7 @@ class Compositor:
         drawn: list[tuple[RGBImage, float]] = []
         outside = np.zeros((height, width), dtype=bool) if sentinel else None
         for layer in visibles.layers:
-            plan = self._plans.get(layer.photo_id)
+            plan = None if layer.black else self._plans.get(layer.photo_id)
             weight = layer.opacity / normaliser * fade
             if plan is None or layer.opacity <= 0.0 or (weight <= _WEIGHT_EPSILON and outside is None):
                 continue
@@ -224,11 +226,11 @@ class Compositor:
 
     def _prefetch_after(self, photo_id: str, width: int, height: int) -> None:
         """Asks the image source for the next photos, once per photo and size."""
-        plan = self._plans.get(photo_id)
-        if plan is None:
+        index = self._slot_index.get(photo_id)
+        if index is None:
             return
         upcoming: list[tuple[Photo, int]] = []
-        for next_id in self._order[plan.slot_index + 1 : plan.slot_index + 1 + PREFETCH_AHEAD]:
+        for next_id in self._order[index + 1 : index + 1 + PREFETCH_AHEAD]:
             next_plan = self._plans.get(next_id)
             if next_plan is None:
                 continue

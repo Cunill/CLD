@@ -17,6 +17,8 @@ from hypothesis import strategies as st
 from passimaker import projectio
 from passimaker.model import defaults
 from passimaker.model.types import (
+    BlackSlide,
+    BlackSlidePosition,
     Fade,
     FitMode,
     MotionMode,
@@ -129,6 +131,9 @@ def songs_strategy(draw: st.DrawFn, base: Path, sid: str) -> Song:
 def projects(draw: st.DrawFn, base: Path) -> Project:
     photo_count = draw(st.integers(0, 6))
     song_count = draw(st.integers(0, 3))
+    black = in_range(defaults.PHOTO_DURATION_RANGE)
+    start = draw(st.one_of(st.none(), black.map(lambda d: BlackSlide(BlackSlidePosition.START, d))))
+    end = draw(st.one_of(st.none(), black.map(lambda d: BlackSlide(BlackSlidePosition.END, d))))
     return Project(
         name=draw(st.text(max_size=30)),
         output_format=draw(st.sampled_from(OutputFormat)),
@@ -140,7 +145,11 @@ def projects(draw: st.DrawFn, base: Path) -> Project:
         motion_enabled=draw(st.booleans()),
         zoom_amount=draw(in_range(defaults.MOTION_AMOUNT_RANGE)),
         pan_amount=draw(in_range(defaults.MOTION_AMOUNT_RANGE)),
-        photos=tuple(draw(photos_strategy(base, f"foto-{i}")) for i in range(photo_count)),
+        slides=(
+            *(() if start is None else (start,)),
+            *(draw(photos_strategy(base, f"foto-{i}")) for i in range(photo_count)),
+            *(() if end is None else (end,)),
+        ),
         music=Music(
             master_volume=draw(in_range(defaults.MASTER_VOLUME_RANGE)),
             normalize=draw(st.booleans()),
@@ -186,7 +195,7 @@ def make_files(folder: Path, names: list[str]) -> list[Path]:
 def simple_project(photo_paths: list[Path], song_paths: list[Path] = ()) -> Project:  # type: ignore[assignment]
     return Project(
         name="prova",
-        photos=tuple(Photo(f"p{i}", p, None, 4000, 3000) for i, p in enumerate(photo_paths)),
+        slides=tuple(Photo(f"p{i}", p, None, 4000, 3000) for i, p in enumerate(photo_paths)),
         music=Music(songs=tuple(Song(f"s{i}", p, None, 120.0) for i, p in enumerate(song_paths))),
     )
 
@@ -450,3 +459,61 @@ def test_a_project_of_1000_photos_saves_and_opens_in_less_than_a_second(tmp_path
     assert [p.path for p in result.project.photos] == photo_paths
     assert len(result.missing_files) == 1001
     assert elapsed < 1.0, f"{elapsed:.2f} s"
+
+
+# --- Black slides (M08, format version 2) ---------------------------------------------------------
+
+
+def test_black_slides_are_saved_with_their_duration(tmp_path: Path) -> None:
+    photos = simple_project([tmp_path / "a.jpg"]).slides
+    project = Project(
+        slides=(BlackSlide(BlackSlidePosition.START, 3.5), *photos, BlackSlide(BlackSlidePosition.END))
+    )
+    path = tmp_path / "negres.pmk"
+    save_project(project, path)
+    document = json.loads(path.read_text(encoding="utf-8"))
+    assert document["format_version"] == 2
+    assert document["project"]["black_start"] == {"duration_s": 3.5}
+    assert document["project"]["black_end"] == {"duration_s": defaults.BLACK_SLIDE_DURATION_S}
+    assert len(document["project"]["photos"]) == 1
+    opened = open_project(path).project
+    assert [s.id for s in opened.slides] == [s.id for s in project.slides]
+    assert (opened.black_start, opened.black_end) == (project.black_start, project.black_end)
+
+    without = Project(slides=photos)
+    save_project(without, path)
+    document = json.loads(path.read_text(encoding="utf-8"))
+    assert document["project"]["black_start"] is None and document["project"]["black_end"] is None
+    assert [s.id for s in open_project(path).project.slides] == ["p0"]
+
+
+def test_a_version_1_file_opens_without_black_slides_and_is_saved_as_version_2(tmp_path: Path) -> None:
+    path = tmp_path / "antic.pmk"
+    save_project(simple_project([tmp_path / "a.jpg", tmp_path / "b.jpg"]), path)
+    document = json.loads(path.read_text(encoding="utf-8"))
+    del document["project"]["black_start"], document["project"]["black_end"]
+    document["format_version"] = 1
+    path.write_text(json.dumps(document), encoding="utf-8")
+
+    project = open_project(path).project
+    assert project.black_start is None and project.black_end is None
+    assert [p.id for p in project.slides] == ["p0", "p1"]
+    assert [p.path for p in project.photos] == [tmp_path / "a.jpg", tmp_path / "b.jpg"]
+    save_project(project, path)
+    assert json.loads(path.read_text(encoding="utf-8"))["format_version"] == 2
+
+
+def test_a_black_slide_duration_out_of_range_is_clamped_and_a_bad_one_rejected(tmp_path: Path) -> None:
+    path = tmp_path / "p.pmk"
+    save_project(Project(slides=(BlackSlide(BlackSlidePosition.START),)), path)
+    document = json.loads(path.read_text(encoding="utf-8"))
+    document["project"]["black_start"] = {"duration_s": 999}
+    path.write_text(json.dumps(document), encoding="utf-8")
+    assert open_project(path).project.black_start == BlackSlide(
+        BlackSlidePosition.START, defaults.PHOTO_DURATION_RANGE.maximum
+    )
+    document["project"]["black_start"] = {"duration_s": "llarg"}
+    path.write_text(json.dumps(document), encoding="utf-8")
+    with pytest.raises(ProjectFileError) as caught:
+        open_project(path)
+    assert caught.value.message_key == ERROR_CORRUPT

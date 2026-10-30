@@ -58,7 +58,7 @@ def test_output_sizes_are_full_hd() -> None:
 
 def test_photo_duration_falls_back_to_project_default() -> None:
     photo = Photo("p1", Path("a.jpg"), None, 4000, 3000)
-    project = Project(photos=(photo,))
+    project = Project(slides=(photo,))
     assert project.photo_duration(photo) == 2.0
     custom = Photo("p2", Path("b.jpg"), None, 4000, 3000, duration_s=2.5)
     assert project.photo_duration(custom) == 2.5
