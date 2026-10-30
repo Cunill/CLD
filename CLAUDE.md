@@ -169,7 +169,8 @@ M09 "Barreja les fotos" (`ShufflePhotos`, llavor del projecte i ordre actual; do
 `ccr-3a1c06ba-fh5sfo`; la prova manual de l'usuari encara no s'ha fet.
 M10 proporcions: sis formats, 16:9, 3:2 i 4:3 horitzontals i verticals (`OutputFormat`, `.pmk` amb la proporció,
 els antics `"horizontal"`/`"vertical"` s'obren com a 16:9 i 9:16; botó "Format ▾"; `passimaker-nou --format`;
-docs/sessions/M10.md): PR #99 (els sis formats) oberta el 30/10/2026, pendent de la CI, la fusió i la prova manual.
+docs/sessions/M10.md): fusionat a `main` el 30/10/2026 (PR #99, els sis formats; CI de Windows en verd); la prova
+manual de l'usuari es fa al M12.
 M13 silenci abans i després de la música (`Music.silence_start_s` i `silence_end_s`, 0–60 s, al panell de la cançó;
 `.pmk` versió 2 amb dos camps opcionals; docs/sessions/M13.md): fusionat a `main` el 30/10/2026
 (PR #97, el silenci de la música; CI de Windows en verd); la prova manual de l'usuari encara no s'ha fet.
