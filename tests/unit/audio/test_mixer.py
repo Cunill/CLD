@@ -12,7 +12,8 @@ from numpy.typing import NDArray
 
 from passimaker.audio import AudioSource, Track
 from passimaker.common import CancelToken
-from passimaker.timeline import Interval
+from passimaker.model.types import Song
+from passimaker.timeline import Interval, build_audio_plan
 from tests.unit.audio.helpers import SR, pcm_song, segment, source, tone
 
 
@@ -164,3 +165,36 @@ def test_empty_project_gives_an_empty_wav(tmp_path: Path) -> None:
     source([], {}, total_s=0.0).render_wav(tmp_path / "buit.wav", lambda d, t: calls.append((d, t)))
     assert len(read_wav(tmp_path / "buit.wav")) == 0
     assert calls == [(0, 0)]
+
+
+# --- M13: silence before and after the music, with the plan of passimaker.timeline -----------------
+
+
+def silenced_mix(
+    tmp_path: Path, song_s: float, total_s: float, before: float, after: float
+) -> NDArray[np.float32]:
+    song = Song("a", tmp_path / "a.mp3", None, song_s)
+    plan = build_audio_plan((song,), total_s, 30, before, after)
+    tracks = {"a": Track(pcm_song(tmp_path, "a", tone(440, song_s)), 1.0)}
+    return source(list(plan.segments), tracks, total_s=total_s, final_fade=plan.final_fade).read(
+        0.0, round(total_s * SR)
+    )
+
+
+@pytest.mark.parametrize(("song_s", "before", "after"), [(20.0, 1.5, 2.0), (4.0, 2.0, 3.0), (20.0, 0.5, 0.0)])
+def test_the_silences_are_exact_at_the_start_and_at_the_end(
+    tmp_path: Path, song_s: float, before: float, after: float
+) -> None:
+    out = silenced_mix(tmp_path, song_s, 10.0, before, after)
+    start, end = round(before * SR), round((10.0 - after) * SR)
+    assert not out[:start].any()
+    assert not out[end:].any()
+    assert out[start + SR // 2 : start + SR].any()  # the song sounds right after the silence
+
+
+def test_with_no_silence_the_mix_is_the_one_of_the_plain_plan(tmp_path: Path) -> None:
+    song = Song("a", tmp_path / "a.mp3", None, 20.0)
+    plan = build_audio_plan((song,), 10.0, 30)
+    tracks = {"a": Track(pcm_song(tmp_path, "a", tone(440, 20.0)), 1.0)}
+    plain = source(list(plan.segments), tracks, total_s=10.0, final_fade=plan.final_fade).read(0.0, 10 * SR)
+    np.testing.assert_array_equal(silenced_mix(tmp_path, 20.0, 10.0, 0.0, 0.0), plain)

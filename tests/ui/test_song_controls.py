@@ -456,3 +456,30 @@ def test_a_red_line_follows_the_part_being_heard(qtbot: QtBot, window_with_song:
     with qtbot.waitSignal(panel.listening.stopped, timeout=TIMEOUT_MS):
         panel.listen.click()
     assert panel.trim_bar.playhead is None
+
+
+# --- M13: silence before and after the music ------------------------------------------------------
+
+
+def test_the_silences_of_the_music_are_set_from_the_song_panel(window_with_song: MainWindow) -> None:
+    window = window_with_song
+    select_song(window)
+    panel = window.song_panel
+    assert panel.whole_music.title() == "Tota la música"
+    assert panel.silence_start.text() == "0,0 s" and panel.silence_end.text() == "0,0 s"
+    panel.silence_start.setValue(2.5)
+    panel.silence_end.setValue(90)  # out of range: the box stops at 60 s
+    music = window.controller.project.music
+    assert (music.silence_start_s, music.silence_end_s) == (2.5, 60.0)
+
+
+def test_undo_and_redo_move_the_silence_boxes(window_with_song: MainWindow) -> None:
+    window = window_with_song
+    select_song(window)
+    panel = window.song_panel
+    panel.silence_start.setValue(3.0)
+    window.controller.undo()
+    assert window.controller.project.music.silence_start_s == 0.0
+    assert panel.silence_start.value() == 0.0
+    window.controller.redo()
+    assert panel.silence_start.value() == pytest.approx(3.0)

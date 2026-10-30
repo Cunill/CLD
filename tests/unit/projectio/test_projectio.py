@@ -7,6 +7,7 @@ import os
 import shutil
 import tempfile
 import time
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -154,6 +155,8 @@ def projects(draw: st.DrawFn, base: Path) -> Project:
             master_volume=draw(in_range(defaults.MASTER_VOLUME_RANGE)),
             normalize=draw(st.booleans()),
             keep_fitted=draw(st.booleans()),
+            silence_start_s=draw(in_range(defaults.MUSIC_SILENCE_RANGE)),
+            silence_end_s=draw(in_range(defaults.MUSIC_SILENCE_RANGE)),
             songs=tuple(draw(songs_strategy(base, f"cançó-{i}")) for i in range(song_count)),
         ),
     )
@@ -372,6 +375,7 @@ def _mutations() -> list[tuple[str, object]]:
         ("project.music.songs.0.volume", "fort"),
         ("project.music.songs.0.fade_in", [1, 2]),
         ("project.music", None),
+        ("project.music.silence_start_s", "llarg"),
         ("project.output_format", "quadrat"),
         ("project.seed", "llavor"),
         ("project.name", 5),
@@ -556,3 +560,41 @@ def test_each_format_is_saved_with_its_proportion(tmp_path: Path, output_format:
     orientation = "vertical" if output_format.is_vertical else "horizontal"
     assert value == f"{orientation}_{output_format.label.replace(':', '_')}"
     assert open_project(path).project.output_format is output_format
+
+
+# --- Silence before and after the music (M13, still format version 2) -------------------------------
+
+
+def test_the_silences_are_saved_and_opened(tmp_path: Path) -> None:
+    project = simple_project([tmp_path / "a.jpg"], [tmp_path / "s.mp3"])
+    project = replace(project, music=replace(project.music, silence_start_s=2.5, silence_end_s=4.0))
+    path = tmp_path / "silenci.pmk"
+    save_project(project, path)
+    document = json.loads(path.read_text(encoding="utf-8"))
+    assert document["format_version"] == 2
+    music = document["project"]["music"]
+    assert (music["silence_start_s"], music["silence_end_s"]) == (2.5, 4.0)
+    opened = open_project(path).project.music
+    assert (opened.silence_start_s, opened.silence_end_s) == (2.5, 4.0)
+
+
+@pytest.mark.parametrize("version", [1, 2])
+def test_a_file_saved_before_the_silences_opens_without_silence(tmp_path: Path, version: int) -> None:
+    path = tmp_path / "antic.pmk"
+    save_project(simple_project([tmp_path / "a.jpg"], [tmp_path / "s.mp3"]), path)
+    document = json.loads(path.read_text(encoding="utf-8"))
+    del document["project"]["music"]["silence_start_s"], document["project"]["music"]["silence_end_s"]
+    if version == 1:
+        del document["project"]["black_start"], document["project"]["black_end"]
+    document["format_version"] = version
+    path.write_text(json.dumps(document), encoding="utf-8")
+    music = open_project(path).project.music
+    assert (music.silence_start_s, music.silence_end_s) == (0.0, 0.0)
+
+
+def test_a_silence_out_of_range_is_clamped(tmp_path: Path) -> None:
+    document = valid_document(tmp_path)
+    document["project"]["music"]["silence_start_s"] = -3  # type: ignore[index]
+    document["project"]["music"]["silence_end_s"] = 600  # type: ignore[index]
+    music = open_project(write(tmp_path, json.dumps(document))).project.music
+    assert (music.silence_start_s, music.silence_end_s) == (0.0, defaults.MUSIC_SILENCE_RANGE.maximum)
