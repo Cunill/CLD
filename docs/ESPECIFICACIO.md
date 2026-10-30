@@ -62,7 +62,7 @@
 | Volum general | 100 % | 0–100 % |
 | Volum de cada cançó | 100 % | 0–150 % |
 | Anivellament entre cançons | Activat (−16 LUFS) | Sí / no (Avançat) |
-| Format | Horitzontal 1920×1080, 30 fps | Horitzontal / Vertical 1080×1920 |
+| Format | Horitzontal 16:9 (1920×1080), 30 fps | 16:9, 3:2 (1620×1080) o 4:3 (1440×1080), horitzontals; 9:16 (1080×1920), 2:3 (1080×1620) o 3:4 (1080×1440), verticals (M10) |
 | Codificació | H.264 High, CRF 18 · AAC 192 kbps, 48 kHz | Fixa |
 
 ### 1.1 Importar fotos
@@ -211,7 +211,9 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
   - Les franges negres semblen justament les zones buides que volem evitar.
   - El fons difuminat és el que es fa servir avui a mòbils i televisió.
 - Per a cada foto es pot forçar una opció: Automàtic, Omplir, Encaixar amb fons difuminat o Encaixar amb fons negre.
-- En format vertical (9:16) s'apliquen les mateixes regles, a l'inrevés.
+- En format vertical (9:16) s'apliquen les mateixes regles, a l'inrevés. Amb els formats 3:2, 4:3, 2:3 i 3:4 (M10), la
+  mateixa regla, comparant amb la proporció del vídeo: en 4:3 omplen les fotos 4:3, 3:2, 16:9 i quadrades; les
+  verticals hi van amb fons difuminat.
 - Casos límit:
   - Panoràmica 4:1 en mode "Omplir": es veu la franja central, amb un desplaçament lateral limitat per la velocitat màxima.
   - Foto quadrada en un vídeo horitzontal: fons difuminat.
@@ -403,7 +405,7 @@ cançons d'una llista i gravar vídeo.
 ### 1.8 Previsualització
 
 - Panell amb la imatge del passi i aquests controls: ▶/❚❚ (barra espaiadora), foto anterior i següent (← →), barra de temps clicable i temps actual / total.
-- Es reprodueix en temps real i amb so, a resolució reduïda (fins a 960×540, o 540×960 en vertical). La imatge és exactament la mateixa que s'exportarà, perquè la fa el mateix motor.
+- Es reprodueix en temps real i amb so, a resolució reduïda (fins a 960×540, o 540×960 en vertical; amb la proporció del vídeo: per exemple, 720×540 en 4:3). La imatge és exactament la mateixa que s'exportarà, perquè la fa el mateix motor.
 - En fer clic sobre una miniatura, la previsualització salta a l'inici d'aquella foto (i, si s'estava reproduint, continua des d'allà).
 - Qualsevol canvi (durada, moviment, encaix, música) es veu a l'instant. En pausa, la imatge es torna a dibuixar.
 - Casos límit:
@@ -413,8 +415,9 @@ cançons d'una llista i gravar vídeo.
 
 ### 1.9 Exportar
 
-- [Exportar vídeo] obre el diàleg de desar, amb el nom del projecte i la carpeta Vídeos ja proposats. No hi ha cap altra opció: el format (horitzontal o vertical) és el del projecte.
-- Vídeo: MP4, H.264 perfil High, 1920×1080 o 1080×1920, 30 fps, qualitat alta constant (CRF 18), espai de color BT.709.
+- [Exportar vídeo] obre el diàleg de desar, amb el nom del projecte i la carpeta Vídeos ja proposats. No hi ha cap altra opció: el format (proporció i orientació) és el del projecte.
+- Vídeo: MP4, H.264 perfil High, a la mida del format (1920×1080, 1620×1080, 1440×1080, 1080×1920, 1080×1620 o
+  1080×1440), 30 fps, qualitat alta constant (CRF 18), espai de color BT.709.
 - Àudio: AAC a 192 kbps, 48 kHz, estèreo.
 - El fitxer es pot començar a reproduir abans d'haver-se descarregat del tot (opció faststart).
 - Diàleg de progrés: barra, percentatge, temps restant estimat i [Cancel·lar]. Si es cancel·la, l'exportació s'atura en menys de 2 s i el fitxer a mig fer s'esborra.
@@ -445,7 +448,9 @@ cançons d'una llista i gravar vídeo.
 
 ### 1.11 Format del vídeo
 
-- Ajust del projecte "Format: Horitzontal 16:9 / Vertical 9:16" (per defecte, horitzontal), a la barra d'eines.
+- Ajust del projecte "Format" (M10): Horitzontal 16:9, 3:2 o 4:3, o Vertical 9:16, 2:3 o 3:4 (per defecte,
+  horitzontal 16:9). A la barra d'eines, el botó "Format: 16:9 ▾" obre un menú dels sis formats (primer els
+  horitzontals); al panell del projecte, la llista "Format" és la mateixa.
 - Si es canvia, el programa torna a calcular l'encaix automàtic i el moviment de totes les fotos, mantenint el tipus de moviment triat. La previsualització canvia de forma.
 
 ### 1.12 Propostes separades (fora del pla)

@@ -81,8 +81,15 @@ def build_project(
     return controller.project
 
 
+def frame_size(output_format: OutputFormat, long_side: int) -> tuple[int, int]:
+    """Frame with the proportion of the format and this long side (both sides even)."""
+    width, height = output_format.size
+    scale = long_side / max(width, height)
+    return 2 * round(width * scale / 2), 2 * round(height * scale / 2)
+
+
 def synthetic_projects() -> dict[str, Project]:
-    """Three projects with every proportion, every motion, both formats and both fits."""
+    """Projects with every proportion, every motion, the six formats (M10) and every fit."""
     photos = [photo(f"p{i:02d}", w, h) for i, (w, h) in enumerate(SIZES)]
     manual = {p.id: ALL_MOTIONS[i % len(ALL_MOTIONS)] for i, p in enumerate(photos)}
     extra = [photo("x_fill_vertical", 3000, 4000), photo("x_black_pano", 6000, 2000)]
@@ -99,6 +106,17 @@ def synthetic_projects() -> dict[str, Project]:
             crossfade_s=1.5,
             seed=3,
         ),
+        # M10: the other proportions, automatic and with every motion by hand.
+        "horitzontal_3_2_auto": build_project(
+            [*photos, *extra], OutputFormat.HORIZONTAL_3_2, fits=fits, seed=21
+        ),
+        "horitzontal_4_3_manual": build_project(
+            [*photos, *extra], OutputFormat.HORIZONTAL_4_3, motions=manual, fits=fits, seed=22
+        ),
+        "vertical_2_3_manual": build_project(
+            [*photos, *extra], OutputFormat.VERTICAL_2_3, motions=manual, fits=fits, seed=23
+        ),
+        "vertical_3_4_auto": build_project([*photos, *extra], OutputFormat.VERTICAL_3_4, fits=fits, seed=24),
     }
 
 

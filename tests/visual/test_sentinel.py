@@ -13,6 +13,7 @@ from tests.visual.helpers import (
     ALL_MOTIONS,
     build_project,
     compositor_for,
+    frame_size,
     frame_times,
     magenta_count,
     photo,
@@ -23,8 +24,7 @@ PROJECTS = synthetic_projects()
 
 
 def _size(project: Project, long_side: int) -> tuple[int, int]:
-    short = long_side * 9 // 16
-    return (long_side, short) if project.output_format is OutputFormat.HORIZONTAL else (short, long_side)
+    return frame_size(project.output_format, long_side)
 
 
 def test_the_projects_cover_every_motion_fit_and_format() -> None:

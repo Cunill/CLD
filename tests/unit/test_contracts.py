@@ -59,6 +59,25 @@ def test_output_sizes_are_full_hd() -> None:
     assert OutputFormat.VERTICAL.size == (1080, 1920)
 
 
+def test_the_six_formats_of_m10() -> None:
+    """Three proportions, landscape and portrait; short side 1080 and even sides (H.264 4:2:0)."""
+    expected = {
+        OutputFormat.HORIZONTAL: ((1920, 1080), "16:9"),
+        OutputFormat.HORIZONTAL_3_2: ((1620, 1080), "3:2"),
+        OutputFormat.HORIZONTAL_4_3: ((1440, 1080), "4:3"),
+        OutputFormat.VERTICAL: ((1080, 1920), "9:16"),
+        OutputFormat.VERTICAL_2_3: ((1080, 1620), "2:3"),
+        OutputFormat.VERTICAL_3_4: ((1080, 1440), "3:4"),
+    }
+    assert {f: (f.size, f.label) for f in OutputFormat} == expected
+    for output_format in OutputFormat:
+        width, height = output_format.size
+        ratio_w, ratio_h = (int(n) for n in output_format.label.split(":"))
+        assert width * ratio_h == height * ratio_w
+        assert width % 2 == 0 and height % 2 == 0 and min(width, height) == 1080
+        assert output_format.is_vertical is (height > width)
+
+
 def test_photo_duration_falls_back_to_project_default() -> None:
     photo = Photo("p1", Path("a.jpg"), None, 4000, 3000)
     project = Project(slides=(photo,))

@@ -6,6 +6,8 @@ A .pmk file is indented UTF-8 JSON (§1.10: readable structured text):
 
 Version 2 (M08) adds "black_start" and "black_end" to the project: {"duration_s": ...} or null. A
 version 1 file has neither, so it opens without black slides; it is saved again as version 2.
+M10 writes "output_format" with its proportion ("horizontal_16_9", "vertical_2_3", ...); the
+values of older files ("horizontal", "vertical") still open as 16:9 and 9:16.
 "music" also has "silence_start_s" and "silence_end_s" (M13); files saved before them open with 0.
 
 Every photo and song stores two paths: `path` (absolute) and `relative_path` (relative to the
@@ -249,6 +251,17 @@ def _enum[E: Enum](data: Mapping[str, Any], key: str, enum: type[E]) -> E:
         raise _CorruptError(f"valor no vàlid al camp {key!r}") from error
 
 
+LEGACY_FORMAT_VALUES = {"horizontal": OutputFormat.HORIZONTAL, "vertical": OutputFormat.VERTICAL}
+"""Values of output_format before M10 (versions 1 and 2 of 1.2.0 and the M08 development builds)."""
+
+
+def _output_format(data: Mapping[str, Any]) -> OutputFormat:
+    value = data.get("output_format")
+    if isinstance(value, str) and value in LEGACY_FORMAT_VALUES:
+        return LEGACY_FORMAT_VALUES[value]
+    return _enum(data, "output_format", OutputFormat)
+
+
 def _window(data: Mapping[str, Any]) -> Window:
     return Window(_number(data, "centre_x"), _number(data, "centre_y"), _number(data, "scale"))
 
@@ -389,7 +402,7 @@ def project_from_json(document: object, base: Path) -> OpenResult:
         project = Project(
             name=_field(data, "name", str),
             format_version=defaults.FORMAT_VERSION,
-            output_format=_enum(data, "output_format", OutputFormat),
+            output_format=_output_format(data),
             seed=_field(data, "seed", int),
             default_duration_s=defaults.PHOTO_DURATION_RANGE.clamp(_number(data, "default_duration_s")),
             crossfade_s=defaults.CROSSFADE_RANGE.clamp(_number(data, "crossfade_s")),

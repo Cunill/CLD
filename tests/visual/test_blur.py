@@ -10,6 +10,7 @@ from numpy.typing import NDArray
 from passimaker.model.types import FitMode, MotionType, OutputFormat, ResolvedFit
 from passimaker.motion import resolve_fit
 from passimaker.render.params import BLUR_DARKEN
+from tests.visual import helpers
 from tests.visual.helpers import build_project, compositor_for, photo, psnr, synthetic_images
 
 CASES = [
@@ -17,6 +18,11 @@ CASES = [
     ((2000, 2000), OutputFormat.HORIZONTAL),  # square
     ((6000, 2000), OutputFormat.HORIZONTAL),  # 3:1 panorama
     ((4000, 3000), OutputFormat.VERTICAL),  # horizontal photo, vertical video
+    # M10: the other proportions.
+    ((3000, 4000), OutputFormat.HORIZONTAL_4_3),
+    ((6000, 2000), OutputFormat.HORIZONTAL_3_2),
+    ((4000, 3000), OutputFormat.VERTICAL_3_4),
+    ((2000, 2000), OutputFormat.VERTICAL_2_3),
 ]
 
 
@@ -40,7 +46,7 @@ def _static_frame(
     source = synthetic_images(project)
     compositor, timeline = compositor_for(project, source)
     slot = timeline.slots[1]
-    frame_size = (960, 540) if output_format is OutputFormat.HORIZONTAL else (540, 960)
+    frame_size = helpers.frame_size(output_format, 960)
     frame = compositor.frame_at((slot.slot_start + slot.slot_end) / 2, *frame_size)
     return frame, source.images["p"], frame_size
 
