@@ -39,7 +39,7 @@
 | Pla (aquest document) | ✅ aprovat el 29/10/2026 (M13 afegit el 30/10/2026) | Opus | — | — | — | — | — | 1 | — | PR #91 (el pla) · `9df0171`; PR #92 (el M13) · `270cedc` |
 | M07 Ajustar a la música | ✅ tancat: fusionat a `main` el 30/10/2026 (prova manual encara no confirmada) | Sonnet | — | **M08**, **M11** | T1 | 1 / 1 / 1 | 0,25 | 1 | — | PR #93 (l'ajust a la música) · `18030c1` (CI de Windows en verd) · decisió 0014 · **prova manual de l'usuari pendent** (6 passos a docs/sessions/M07.md; es pot fer amb el ZIP de la CI o amb el de la v1.3) |
 | M08 Imatges negres | ✅ fusionat a `main` el 30/10/2026; pendent de la prova manual de l'usuari (docs/sessions/M08.md) | Opus | — | **M07**, **M11** | T1 | 1 / 1 / 2 | 0,5 | 1 | — | PR #95 (les fitxes negres) · `4e24694` (CI de Windows en verd) |
-| M09 Ordre aleatori | ✅ fet a la PR #98 (pendent de fusionar i de la prova manual) | Sonnet | M08 | **M10**, **M13** | T2 | 1 / 1 / 1 | 0,25 | — | — | — |
+| M09 Ordre aleatori | ✅ fusionat a `main` el 30/10/2026; pendent de la prova manual de l'usuari (docs/sessions/M09.md) | Sonnet | M08 | **M10**, **M13** | T2 | 1 / 1 / 1 | 0,25 | — | — | PR #98 (el botó de barrejar) · `b048bcb` (CI de Windows en verd) |
 | M10 Proporcions | ⏳ pendent (es pot començar) | Opus | M08 | **M09**, **M13** | T2 | 1 / 2 / 2 | 0,75 | — | — | — |
 | M11 Marge de la previsualització | ✅ fusionat a `main` el 30/10/2026; pendent de la prova manual de l'usuari (docs/sessions/M11.md) | Sonnet | — | **M07**, **M08** | T1 | 1 / 1 / 1 | 0,25 | 1 | — | PR #94 (el marge ajustable) · `44fd44d` |
 | M12 Versió 1.3.0 | ⏳ pendent | Sonnet | M07–M11, M13 | — | T3 | 1 / 1 / 1 | 1,0 | — | — | — |
@@ -67,7 +67,7 @@ seva fila i la seva línia.
 | M07 Ajustar a la música | ⏳ pendent | 6 (docs/sessions/M07.md) | Sí | Amb el ZIP 1.3.0, al M12 (o abans amb el ZIP de la CI de `main`) |
 | M08 Imatges negres | ⏳ pendent | 10 (docs/sessions/M08.md) | Sí | Amb el ZIP 1.3.0, al M12 |
 | M11 Marge de la previsualització | ⏳ pendent | 6 (docs/sessions/M11.md) | Sí | Amb el ZIP 1.3.0, al M12 |
-| M09 Ordre aleatori | ⏳ pendent (bloc per fer) | a docs/sessions/M09.md | Sí | Amb el ZIP 1.3.0, al M12 |
+| M09 Ordre aleatori | ⏳ pendent (bloc fet a `main`; falta la prova) | a docs/sessions/M09.md | Sí | Amb el ZIP 1.3.0, al M12 |
 | M10 Proporcions | ⏳ pendent (bloc per fer) | a docs/sessions/M10.md | Sí | Amb el ZIP 1.3.0, al M12 |
 | M13 Silenci de la música | ⏳ pendent (bloc per fer) | a docs/sessions/M13.md | Sí | Amb el ZIP 1.3.0, al M12 |
 | Prova final de la versió 1.3.0 | ⏳ pendent | al M12 | **No** (cal abans de publicar la `v1.3`) | M12 |

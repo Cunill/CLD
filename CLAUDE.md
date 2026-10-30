@@ -165,6 +165,6 @@ M11 marge de la previsualització ajustable (`PreviewSplitter` a `ui/main_window
 fusionat a `main` el 30/10/2026 (PR #94, CI de Windows en verd); la prova manual de l'usuari encara no s'ha fet.
 M08 fitxes negres d'inici i final (`Project.slides`, `BlackSlide`, `.pmk` versió 2; docs/sessions/M08.md): fusionat a
 `main` el 30/10/2026 (PR #95, CI de Windows en verd); la prova manual de l'usuari encara no s'ha fet.
-M09 "Barreja les fotos" (`ShufflePhotos`, llavor del projecte i ordre actual; docs/sessions/M09.md): fet a la branca
-`ccr-3a1c06ba-fh5sfo`; la prova manual de l'usuari encara no s'ha fet.
+M09 "Barreja les fotos" (`ShufflePhotos`, llavor del projecte i ordre actual; docs/sessions/M09.md): fusionat a
+`main` el 30/10/2026 (PR #98, el botó de barrejar; commit `b048bcb`, CI de Windows en verd); la prova manual de l'usuari encara no s'ha fet.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
