@@ -155,8 +155,8 @@ Windows en verd; prova de l'usuari amb el ZIP `PassiMaker-1.2.0-win64` el 29/10/
 **Versió 1.2.0 publicada com a `v1.2`** el 29/10/2026 amb el flux `publicar.yml` (commit `333943b`, ZIP adjunt).
 Flux setmanal `actualitzar-ytdlp.yml` actiu (permís de crear PR activat per l'usuari el 29/10/2026); la primera
 execució va obrir la PR #89 (yt-dlp 2026.10.21 → 2026.10.26), que es fusiona quan calgui (docs/PUBLICAR.md).
-**Versió 1.3.0** (millores de l'usuari, pla aprovat el 29/10/2026): docs/PLA_1_3.md, blocs M07–M12, seguiment al §1.1.
-Tanda 1 (en paral·lel): M07 ajustar a la música, M08 imatges negres, M11 marge de la previsualització.
+**Versió 1.3.0** (millores de l'usuari, pla aprovat el 29/10/2026): docs/PLA_1_3.md, blocs M07–M13, seguiment al §1.1.
+Tanda 1 (en paral·lel): M07 ajustar a la música, M08 imatges negres, M11 marge de la previsualització. Tanda 2: M09 i M10 (quan el M08 sigui a main) i M13 silenci de la música (decisió de l'usuari del 30/10/2026; quan el M07 i el M08 hi siguin).
 M07 "Ajustar a la música" respecta les durades fetes a mà i fa servir 0,4–24 s (decisió 0014, docs/sessions/M07.md): fet el
 30/10/2026, pendent de la prova manual de l'usuari i de la fusió.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
