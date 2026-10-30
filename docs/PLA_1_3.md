@@ -41,7 +41,7 @@
 | M08 Imatges negres | ⏳ pendent (es pot començar) | Opus | — | **M07**, **M11** | T1 | 1 / 1 / 2 | 0,5 | — | — | — |
 | M09 Ordre aleatori | ⏳ pendent | Sonnet | M08 | **M10**, **M13** | T2 | 1 / 1 / 1 | 0,25 | — | — | — |
 | M10 Proporcions | ⏳ pendent | Opus | M08 | **M09**, **M13** | T2 | 1 / 2 / 2 | 0,75 | — | — | — |
-| M11 Marge de la previsualització | ⏳ pendent (es pot començar) | Sonnet | — | **M07**, **M08** | T1 | 1 / 1 / 1 | 0,25 | — | — | — |
+| M11 Marge de la previsualització | ✅ fusionat a `main` el 30/10/2026; pendent de la prova manual de l'usuari (docs/sessions/M11.md) | Sonnet | — | **M07**, **M08** | T1 | 1 / 1 / 1 | 0,25 | 1 | — | PR #94 |
 | M12 Versió 1.3.0 | ⏳ pendent | Sonnet | M07–M11, M13 | — | T3 | 1 / 1 / 1 | 1,0 | — | — | — |
 | M13 Silenci a l'inici i al final de la música | ⏳ pendent | Opus | M07, M08 | **M09**, **M10** | T2 | 1 / 1 / 2 | 0,5 | — | — | — |
 | **Subtotal dels blocs** | | | | | | **7 / 8 / 10** | **3,5** | **0** | **—** | |

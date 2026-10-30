@@ -12,7 +12,19 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 
 from PySide6.QtCore import QSize, Qt, Signal
-from PySide6.QtGui import QAction, QActionGroup, QCloseEvent, QDragEnterEvent, QDropEvent, QKeySequence
+from PySide6.QtGui import (
+    QAction,
+    QActionGroup,
+    QCloseEvent,
+    QColor,
+    QDragEnterEvent,
+    QDropEvent,
+    QKeySequence,
+    QMouseEvent,
+    QPainter,
+    QPaintEvent,
+    QShowEvent,
+)
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -21,6 +33,7 @@ from PySide6.QtWidgets import (
     QProgressBar,
     QPushButton,
     QSplitter,
+    QSplitterHandle,
     QToolBar,
     QToolButton,
     QVBoxLayout,
@@ -55,7 +68,7 @@ from passimaker.ui.music_strip import MusicStrip, SongLoader
 from passimaker.ui.photo_panel import PhotoPanel
 from passimaker.ui.photos import PhotoListModel
 from passimaker.ui.player_panel import PlayerPanel
-from passimaker.ui.project_files import MissingFilesBar, ProjectFiles, RecentProjects
+from passimaker.ui.project_files import MissingFilesBar, ProjectFiles, RecentProjects, user_settings
 from passimaker.ui.project_panel import ProjectPanel
 from passimaker.ui.properties import PropertiesPanel
 from passimaker.ui.record_dialog import RecordDialogs, RecordQuestions, RecordWindow
@@ -70,6 +83,97 @@ CONFIRM_DELETE_FROM = 5
 
 WINDOW_SIZE = QSize(1280, 800)
 TOOLBAR_ICON = QSize(20, 20)
+
+PREVIEW_SPLIT_KEY = "layout/preview_split"
+HANDLE_THICKNESS = 10
+MIN_PREVIEW_HEIGHT = 90
+MIN_PROPERTIES_HEIGHT = 110
+DEFAULT_SPLIT = (3, 2)
+"""Preview : properties heights of the left column when nothing is saved (the 3:2 of §1.0)."""
+
+
+class _GripHandle(QSplitterHandle):
+    """The line between the preview and the properties: thick, with three dots, and a double click
+    sends it back to the default position."""
+
+    def __init__(self, splitter: PreviewSplitter) -> None:
+        super().__init__(Qt.Orientation.Vertical, splitter)
+        self._splitter = splitter
+        self.setCursor(Qt.CursorShape.SizeVerCursor)
+
+    def sizeHint(self) -> QSize:  # noqa: N802 (Qt)
+        return QSize(0, HANDLE_THICKNESS)
+
+    def paintEvent(self, event: QPaintEvent) -> None:  # noqa: N802 (Qt)
+        painter = QPainter(self)
+        colour = self.palette().mid().color()
+        painter.fillRect(self.rect(), self.palette().window().color().darker(108))
+        painter.setPen(colour)
+        painter.drawLine(0, 0, self.width(), 0)
+        painter.drawLine(0, self.height() - 1, self.width(), self.height() - 1)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor(self.palette().dark().color()))
+        centre = self.width() // 2
+        for dx in (-12, 0, 12):
+            painter.drawEllipse(centre + dx - 2, self.height() // 2 - 2, 4, 4)
+
+    def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:  # noqa: N802 (Qt)
+        self._splitter.reset_split()
+
+
+class PreviewSplitter(QSplitter):
+    """Vertical splitter of the left column: the preview above, the properties below. Its position is
+    kept between sessions."""
+
+    def __init__(self, top: QWidget, bottom: QWidget) -> None:
+        super().__init__(Qt.Orientation.Vertical)
+        self.setHandleWidth(HANDLE_THICKNESS)
+        self.setChildrenCollapsible(False)
+        top.setMinimumHeight(MIN_PREVIEW_HEIGHT)
+        bottom.setMinimumHeight(MIN_PROPERTIES_HEIGHT)
+        self.addWidget(top)
+        self.addWidget(bottom)
+        self.setStretchFactor(0, DEFAULT_SPLIT[0])
+        self.setStretchFactor(1, DEFAULT_SPLIT[1])
+        self.splitterMoved.connect(self._remember)
+        self._restored = False
+
+    def createHandle(self) -> QSplitterHandle:  # noqa: N802 (Qt)
+        return _GripHandle(self)
+
+    def _remember(self, *_: int) -> None:
+        sizes = self.sizes()
+        if sum(sizes) > 0:
+            settings = user_settings()
+            settings.setValue(PREVIEW_SPLIT_KEY, sizes[0] / sum(sizes))
+            settings.sync()
+
+    def saved_fraction(self) -> float | None:
+        value = user_settings().value(PREVIEW_SPLIT_KEY)
+        try:
+            fraction = float(value)  # type: ignore[arg-type]
+        except (TypeError, ValueError):
+            return None
+        return fraction if 0.0 < fraction < 1.0 else None
+
+    def apply_fraction(self, fraction: float) -> None:
+        total = sum(self.sizes()) or self.height()
+        top = round(total * fraction)
+        self.setSizes([top, total - top])
+
+    def restore_split(self) -> None:
+        fraction = self.saved_fraction()
+        self.apply_fraction(fraction if fraction is not None else DEFAULT_SPLIT[0] / sum(DEFAULT_SPLIT))
+
+    def reset_split(self) -> None:
+        self.apply_fraction(DEFAULT_SPLIT[0] / sum(DEFAULT_SPLIT))
+        self._remember()
+
+    def showEvent(self, event: QShowEvent) -> None:  # noqa: N802 (Qt)
+        super().showEvent(event)
+        if not self._restored:
+            self._restored = True
+            self.restore_split()
 
 
 class MainWindow(QMainWindow):
@@ -132,11 +236,8 @@ class MainWindow(QMainWindow):
     # --- Layout ----------------------------------------------------------------------------------
 
     def _build_layout(self) -> None:
-        left = QSplitter(Qt.Orientation.Vertical)
-        left.addWidget(self.player_panel)
-        left.addWidget(self.properties)
-        left.setStretchFactor(0, 3)
-        left.setStretchFactor(1, 2)
+        left = PreviewSplitter(self.player_panel, self.properties)
+        self.preview_splitter = left
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
         self.splitter.addWidget(left)
         self.splitter.addWidget(self.storyboard)

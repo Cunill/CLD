@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import pytest
+from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QKeySequence
+from PySide6.QtWidgets import QSplitterHandle
+from pytestqt.qtbot import QtBot
 
 from passimaker.model import OutputFormat
 from passimaker.ui.delegate import ThumbnailSize
-from passimaker.ui.main_window import MainWindow
-from tests.ui.helpers import RecordedQuestions
+from passimaker.ui.main_window import MIN_PREVIEW_HEIGHT, MIN_PROPERTIES_HEIGHT, MainWindow, PreviewSplitter
+from tests.ui.conftest import build_window
+from tests.ui.helpers import FakeThumbnailService, RecordedQuestions, controller_with
 
 pytestmark = pytest.mark.ui
 
@@ -87,3 +91,62 @@ def test_undo_and_redo_follow_the_controller(window_with_photos: MainWindow) -> 
     assert window.redo_action.isEnabled()
     window.redo()
     assert len(window.controller.project.photos) == 12
+
+
+# --- M11: the line between the preview and the properties --------------------------------------
+
+
+def _handle(window: MainWindow) -> tuple[PreviewSplitter, QSplitterHandle]:
+    splitter = window.preview_splitter
+    return splitter, splitter.handle(1)
+
+
+def test_the_preview_line_is_thick_and_has_the_vertical_cursor(window: MainWindow) -> None:
+    splitter, handle = _handle(window)
+    assert splitter.handleWidth() >= 8
+    assert handle.cursor().shape() == Qt.CursorShape.SizeVerCursor
+
+
+def test_the_preview_line_has_a_wide_travel(window: MainWindow) -> None:
+    splitter, _ = _handle(window)
+    total = sum(splitter.sizes())
+    splitter.moveSplitter(0, 1)
+    top, bottom = splitter.sizes()
+    assert top == MIN_PREVIEW_HEIGHT and top < total // 4
+    splitter.moveSplitter(total, 1)
+    top, bottom = splitter.sizes()
+    assert bottom == MIN_PROPERTIES_HEIGHT and top > total // 2
+
+
+def test_dragging_the_line_with_the_mouse(window: MainWindow, qtbot: QtBot) -> None:
+    splitter, handle = _handle(window)
+    before = splitter.sizes()[0]
+    centre = handle.rect().center()
+    qtbot.mousePress(handle, Qt.MouseButton.LeftButton, pos=centre)
+    qtbot.mouseMove(handle, centre + QPoint(0, 80))
+    qtbot.mouseRelease(handle, Qt.MouseButton.LeftButton, pos=centre + QPoint(0, 80))
+    assert splitter.sizes()[0] > before
+
+
+def test_the_position_is_remembered_between_sessions(
+    qtbot: QtBot, thumbnails: FakeThumbnailService, questions: RecordedQuestions
+) -> None:
+    first = build_window(qtbot, controller_with(0), thumbnails, questions)
+    first.preview_splitter.moveSplitter(0, 1)
+    saved = first.preview_splitter.saved_fraction()
+    assert saved is not None and saved < 0.3
+    first.close()
+    second = build_window(qtbot, controller_with(0), thumbnails, questions)
+    sizes = second.preview_splitter.sizes()
+    assert sizes[0] / sum(sizes) == pytest.approx(saved, abs=0.03)
+    second.close()
+
+
+def test_a_double_click_restores_the_default_position(window: MainWindow, qtbot: QtBot) -> None:
+    splitter, handle = _handle(window)
+    default = splitter.sizes()[0] / sum(splitter.sizes())
+    splitter.moveSplitter(0, 1)
+    qtbot.mouseDClick(handle, Qt.MouseButton.LeftButton)
+    sizes = splitter.sizes()
+    assert sizes[0] / sum(sizes) == pytest.approx(0.6, abs=0.03)
+    assert default == pytest.approx(0.6, abs=0.03)
