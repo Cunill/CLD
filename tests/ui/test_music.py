@@ -198,18 +198,18 @@ def test_fitting_does_not_ask_for_photos_between_1_and_3_s_or_beyond(
 
 
 def test_fit_problem_tells_music_too_long() -> None:
-    project = Project(photos=make_photos(4), music=Music(songs=(song(1, 120.0),)))  # 30 s per photo > 24 s
+    project = Project(slides=make_photos(4), music=Music(songs=(song(1, 120.0),)))  # 30 s per photo > 24 s
     check = fit_problem(project)
     assert check is not None
     assert check.problem is FitProblem.MUSIC_TOO_LONG
     assert not check.problem.blocks
-    assert fit_problem(Project(photos=make_photos(4))) is None
-    assert fit_problem(Project(photos=make_photos(4), music=Music(songs=(song(1, 60),)))) is None  # 15 s each
+    assert fit_problem(Project(slides=make_photos(4))) is None
+    assert fit_problem(Project(slides=make_photos(4), music=Music(songs=(song(1, 60),)))) is None  # 15 s each
 
 
 def test_fit_problem_counts_only_the_free_photos() -> None:
     photos = tuple(replace(p, duration_s=5.0) if i < 2 else p for i, p in enumerate(make_photos(4)))
-    project = Project(photos=photos, music=Music(songs=(song(1, 10.3),)))  # 0.15 s left for 2 photos
+    project = Project(slides=photos, music=Music(songs=(song(1, 10.3),)))  # 0.15 s left for 2 photos
     check = fit_problem(project)
     assert check is not None and check.problem is FitProblem.TOO_MANY_PHOTOS
     assert check.seconds_per_photo == pytest.approx(0.15)
@@ -217,13 +217,13 @@ def test_fit_problem_counts_only_the_free_photos() -> None:
 
 def test_fit_problem_when_every_photo_has_a_hand_set_duration() -> None:
     photos = tuple(replace(p, duration_s=3.0) for p in make_photos(3))
-    check = fit_problem(Project(photos=photos, music=Music(songs=(song(1, 60),))))
+    check = fit_problem(Project(slides=photos, music=Music(songs=(song(1, 60),))))
     assert check is not None and check.problem is FitProblem.ALL_FIXED and check.problem.blocks
 
 
 def test_fit_problem_when_the_hand_set_photos_outlast_the_music() -> None:
     photos = tuple(replace(p, duration_s=10.0) if i == 0 else p for i, p in enumerate(make_photos(3)))
-    check = fit_problem(Project(photos=photos, music=Music(songs=(song(1, 8),))))
+    check = fit_problem(Project(slides=photos, music=Music(songs=(song(1, 8),))))
     assert check is not None and check.problem is FitProblem.FIXED_TOO_LONG and check.problem.blocks
 
 

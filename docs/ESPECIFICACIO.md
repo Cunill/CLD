@@ -108,9 +108,16 @@
 - Per duplicar: Ctrl+D o menú contextual. La còpia va just després de l'original, amb la mateixa durada i el mateix encaix però amb un moviment nou i diferent.
 - Mida de les miniatures: petita, mitjana o gran.
 - En fer clic sobre una miniatura, la previsualització salta a l'inici d'aquella foto i el panell de propietats en mostra els ajustos.
+- **Fitxes negres (M08, decisió 1 de docs/PLA_1_3.md):** un projecte nou té una fitxa negra a l'inici i una al final
+  del tauler, cadascuna amb la seva durada (2,0 s; de 0,4 a 24 s, com una foto). Són un quadre negre amb el text "Negre"
+  i la durada, sense miniatura, número ni icones. Es queden sempre la primera i l'última: afegir, moure, ordenar o
+  duplicar fotos no les desplaça, no es poden arrossegar i les fotos que s'hi deixen anar a fora entren just a dins.
+  Es poden seleccionar i esborrar (Supr, com una foto) i tornar a afegir amb Edita ▸ "Afegeix negre a l'inici" /
+  "Afegeix negre al final" (desactivat si ja hi és). Al panell de propietats només tenen la durada. Desfer/refer, com
+  sempre. El recompte de fotos de la barra d'estat no les compta; la durada total, sí.
 
 **Casos límit:**
-- 0 fotos: estat buit amb instruccions.
+- 0 fotos: estat buit amb instruccions (també si només hi ha les fitxes negres).
 - 1 foto: el passi és vàlid.
 - 1.000 fotos: el desplaçament és fluid (només es dibuixen les miniatures visibles) i les miniatures es carreguen començant per les que es veuen.
 - Foto no trobada: miniatura grisa amb una icona i l'opció "Cercar…".
@@ -121,7 +128,7 @@
   escurçada (la fosa no passa mai de la meitat de la foto més curta). Si es canvia, afecta totes les fotos que no tenen una durada personalitzada.
 - Per a una foto, o per a les fotos seleccionades, hi ha el camp "Durada" al panell de propietats. Si es modifica, la foto queda marcada com a personalitzada (amb una icona) i apareix el botó [Restablir a la general].
 - La durada és l'espai que ocupa la foto a la línia de temps, des de la meitat de la fosa anterior fins a la meitat de la següent. Així, la durada total del passi és exactament la suma de les durades de totes les fotos.
-- La barra d'estat mostra sempre el total ("124 fotos · 10:20").
+- La barra d'estat mostra sempre el total ("124 fotos · 10:20"), amb les fitxes negres incloses (M08).
 - Cas límit: si una foto dura menys que dues foses, la fosa d'aquella foto s'escurça automàticament (vegeu 1.4).
 
 ### 1.4 Transició de fosa
@@ -130,6 +137,10 @@
 - A l'inici hi ha una fosa des de negre (1,0 s) i al final una fosa cap a negre (2,0 s). Totes dues es poden ajustar a "Avançat" (de 0 a 5 s).
 - La fosa queda centrada en el canvi de foto: comença 0,5 s abans i acaba 0,5 s després. Durant la fosa, les dues fotos continuen movent-se; el moviment no s'atura mai.
 - Regla de seguretat: la fosa entre dues fotos no pot durar més de la meitat de la més curta. Així, cada foto té un moment en què es veu sencera.
+- Les fitxes negres (§1.2, M08) fan la fosa encadenada de sempre amb la foto del costat (que és, de fet, una fosa
+  des del negre o cap al negre), amb la mateixa regla de seguretat. La fosa des de negre i cap a negre del projecte
+  continuen a l'inici i al final del passi; sobre una fitxa negra no es veuen. La música comença a l'inici del passi,
+  també durant la fitxa negra.
 - Casos límit:
   - 1 sola foto: només hi ha la fosa d'entrada i la de sortida.
   - Passi més curt que les foses d'inici i final sumades: les dues foses s'escurcen proporcionalment.
@@ -418,6 +429,9 @@ cançons d'una llista i gravar vídeo.
 - Les rutes es desen de dues maneres: relatives al fitxer del projecte i absolutes. Si es mou tota la carpeta (projecte i fotos), el projecte continua funcionant.
 - Fitxers que no es troben: "No es troben 12 fitxers. [Cercar en una carpeta…]". El programa els torna a enllaçar automàticament pel nom.
 - El format porta un número de versió. Si s'obre un projecte fet amb una versió més nova del programa, surt un missatge clar en lloc d'una fallada.
+- Versió 2 (M08, PassiMaker 1.3.0): desa les fitxes negres. Un projecte de la versió 1 s'obre sense fitxes negres (no
+  se n'hi afegeixen) i es desa ja en versió 2; un projecte de la versió 2 obert amb la 1.2.0 dona el missatge de
+  versió més nova.
 - Casos límit:
   - Fitxer de projecte malmès: surt un missatge i, si hi ha còpia de recuperació, s'ofereix.
   - Projecte obert des d'una memòria USB amb una altra lletra d'unitat: funciona gràcies a les rutes relatives.

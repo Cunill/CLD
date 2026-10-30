@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
+from typing import Any
 
 from passimaker.model import defaults
 
@@ -116,6 +117,31 @@ class Photo:
     low_resolution: bool = False
 
 
+class BlackSlidePosition(Enum):
+    START = "start"
+    END = "end"
+
+
+BLACK_START_ID = "black:start"
+BLACK_END_ID = "black:end"
+"""Fixed ids of the black slides; photo ids never contain ":" (M08)."""
+
+
+@dataclass(frozen=True, slots=True)
+class BlackSlide:
+    """A black card in the storyboard (M08): always the first (START) or the last (END) slide."""
+
+    position: BlackSlidePosition
+    duration_s: float = defaults.BLACK_SLIDE_DURATION_S
+
+    @property
+    def id(self) -> str:
+        return BLACK_START_ID if self.position is BlackSlidePosition.START else BLACK_END_ID
+
+
+type Slide = Photo | BlackSlide
+
+
 @dataclass(frozen=True, slots=True)
 class Fade:
     enabled: bool
@@ -159,9 +185,32 @@ class Project:
     motion_enabled: bool = True
     zoom_amount: float = defaults.ZOOM_AMOUNT
     pan_amount: float = defaults.PAN_AMOUNT
-    photos: tuple[Photo, ...] = ()
+    slides: tuple[Slide, ...] = ()
+    """Storyboard order: an optional START black slide, the photos, an optional END black slide (M08).
+    The editing commands keep the black slides at the ends."""
     music: Music = field(default_factory=Music)
+    photos: tuple[Photo, ...] = field(init=False, repr=False, compare=False)
+    """The photos of `slides`, in order (derived)."""
 
-    def photo_duration(self, photo: Photo) -> float:
-        """Effective duration of a photo (its own, or the project default)."""
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "photos", tuple(s for s in self.slides if isinstance(s, Photo)))
+
+    @property
+    def black_start(self) -> BlackSlide | None:
+        first = self.slides[0] if self.slides else None
+        return first if isinstance(first, BlackSlide) and first.position is BlackSlidePosition.START else None
+
+    @property
+    def black_end(self) -> BlackSlide | None:
+        last = self.slides[-1] if self.slides else None
+        return last if isinstance(last, BlackSlide) and last.position is BlackSlidePosition.END else None
+
+    def photo_duration(self, photo: Slide) -> float:
+        """Effective duration of a slide (its own, or the project default for a photo without one)."""
         return photo.duration_s if photo.duration_s is not None else self.default_duration_s
+
+
+def new_project(**settings: Any) -> Project:
+    """A new project: the given settings and the two black slides (M08). `Project()` has none."""
+    slides = (BlackSlide(BlackSlidePosition.START), BlackSlide(BlackSlidePosition.END))
+    return Project(slides=slides, **settings)

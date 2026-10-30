@@ -13,7 +13,7 @@ from PySide6.QtWidgets import QApplication
 from passimaker.export import cache_root
 from passimaker.images import CachedImageSource
 from passimaker.logs import install_exception_hooks, setup_logging
-from passimaker.model import ProjectController
+from passimaker.model import ProjectController, new_project
 from passimaker.recorder import remove_leftovers
 from passimaker.thumbs import ThumbnailService
 from passimaker.ui.errors import ErrorReporter
@@ -58,7 +58,7 @@ def main(argv: list[str] | None = None) -> int:
 
     images = CachedImageSource()
     thumbnails = ThumbnailService(cache_root() / "thumbs", CachedImageSource())
-    window = MainWindow(ProjectController(), thumbnails, images)
+    window = MainWindow(ProjectController(new_project()), thumbnails, images)
     reporter.window = window
     window.show()
     window.files.startup(Path(args[0]) if args else None)

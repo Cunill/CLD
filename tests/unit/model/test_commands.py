@@ -205,11 +205,11 @@ def test_motion_amount_change_rebuilds_windows_but_keeps_the_type() -> None:
 
 
 def test_visible_durations_follow_the_crossfade_rule() -> None:
-    project = Project(photos=(photo("a", duration=1.0), photo("b", duration=3.0), photo("c", duration=3.0)))
+    project = Project(slides=(photo("a", duration=1.0), photo("b", duration=3.0), photo("c", duration=3.0)))
     # a-b: min(1.0, 0.5, 1.5) = 0.5; b-c: min(1.0, 1.5, 1.5) = 1.0
     assert visible_durations(project) == pytest.approx([1.25, 3.0 + 0.25 + 0.5, 3.5])
     assert visible_durations(Project()) == []
-    assert visible_durations(Project(photos=(photo("solo"),))) == [2.0]
+    assert visible_durations(Project(slides=(photo("solo"),))) == [2.0]
 
 
 # --- Fit and motion -------------------------------------------------------------------------------
@@ -471,7 +471,7 @@ def test_fit_to_music_with_the_real_timeline() -> None:
 def test_visible_durations_match_the_timeline() -> None:
     """The motion draw uses the same visible spans as the timeline (block B2)."""
     durations = [1.0, 3.0, 1.4, 2.2, 2.0, 1.0]
-    project = Project(photos=tuple(photo(f"q{i}", duration=d) for i, d in enumerate(durations)))
+    project = Project(slides=tuple(photo(f"q{i}", duration=d) for i, d in enumerate(durations)))
     line = timeline.compute_timeline(project)
     spans = [s.visible_end - s.visible_start for s in line.slots]
     assert spans == pytest.approx(visible_durations(project))

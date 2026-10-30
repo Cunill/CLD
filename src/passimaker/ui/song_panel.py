@@ -61,7 +61,7 @@ def listening_source(project: Project, song: Song) -> MixedAudioSource:
     afterwards. Raises PassiMakerError if the song cannot be read.
     """
     length = song_duration(song)
-    alone = replace(project, photos=(), music=replace(project.music, songs=(song,)))
+    alone = replace(project, slides=(), music=replace(project.music, songs=(song,)))
     plan = build_audio_plan((song,), length, defaults.FPS)
     mixed = prepare(alone, plan, cache_root() / "audio")
     failure = mixed.failures.get(song.id)

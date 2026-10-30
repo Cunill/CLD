@@ -210,7 +210,7 @@ def test_photos_of_a_project_edited_by_hand_keep_working() -> None:
     """A stored motion drawn for another fit is replaced by the whole canvas (no borders)."""
     project = build_project([photo("v", 3000, 4000)], OutputFormat.HORIZONTAL)
     moved = replace(project.photos[0], width=4000, height=3000)  # now FILL, motion was for BLUR
-    project = replace(project, photos=(moved,))
+    project = replace(project, slides=(moved,))
     compositor, timeline = compositor_for(project, MemoryImageSource(synthetic_images(project).images))
     for t in frame_times(timeline, step=6):
         assert magenta_count(compositor.frame_at(t, 320, 180, sentinel=True)) == 0

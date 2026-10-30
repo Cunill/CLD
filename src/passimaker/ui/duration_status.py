@@ -55,7 +55,7 @@ class Durations:
 
 def durations_of(project: Project) -> Durations:
     """The show is the sum of the photo durations, as in "124 fotos · 4:30" (§1.3)."""
-    show = sum(project.photo_duration(photo) for photo in project.photos)
+    show = sum(project.photo_duration(slide) for slide in project.slides)  # black slides too (M08)
     return Durations(show, music_duration(project.music))
 
 
@@ -84,9 +84,9 @@ def fit_problem(project: Project) -> FitCheck | None:
 
     ``seconds_per_photo`` is what each free photo would last (the music left after the fixed ones).
     """
-    durations = [project.photo_duration(photo) for photo in project.photos]
+    durations = [project.photo_duration(slide) for slide in project.slides]  # as fixed_durations (M08)
     target = music_duration(project.music)
-    if not durations or target <= 0:
+    if not project.photos or target <= 0:
         return None
     fixed = fixed_durations(project)
     result = fit_to_music(durations, target, fixed=fixed)

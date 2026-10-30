@@ -67,7 +67,7 @@ def _too_wide_project() -> Project:
     project = build_project([photo("a", 4000, 3000)], motions={"a": MotionType.NONE})
     window = Window(0.5, 0.5, 0.8)
     motion = PhotoMotion(start=window, end=window, resolved_fit=ResolvedFit.FILL)
-    return replace(project, photos=(replace(project.photos[0], motion=motion),))
+    return replace(project, slides=(replace(project.photos[0], motion=motion),))
 
 
 def test_sentinel_paints_whatever_falls_outside_the_canvas(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -101,7 +101,7 @@ def test_a_motion_that_does_not_fit_the_canvas_is_shown_whole() -> None:
         end=Window(0.9, 0.5, 1.0),
         resolved_fit=ResolvedFit.FILL,
     )
-    project = replace(project, photos=(replace(project.photos[0], motion=motion),))
+    project = replace(project, slides=(replace(project.photos[0], motion=motion),))
     compositor, timeline = compositor_for(project)
     for t in frame_times(timeline, step=5):
         assert magenta_count(compositor.frame_at(t, 320, 180, sentinel=True)) == 0

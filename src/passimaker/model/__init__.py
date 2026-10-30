@@ -3,6 +3,10 @@
 from passimaker.model.commands import Change, Command
 from passimaker.model.controller import ProjectController
 from passimaker.model.types import (
+    BLACK_END_ID,
+    BLACK_START_ID,
+    BlackSlide,
+    BlackSlidePosition,
     Fade,
     FitMode,
     Intensity,
@@ -15,11 +19,17 @@ from passimaker.model.types import (
     Project,
     ResolvedFit,
     Rotation,
+    Slide,
     Song,
     Window,
+    new_project,
 )
 
 __all__ = [
+    "BLACK_END_ID",
+    "BLACK_START_ID",
+    "BlackSlide",
+    "BlackSlidePosition",
     "Change",
     "Command",
     "Fade",
@@ -35,6 +45,8 @@ __all__ = [
     "ProjectController",
     "ResolvedFit",
     "Rotation",
+    "Slide",
     "Song",
     "Window",
+    "new_project",
 ]

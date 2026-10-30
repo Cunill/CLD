@@ -58,7 +58,7 @@ def long_project(tmp_path_factory: pytest.TempPathFactory) -> tuple[Project, Pat
         for i in range(count)
     )
     photos = tuple(Photo(f"p{i}", Path(f"{i}.jpg"), None, 4000, 3000) for i in range(SHOW_MINUTES * 20))
-    p = Project(photos=photos, default_duration_s=3.0, music=Music(master_volume=0.9, songs=songs))
+    p = Project(slides=photos, default_duration_s=3.0, music=Music(master_volume=0.9, songs=songs))
     return p, folder
 
 

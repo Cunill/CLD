@@ -20,6 +20,7 @@ class PhotoSlot:
 
     slot_*: the photo's own span (its duration); slots are contiguous and sum to the total.
     visible_*: span where the photo is on screen (slot widened by half of each crossfade).
+    black: the slot of a black slide (M08; photo_id is BLACK_START_ID or BLACK_END_ID).
     """
 
     photo_id: str
@@ -30,6 +31,7 @@ class PhotoSlot:
     visible_end: float
     fade_in: Interval | None
     fade_out: Interval | None
+    black: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -68,6 +70,8 @@ class VisibleLayer:
     opacity: float
     motion_progress: float
     """0 at the start of the photo's visible span, 1 at its end."""
+    black: bool = False
+    """A black slide (M08): drawn black, without image, motion or fit."""
 
 
 @dataclass(frozen=True, slots=True)

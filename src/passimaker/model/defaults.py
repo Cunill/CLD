@@ -19,12 +19,15 @@ class Range:
         return min(self.maximum, max(self.minimum, value))
 
 
-FORMAT_VERSION = 1
+FORMAT_VERSION = 2
+"""2 (M08): black slides at the start and the end; version 1 files open without them."""
 FPS = 30
 
 PHOTO_DURATION_S = 2.0
 PHOTO_DURATION_RANGE = Range(0.4, 24.0, 0.1)
 """What can be set by hand (M05, user request); the timeline shortens the crossfade of a short photo."""
+BLACK_SLIDE_DURATION_S = 2.0
+"""Black slides at the start and the end of a new project (M08); their duration uses PHOTO_DURATION_RANGE."""
 FIT_TO_MUSIC_DURATION_RANGE = PHOTO_DURATION_RANGE
 """What "Ajustar a la música" may give each photo: the same range as by hand (decision 0014, M07)."""
 

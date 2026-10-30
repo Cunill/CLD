@@ -7,31 +7,33 @@ import itertools
 from collections.abc import Sequence
 
 from passimaker.model import defaults
-from passimaker.model.types import Project
+from passimaker.model.types import BlackSlide, Project
 from passimaker.timeline.audio_plan import build_audio_plan, music_duration
 from passimaker.timeline.types import Interval, PhotoSlot, Timeline, VisibleLayer, Visibles
 
 
 def compute_timeline(project: Project, fps: int = defaults.FPS) -> Timeline:
-    """Lays out the photos one after another; each one occupies exactly its duration.
+    """Lays out the slides (photos and black slides, M08) one after another; each one occupies exactly
+    its duration.
 
     Values are expected to be within the ranges of passimaker.model.defaults (the controller
     clamps them); negative values are treated as 0 so the result is always consistent.
     """
-    durations = [max(0.0, project.photo_duration(p)) for p in project.photos]
+    durations = [max(0.0, project.photo_duration(s)) for s in project.slides]
     bounds = [0.0, *itertools.accumulate(durations)]
     total = bounds[-1]
     crossfades = _crossfades(durations, max(0.0, project.crossfade_s))
     slots = tuple(
         _slot(
-            photo.id,
+            slide.id,
+            isinstance(slide, BlackSlide),
             i,
             bounds[i],
             bounds[i + 1],
             crossfades[i - 1] if i > 0 else 0.0,
             crossfades[i] if i < len(crossfades) else 0.0,
         )
-        for i, photo in enumerate(project.photos)
+        for i, slide in enumerate(project.slides)
     )
     fade_from_black, fade_to_black = _black_fades(
         total, max(0.0, project.fade_from_black_s), max(0.0, project.fade_to_black_s)
@@ -53,7 +55,9 @@ def _crossfades(durations: Sequence[float], crossfade: float) -> list[float]:
     return [min(crossfade, a / 2, b / 2) for a, b in itertools.pairwise(durations)]
 
 
-def _slot(photo_id: str, index: int, start: float, end: float, before: float, after: float) -> PhotoSlot:
+def _slot(
+    photo_id: str, black: bool, index: int, start: float, end: float, before: float, after: float
+) -> PhotoSlot:
     """`before` and `after` are the crossfades centred on the start and on the end of the slot."""
     fade_in = _interval(start - before / 2, start + before / 2)
     fade_out = _interval(end - after / 2, end + after / 2)
@@ -66,6 +70,7 @@ def _slot(photo_id: str, index: int, start: float, end: float, before: float, af
         visible_end=fade_out.end if fade_out is not None else end,
         fade_in=fade_in,
         fade_out=fade_out,
+        black=black,
     )
 
 
@@ -113,7 +118,7 @@ def _layer(slot: PhotoSlot, t: float, is_last: bool) -> VisibleLayer | None:
     if opacity <= 0.0:
         return None
     progress = (t - slot.visible_start) / (slot.visible_end - slot.visible_start)
-    return VisibleLayer(slot.photo_id, opacity, min(1.0, max(0.0, progress)))
+    return VisibleLayer(slot.photo_id, opacity, min(1.0, max(0.0, progress)), slot.black)
 
 
 def _ramp(interval: Interval, t: float) -> float:
