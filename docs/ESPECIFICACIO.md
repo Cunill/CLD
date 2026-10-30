@@ -47,7 +47,7 @@
 
 | Paràmetre | Per defecte | Rang |
 |---|---|---|
-| Durada per foto | 2,0 s | 0,4–24 s (en passos de 0,1 s; M05). "Ajustar a la música" es queda en 1–3 s |
+| Durada per foto | 2,0 s | 0,4–24 s (en passos de 0,1 s; M05). "Ajustar a la música" fa servir el mateix rang (decisió 0014, M07) |
 | Fosa encadenada | 1,0 s | 0,5–1,5 s |
 | Fosa des de negre a l'inici | 1,0 s | 0–5 s (Avançat) |
 | Fosa a negre al final | 2,0 s | 0–5 s (Avançat) |
@@ -221,9 +221,11 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 - Les foses segueixen una corba logarítmica, que a l'oïda sona més natural que una de lineal.
 
 **Ajustar a la música**
-- El botó [Ajustar a la música] torna a calcular les durades perquè el passi duri exactament el mateix que la música (la suma de les cançons, ja retallades). Es mantenen les proporcions: una foto de 10 s continua durant el doble que una de 5 s.
-- Cada foto ha de durar entre 1 i 3 s. Si caldria menys d'1 s per foto, surt l'avís "Hi ha massa fotos per a aquesta música: cada foto duraria 0,6 s. Afegeix música o treu fotos."; si en caldria més de 3 s, "La música és massa llarga per a aquestes fotos: afegeix-ne o retalla la música." En tots dos casos, [Aplicar igualment] (amb el límit d'1 o 3 s) i [Cancel·lar].
-- Casella "Mantenir ajustat" (desactivada per defecte): si s'activa, el passi es torna a ajustar sol cada vegada que s'afegeixen fotos o cançons.
+- El botó [Ajustar a la música] torna a calcular les durades perquè el passi duri exactament el mateix que la música (la suma de les cançons, ja retallades) (decisió 0014).
+- **Les fotos amb la durada posada a mà no es toquen**: se'n resta el total de la durada de la música i la resta es reparteix entre les altres fotos (les que fan servir la durada per defecte, que passa a valer el que toqui). Qualsevol element amb una durada pròpia, com les fitxes negres, també es manté.
+- Cada foto lliure pot durar entre 0,4 i 24 s (el mateix rang que a mà). Si caldria menys de 0,4 s per foto, surt l'avís "Hi ha massa fotos per a aquesta música: cada foto duraria 0,3 s. Afegeix música o treu fotos."; si en caldria més de 24 s, "La música és massa llarga per a aquestes fotos: afegeix-ne o retalla la música." En tots dos casos, [Aplicar igualment] (amb el límit de 0,4 o 24 s) i [Cancel·lar]. El temps per foto que surt a l'avís és el que queda de música després de les fotos fixes.
+- Si **totes** les fotos tenen la durada posada a mà, o les fixes ja duren tant com la música o més, no es canvia res: surt un avís ("Totes les fotos tenen la durada posada a mà, així que no hi ha res a ajustar…" o "Les fotos amb la durada posada a mà ja duren tant com la música o més…") amb un sol botó [D'acord].
+- Casella "Mantenir ajustat" (desactivada per defecte): si s'activa, el passi es torna a ajustar sol cada vegada que s'afegeixen fotos o cançons (amb les mateixes regles; si no hi ha res a ajustar, no fa res i no avisa).
 
 **Quan la música i les fotos no duren el mateix**
 

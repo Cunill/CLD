@@ -264,23 +264,37 @@ def _refresh_motions(old: Project, new: Project, skip: Iterable[str] = ()) -> Pr
 # --- Fit to music ---------------------------------------------------------------------------------
 
 
-def fit_to_music(project: Project) -> Project:
-    """Rescales the photo durations so the show lasts as long as the music (§1.7).
+def fixed_durations(project: Project) -> list[bool]:
+    """Which items keep their duration when fitting: those with a duration of their own (decision 0014).
 
-    The durations come from passimaker.timeline.fit_to_music (block B2), which keeps the proportions
-    and applies the 1-3 s limits. Photos that used the default duration keep doing so (with a new
-    default) when they all get the same fitted value, so the "custom duration" marks do not change.
+    Only ``duration_s`` matters, so anything on the board that carries its own duration (photos set by
+    hand, black cards of M08) counts as fixed without being told apart.
+    """
+    return [item.duration_s is not None for item in project.photos]
+
+
+def fit_to_music(project: Project) -> Project:
+    """Rescales the free photo durations so the show lasts as long as the music (§1.7).
+
+    Photos with a duration set by hand do not change; the music left after them is shared among the
+    others by passimaker.timeline.fit_to_music, within the 0.4-24 s limits (decision 0014). The free
+    photos use the project default, so they all get the same value and it becomes the new default;
+    the "custom duration" marks do not change. If nothing can be fitted, the project is returned as is.
     """
     target = music_duration(project.music)
     if not project.photos or target <= 0:
         return project
     durations = [project.photo_duration(p) for p in project.photos]
-    result = timeline.fit_to_music(durations, target)
+    result = timeline.fit_to_music(durations, target, fixed=fixed_durations(project))
+    if result.blocked is not None:
+        return project
     fitted = [defaults.FIT_TO_MUSIC_DURATION_RANGE.clamp(d) for d in result.durations]
     default_values = {fitted[i] for i, p in enumerate(project.photos) if p.duration_s is None}
     new_default = default_values.pop() if len(default_values) == 1 else None
     photos = tuple(
-        replace(p, duration_s=None if (p.duration_s is None and new_default is not None) else fitted[i])
+        p
+        if p.duration_s is not None
+        else replace(p, duration_s=None if new_default is not None else fitted[i])
         for i, p in enumerate(project.photos)
     )
     default = new_default if new_default is not None else project.default_duration_s
