@@ -166,5 +166,6 @@ fusionat a `main` el 30/10/2026 (PR #94, CI de Windows en verd); la prova manual
 M08 fitxes negres d'inici i final (`Project.slides`, `BlackSlide`, `.pmk` versió 2; docs/sessions/M08.md): fusionat a
 `main` el 30/10/2026 (PR #95, CI de Windows en verd); la prova manual de l'usuari encara no s'ha fet.
 M13 silenci abans i després de la música (`Music.silence_start_s` i `silence_end_s`, 0–60 s, al panell de la cançó;
-`.pmk` versió 2 amb dos camps opcionals; docs/sessions/M13.md): PR #97 (el silenci de la música) oberta el 30/10/2026, branca `ccr-19191a6d-jiz6mh`.
+`.pmk` versió 2 amb dos camps opcionals; docs/sessions/M13.md): fusionat a `main` el 30/10/2026
+(PR #97, el silenci de la música; CI de Windows en verd); la prova manual de l'usuari encara no s'ha fet.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
