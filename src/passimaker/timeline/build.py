@@ -45,7 +45,9 @@ def compute_timeline(project: Project, fps: int = defaults.FPS) -> Timeline:
         slots=slots,
         fade_from_black=fade_from_black,
         fade_to_black=fade_to_black,
-        audio_plan=build_audio_plan(project.music.songs, total, fps),
+        audio_plan=build_audio_plan(
+            project.music.songs, total, fps, project.music.silence_start_s, project.music.silence_end_s
+        ),
         music_duration_s=music_duration(project.music.songs),
     )
 

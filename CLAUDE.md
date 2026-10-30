@@ -163,4 +163,6 @@ M11 marge de la previsualització ajustable (`PreviewSplitter` a `ui/main_window
 fusionat a `main` el 30/10/2026 (PR #94, CI de Windows en verd); la prova manual de l'usuari encara no s'ha fet.
 M08 fitxes negres d'inici i final (`Project.slides`, `BlackSlide`, `.pmk` versió 2; docs/sessions/M08.md): fusionat a
 `main` el 30/10/2026 (PR #95, CI de Windows en verd); la prova manual de l'usuari encara no s'ha fet.
+M13 silenci abans i després de la música (`Music.silence_start_s` i `silence_end_s`, 0–60 s, al panell de la cançó;
+`.pmk` versió 2 amb dos camps opcionals; docs/sessions/M13.md): fet a la branca `ccr-19191a6d-jiz6mh` el 30/10/2026.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.

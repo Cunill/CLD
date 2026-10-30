@@ -43,7 +43,7 @@
 | M10 Proporcions | ⏳ pendent | Opus | M08 | **M09**, **M13** | T2 | 1 / 2 / 2 | 0,75 | — | — | — |
 | M11 Marge de la previsualització | ✅ fusionat a `main` el 30/10/2026; pendent de la prova manual de l'usuari (docs/sessions/M11.md) | Sonnet | — | **M07**, **M08** | T1 | 1 / 1 / 1 | 0,25 | 1 | — | PR #94 |
 | M12 Versió 1.3.0 | ⏳ pendent | Sonnet | M07–M11, M13 | — | T3 | 1 / 1 / 1 | 1,0 | — | — | — |
-| M13 Silenci a l'inici i al final de la música | 🔧 en curs: proposta del model a docs/sessions/M13.md, esperant l'aprovació de l'usuari | Opus | M07, M08 | **M09**, **M10** | T2 | 1 / 1 / 2 | 0,5 | — | — | — |
+| M13 Silenci a l'inici i al final de la música | 🔧 fet a la branca el 30/10/2026; pendent de la PR, la fusió i la prova manual de l'usuari (docs/sessions/M13.md) | Opus | M07, M08 | **M09**, **M10** | T2 | 1 / 1 / 2 | 0,5 | 1 | — | branca `ccr-19191a6d-jiz6mh` |
 | **Subtotal dels blocs** | | | | | | **7 / 8 / 10** | **3,5** | **0** | **—** | |
 | Correccions després de la prova de l'usuari | ⏳ pendent | Sonnet | M12 | — | després del M12 | 0 / 1 / 2 | inclòs a sota | — | — | — |
 | Revisió de les PR i prova final de l'usuari | ⏳ pendent | — | — | — | totes | — | 1 / 2 / 4 | — | — | — |

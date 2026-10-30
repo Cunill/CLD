@@ -169,6 +169,10 @@ class Music:
     master_volume: float = defaults.MASTER_VOLUME
     normalize: bool = True
     keep_fitted: bool = False
+    silence_start_s: float = defaults.MUSIC_SILENCE_S
+    """Silence before the first song (M13): the music starts this long after the show."""
+    silence_end_s: float = defaults.MUSIC_SILENCE_S
+    """Silence after the music (M13): the music ends at least this long before the show."""
     songs: tuple[Song, ...] = ()
 
 
