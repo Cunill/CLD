@@ -37,7 +37,7 @@
 | Bloc | Estat | Model recomanat | Depèn de | En paral·lel amb | Tanda | Sessions estimades (opt. / prob. / pes.) | Temps teu estimat (h) | Sessions consumides | Temps teu consumit (h) | PR · commit |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Pla (aquest document) | ✅ aprovat el 29/10/2026 | Opus | — | — | — | — | — | 1 | — | — |
-| M07 Ajustar a la música | 🔧 fet, pendent de la prova manual i de la fusió (30/10/2026) | Sonnet | — | **M08**, **M11** | T1 | 1 / 1 / 1 | 0,25 | 1 | — | decisió 0014, docs/sessions/M07.md |
+| M07 Ajustar a la música | 🔧 fet, pendent de la prova manual i de la fusió (30/10/2026) | Sonnet | — | **M08**, **M11** | T1 | 1 / 1 / 1 | 0,25 | 1 | — | PR #93 · decisió 0014 · **prova manual de l'usuari pendent** (6 passos a docs/sessions/M07.md) |
 | M08 Imatges negres | ⏳ pendent (es pot començar) | Opus | — | **M07**, **M11** | T1 | 1 / 1 / 2 | 0,5 | — | — | — |
 | M09 Ordre aleatori | ⏳ pendent | Sonnet | M08 | **M10**, **M13** | T2 | 1 / 1 / 1 | 0,25 | — | — | — |
 | M10 Proporcions | ⏳ pendent | Opus | M08 | **M09**, **M13** | T2 | 1 / 2 / 2 | 0,75 | — | — | — |
