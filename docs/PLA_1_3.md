@@ -36,18 +36,18 @@
 
 | Bloc | Estat | Model recomanat | Depèn de | En paral·lel amb | Tanda | Sessions estimades (opt. / prob. / pes.) | Temps teu estimat (h) | Sessions consumides | Temps teu consumit (h) | PR · commit |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Pla (aquest document) | ✅ aprovat el 29/10/2026 | Opus | — | — | — | — | — | 1 | — | — |
-| M07 Ajustar a la música | ✅ tancat: fusionat a `main` el 30/10/2026 (prova manual encara no confirmada) | Sonnet | — | **M08**, **M11** | T1 | 1 / 1 / 1 | 0,25 | 1 | — | PR #93 (CI de Windows en verd) · decisió 0014 · **prova manual de l'usuari pendent** (6 passos a docs/sessions/M07.md; es pot fer amb el ZIP de la CI o amb el de la v1.3) |
-| M08 Imatges negres | ✅ fusionat a `main` el 30/10/2026; pendent de la prova manual de l'usuari (docs/sessions/M08.md) | Opus | — | **M07**, **M11** | T1 | 1 / 1 / 2 | 0,5 | 1 | — | PR #95 (CI de Windows en verd) |
-| M09 Ordre aleatori | ⏳ pendent | Sonnet | M08 | **M10**, **M13** | T2 | 1 / 1 / 1 | 0,25 | — | — | — |
-| M10 Proporcions | ⏳ pendent | Opus | M08 | **M09**, **M13** | T2 | 1 / 2 / 2 | 0,75 | — | — | — |
-| M11 Marge de la previsualització | ✅ fusionat a `main` el 30/10/2026; pendent de la prova manual de l'usuari (docs/sessions/M11.md) | Sonnet | — | **M07**, **M08** | T1 | 1 / 1 / 1 | 0,25 | 1 | — | PR #94 |
+| Pla (aquest document) | ✅ aprovat el 29/10/2026 (M13 afegit el 30/10/2026) | Opus | — | — | — | — | — | 1 | — | PR #91 (el pla) · `9df0171`; PR #92 (el M13) · `270cedc` |
+| M07 Ajustar a la música | ✅ tancat: fusionat a `main` el 30/10/2026 (prova manual encara no confirmada) | Sonnet | — | **M08**, **M11** | T1 | 1 / 1 / 1 | 0,25 | 1 | — | PR #93 (l'ajust a la música) · `18030c1` (CI de Windows en verd) · decisió 0014 · **prova manual de l'usuari pendent** (6 passos a docs/sessions/M07.md; es pot fer amb el ZIP de la CI o amb el de la v1.3) |
+| M08 Imatges negres | ✅ fusionat a `main` el 30/10/2026; pendent de la prova manual de l'usuari (docs/sessions/M08.md) | Opus | — | **M07**, **M11** | T1 | 1 / 1 / 2 | 0,5 | 1 | — | PR #95 (les fitxes negres) · `4e24694` (CI de Windows en verd) |
+| M09 Ordre aleatori | ⏳ pendent (es pot començar) | Sonnet | M08 | **M10**, **M13** | T2 | 1 / 1 / 1 | 0,25 | — | — | — |
+| M10 Proporcions | ⏳ pendent (es pot començar) | Opus | M08 | **M09**, **M13** | T2 | 1 / 2 / 2 | 0,75 | — | — | — |
+| M11 Marge de la previsualització | ✅ fusionat a `main` el 30/10/2026; pendent de la prova manual de l'usuari (docs/sessions/M11.md) | Sonnet | — | **M07**, **M08** | T1 | 1 / 1 / 1 | 0,25 | 1 | — | PR #94 (el marge ajustable) · `44fd44d` |
 | M12 Versió 1.3.0 | ⏳ pendent | Sonnet | M07–M11, M13 | — | T3 | 1 / 1 / 1 | 1,0 | — | — | — |
 | M13 Silenci a l'inici i al final de la música | 🔧 fet a la branca el 30/10/2026; pendent de la PR, la fusió i la prova manual de l'usuari (docs/sessions/M13.md) | Opus | M07, M08 | **M09**, **M10** | T2 | 1 / 1 / 2 | 0,5 | 1 | — | branca `ccr-19191a6d-jiz6mh` |
-| **Subtotal dels blocs** | | | | | | **7 / 8 / 10** | **3,5** | **0** | **—** | |
+| **Subtotal dels blocs** | | | | | | **7 / 8 / 10** | **3,5** | **3** | **—** | |
 | Correccions després de la prova de l'usuari | ⏳ pendent | Sonnet | M12 | — | després del M12 | 0 / 1 / 2 | inclòs a sota | — | — | — |
 | Revisió de les PR i prova final de l'usuari | ⏳ pendent | — | — | — | totes | — | 1 / 2 / 4 | — | — | — |
-| **Total** | | | | | | **7 / 9 / 12 sessions** | **4,5 / 5,5 / 7,5 h** | **1** (el pla) | **—** | |
+| **Total** | | | | | | **7 / 9 / 12 sessions** | **4,5 / 5,5 / 7,5 h** | **4** (el pla + 3) | **—** | |
 
 Llegenda de l'estat: ⏳ pendent · 🔧 en curs · ✅ tancat (fusionat a `main`) · ⛔ aturat.
 
@@ -59,6 +59,22 @@ camps diferents). T3: M12.
 
 **Fitxers compartits del seguiment:** la taula del §1.1 i l'apartat Estat del CLAUDE.md. Cada bloc hi escriu només la
 seva fila i la seva línia.
+
+### 1.2 Proves manuals de l'usuari (Windows)
+
+| Prova | Estat | Passos | Ajornable? | Quan es fa |
+|---|---|---|---|---|
+| M07 Ajustar a la música | ⏳ pendent | 6 (docs/sessions/M07.md) | Sí | Amb el ZIP 1.3.0, al M12 (o abans amb el ZIP de la CI de `main`) |
+| M08 Imatges negres | ⏳ pendent | 10 (docs/sessions/M08.md) | Sí | Amb el ZIP 1.3.0, al M12 |
+| M11 Marge de la previsualització | ⏳ pendent | 6 (docs/sessions/M11.md) | Sí | Amb el ZIP 1.3.0, al M12 |
+| M09 Ordre aleatori | ⏳ pendent (bloc per fer) | a docs/sessions/M09.md | Sí | Amb el ZIP 1.3.0, al M12 |
+| M10 Proporcions | ⏳ pendent (bloc per fer) | a docs/sessions/M10.md | Sí | Amb el ZIP 1.3.0, al M12 |
+| M13 Silenci de la música | ⏳ pendent (bloc per fer) | a docs/sessions/M13.md | Sí | Amb el ZIP 1.3.0, al M12 |
+| Prova final de la versió 1.3.0 | ⏳ pendent | al M12 | **No** (cal abans de publicar la `v1.3`) | M12 |
+
+Cap bloc depèn de la prova manual d'un altre: les proves automàtiques i la CI de Windows ja hi passen. Fer-les totes
+juntes al M12 estalvia temps; el risc és que un error trobat tard demani una correcció (fila "Correccions després de la
+prova de l'usuari").
 
 ---
 
@@ -152,15 +168,80 @@ Condició d'aturada: la del CLAUDE.md (i la del punt 1). A docs/sessions/M08.md,
 
 ### M09 · Ordre aleatori
 
-Prompt: s'escriu quan el M08 sigui a `main`. Botó o menú "Barreja les fotos" (ordre nova al controlador, com
-`SortPhotos`), amb l'aleatorietat de la llavor del projecte i un comptador (regla 5: determinista), sense moure les
-fitxes negres, desfer/refer.
+```text
+Bloc M09: botó per barrejar les fotos a l'atzar. Model: Sonnet.
+ATENCIÓ, BLOCS EN PARAL·LEL: es fa alhora que el M10 (proporcions) i el M13 (silenci de la música), en altres sessions. No facis res fora d'aquest bloc:
+modifica només els fitxers permesos de sota, encara que vegis errors o millores en d'altres (anota-les a
+docs/sessions/M09.md). A la taula del §1.1 de docs/PLA_1_3.md i a l'apartat Estat del CLAUDE.md, escriu només la fila i
+la línia del M09; si en acabar un altre bloc ja és a main, porta main a la teva branca (fusió, sense reescriure la
+història) i resol el conflicte conservant els canvis de l'altre bloc.
+Context: M07, M08 i M11 a main (commit 4e24694). Les fitxes negres del M08 són elements de Project.slides; Project.photos
+és derivat i dataclasses.replace(project, photos=…) dona ValueError (cal _with_photos o slides=). Llegeix
+docs/sessions/M08.md ("Per als altres blocs"), docs/PLA_1_3.md (§0, decisió 4), src/passimaker/model/commands.py
+(SortPhotos), model/editing.py (com s'aplica SortPhotos, _with_photos, la llavor `seed`), ui/main_window.py (accions
+"Ordenar per data" i "Ordenar per nom", menú i barra d'eines) i les proves que en depenen (tests/unit/model/
+test_commands.py, tests/unit/model/test_black_slides.py, tests/ui/test_window.py o la de les accions d'ordenar).
+Branca: bloc/M09-ordre-aleatori des de main actualitzat (o la que imposi la sessió al núvol; anota-ho).
+Objectiu: una acció "Barreja les fotos" (al costat de les d'ordenar, al menú i amb un botó visible al tauler o a la barra
+d'eines) que canvia l'ordre de totes les fotos a l'atzar. Cada vegada que es prem dona un ordre nou; les fitxes negres no
+es mouen; un sol pas de desfer/refer; desactivada amb menys de dues fotos. Determinisme (regla 5): l'ordre surt de la
+llavor del projecte i de l'ordre actual (p. ex. random.Random amb una clau feta de `seed` i dels identificadors en
+l'ordre actual), de manera que el mateix projecte barrejat dona sempre el mateix resultat, sense camps nous ni canvi de
+format del .pmk. Si veus que cal un camp nou o canviar un contracte, atura't i proposa-ho.
+Fes: ordre nova ShufflePhotos al controlador (model/commands.py, model/editing.py, model/__init__.py); l'acció i el botó
+a ui/main_window.py (tr, en català); proves (ordre diferent, mateixes fotos, fitxes negres al lloc, determinisme,
+desfer/refer, Hypothesis si cal; pytest-qt per a l'acció); docs/ESPECIFICACIO.md (on hi ha "ordenar"), docs/CONTRACTES.md
+(l'ordre nova), docs/sessions/M09.md, la fila del M09 a docs/PLA_1_3.md §1.1 i una línia a l'Estat del CLAUDE.md.
+Criteris d'acceptació: decisió 4 del pla complerta; suite ràpida (i `-m "not perf"` abans de pujar), ruff i pyright en
+verd; cap dependència nova.
+Fitxers permesos: model/commands.py, model/editing.py (només l'ordre nova), model/__init__.py, ui/main_window.py (només
+l'acció i el botó), i18n, les proves de tot això, docs/ESPECIFICACIO.md, docs/CONTRACTES.md (l'ordre nova),
+docs/sessions/M09.md, la fila del M09 a docs/PLA_1_3.md i l'apartat Estat del CLAUDE.md. Si cal tocar-ne cap altre,
+atura't i proposa-ho.
+Condició d'aturada: la del CLAUDE.md. A docs/sessions/M09.md, la prova manual que l'usuari ha de fer (un pas cada vegada).
+```
 
 ### M10 · Proporcions 4:3, 3:2 i 16:9
 
-Prompt: s'escriu quan el M08 sigui a `main`. Canvi de contracte de `OutputFormat` (avui HORIZONTAL i VERTICAL): 16:9,
-3:2, 4:3 i vertical 9:16; mides 1920×1080, 1620×1080, 1440×1080 i 1080×1920; moviments i encaix (`motion`), compositor,
-exportació (FFmpeg), previsualització i selector a la interfície; `.pmk` antics (HORIZONTAL → 16:9).
+```text
+Bloc M10: el vídeo es pot exportar en 16:9, 3:2, 4:3 (horitzontals) o 9:16 (vertical). Model: Opus.
+ATENCIÓ, BLOCS EN PARAL·LEL: es fa alhora que el M09 (ordre aleatori) i el M13 (silenci de la música), en altres sessions. No facis res fora d'aquest bloc:
+modifica només els fitxers permesos de sota, encara que vegis errors o millores en d'altres (anota-les a
+docs/sessions/M10.md). A la taula del §1.1 de docs/PLA_1_3.md i a l'apartat Estat del CLAUDE.md, escriu només la fila i
+la línia del M10; si en acabar un altre bloc ja és a main, porta main a la teva branca (fusió, sense reescriure la
+història) i resol el conflicte conservant els canvis de l'altre bloc.
+Context: M07, M08 i M11 a main (commit 4e24694). Les fitxes negres del M08 són elements de Project.slides; Project.photos
+és derivat i dataclasses.replace(project, photos=…) dona ValueError (cal _with_photos o slides=). Llegeix
+docs/sessions/M08.md ("Per als altres blocs"), docs/PLA_1_3.md (§0, decisió 2), docs/CONTRACTES.md, docs/ESPECIFICACIO.md (format de sortida),
+src/passimaker/model/types.py (OutputFormat i size), motion/geometry.py (output_aspect, resolve_fit, base_window),
+motion/draw.py, render/canvas.py, export/pipeline.py (mida de sortida), importer/photo.py, projectio/__init__.py,
+ui/project_panel.py (_FORMATS, selector), ui/main_window.py i ui/player_panel.py (on la previsualització fa servir la
+proporció), cli.py, i les proves que en depenen (cerca OutputFormat a tests/).
+Branca: bloc/M10-proporcions des de main actualitzat (o la que imposi la sessió al núvol; anota-ho).
+Objectiu: quatre formats de sortida: 16:9 (1920×1080, l'actual HORIZONTAL), 3:2 (1620×1080), 4:3 (1440×1080) i 9:16
+(1080×1920, l'actual VERTICAL). Moviment, encaix (omplir o sencera amb franges), compositor, exportació (FFmpeg, 30 fps),
+previsualització i selector de la interfície funcionen amb tots quatre. Els .pmk antics s'obren igual: "horizontal" →
+16:9 i "vertical" → 9:16. Les fitxes negres (M08) no tenen mida ni encaix.
+Fes:
+1. Proposa primer el canvi de contracte a docs/sessions/M10.md (valors nous d'OutputFormat i noms al .pmk, si cal
+   format_version 3 o només valors nous, com ho veuen els .pmk antics i la 1.2.0) i atura't perquè l'usuari ho aprovi.
+2. Quan s'aprovi: model, motion, compositor, exportació, desar/obrir, previsualització, selector (tr, en català) i
+   passimaker-nou (opció del format, si ja n'hi ha). Comprova les mides parells per a l'H.264 i que les imatges golden
+   no canvien en 16:9 (no les regeneris sense permís explícit; si cal golden nous per als formats nous, demana-ho).
+3. Proves: mides i proporcions, encaix i moviment (Hypothesis, finestres dins de 0–1), compositor sense magenta ni vores
+   en els quatre formats, exportació curta en 3:2 i 4:3 (marca lent si cal), desar/obrir (antics i nous), interfície.
+4. docs/CONTRACTES.md, docs/ESPECIFICACIO.md, docs/sessions/M10.md, la fila del M10 a docs/PLA_1_3.md §1.1 i una línia a
+   l'Estat del CLAUDE.md. Recorda que el "Què és" del CLAUDE.md diu "1920×1080 o 1080×1920": proposa'n el canvi a la
+   nota de sessió (el fa el M12).
+Criteris d'acceptació: decisió 2 del pla complerta; un .pmk antic s'obre igual; 16:9 i 9:16 donen el mateix vídeo que
+abans; suite ràpida i `-m "not perf"`, ruff i pyright en verd; cap dependència nova.
+Fitxers permesos: model/types.py, model/defaults.py (si cal), model/__init__.py, motion/, render/, export/, importer/photo.py,
+projectio/, preview/ (només la proporció), ui/project_panel.py, ui/player_panel.py i ui/main_window.py (només el que
+depèn del format), cli.py (només el format), i18n, les proves de tot això, docs/CONTRACTES.md, docs/ESPECIFICACIO.md,
+docs/sessions/M10.md, la fila del M10 a docs/PLA_1_3.md i l'apartat Estat del CLAUDE.md. Si cal tocar-ne cap altre,
+atura't i proposa-ho.
+Condició d'aturada: la del CLAUDE.md (i la del punt 1). A docs/sessions/M10.md, la prova manual que l'usuari ha de fer.
+```
 
 ### M11 · Marge de la previsualització ajustable
 
@@ -192,11 +273,46 @@ Condició d'aturada: la del CLAUDE.md. A docs/sessions/M11.md, la prova manual q
 
 ### M13 · Silenci a l'inici i al final de la música
 
-Prompt: s'escriu quan el M07 i el M08 siguin a `main`. Millora 6 de `docs/proves_usuari.md`: dos valors del projecte
-(silenci abans de la música i després, en segons, per defecte 0 i rang a `defaults.py`), independents de les fitxes
-negres; la música comença X s després de l'inici del vídeo i acaba Y s abans del final; "Ajustar a la música" (M07)
-hi compta; previsualització i exportació amb el mateix compositor d'àudio; camps nous al `.pmk` (els antics, 0);
-controls a la interfície (panell de música o propietats del projecte); desfer/refer.
+```text
+Bloc M13: segons de silenci abans i després de la música, opcionals. Model: Opus.
+ATENCIÓ, BLOCS EN PARAL·LEL: es fa alhora que el M09 (ordre aleatori) i el M10 (proporcions), en altres sessions. No facis res fora d'aquest bloc:
+modifica només els fitxers permesos de sota, encara que vegis errors o millores en d'altres (anota-les a
+docs/sessions/M13.md). A la taula del §1.1 de docs/PLA_1_3.md i a l'apartat Estat del CLAUDE.md, escriu només la fila i
+la línia del M13; si en acabar un altre bloc ja és a main, porta main a la teva branca (fusió, sense reescriure la
+història) i resol el conflicte conservant els canvis de l'altre bloc.
+Context: M07, M08 i M11 a main (commit 4e24694). Les fitxes negres del M08 són elements de Project.slides; Project.photos
+és derivat i dataclasses.replace(project, photos=…) dona ValueError (cal _with_photos o slides=). Llegeix
+docs/sessions/M08.md ("Per als altres blocs") i docs/sessions/M07.md, docs/PLA_1_3.md (§0, decisió 7), docs/proves_usuari.md (millora 6),
+docs/CONTRACTES.md, docs/ESPECIFICACIO.md §1.7 (Música i "Ajustar a la música"), src/passimaker/model/types.py (Music,
+Project), model/defaults.py, model/editing.py (music_duration, fit_to_music), timeline/audio_plan.py
+(build_audio_plan: avui la música comença a 0), timeline/build.py i fit.py, audio/mixer.py, projectio/__init__.py,
+ui/song_panel.py i ui/duration_status.py, i les proves que en depenen (tests/unit/timeline/test_audio_plan.py,
+test_fit.py, tests/unit/audio/test_mixer.py, tests/unit/projectio/, tests/ui/test_music.py).
+Branca: bloc/M13-silenci-musica des de main actualitzat (o la que imposi la sessió al núvol; anota-ho).
+Objectiu: dos valors del projecte, X segons de silenci abans que comenci la música i Y segons de silenci després que
+acabi, per defecte 0 (com ara), amb el rang a defaults.py. Són independents de les fitxes negres (la música continua
+començant a t = X encara que hi hagi negre). "Ajustar a la música" (M07) fa durar el passi X + música + Y. La fosa final
+de la música acaba a (durada del passi − Y). Previsualització i exportació amb el mateix pla d'àudio (regla 3). Es poden
+canviar a la interfície (al panell de música, amb tr i en català) i es pot desfer.
+Fes:
+1. Proposa primer el model a docs/sessions/M13.md (on van els dos camps: Music o Project; noms; .pmk: camps nous amb 0
+   per als antics, si cal format_version 3, i com es combina amb el M10 si també canvia el format) i el canvi de
+   contracte, i atura't perquè l'usuari ho aprovi.
+2. Quan s'aprovi: model i ordre nova al controlador; build_audio_plan (desplaçament X i final a total − Y); fit_to_music
+   i duration_status; desar/obrir; controls a ui/song_panel.py.
+3. Proves: pla d'àudio (inici, final i fosa amb X i Y; música més llarga o més curta que el passi), ajustar a la música
+   amb X i Y, mescla (silenci exacte al principi i al final), desar/obrir (antics i nous), interfície (pytest-qt),
+   desfer/refer.
+4. docs/CONTRACTES.md, docs/ESPECIFICACIO.md §1.7, docs/proves_usuari.md (millora 6 "Fet (M13)"), docs/sessions/M13.md,
+   la fila del M13 a docs/PLA_1_3.md §1.1 i una línia a l'Estat del CLAUDE.md.
+Criteris d'acceptació: decisió 7 del pla complerta; amb X = Y = 0 el so és idèntic a l'actual; un .pmk antic s'obre
+igual; suite ràpida i `-m "not perf"`, ruff i pyright en verd; cap dependència nova.
+Fitxers permesos: model/types.py, model/defaults.py, model/commands.py, model/editing.py (música i ajust), model/__init__.py,
+timeline/, audio/mixer.py (si cal), projectio/, ui/song_panel.py, ui/duration_status.py, i18n, les proves de tot això,
+docs/CONTRACTES.md, docs/ESPECIFICACIO.md, docs/proves_usuari.md (millora 6), docs/sessions/M13.md, la fila del M13 a
+docs/PLA_1_3.md i l'apartat Estat del CLAUDE.md. Si cal tocar-ne cap altre, atura't i proposa-ho.
+Condició d'aturada: la del CLAUDE.md (i la del punt 1). A docs/sessions/M13.md, la prova manual que l'usuari ha de fer.
+```
 
 ### M12 · Versió 1.3.0
 
