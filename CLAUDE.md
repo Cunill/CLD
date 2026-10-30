@@ -160,5 +160,5 @@ Tanda 1 (en paral·lel): M07 ajustar a la música, M08 imatges negres, M11 marge
 M07 "Ajustar a la música" respecta les durades fetes a mà i fa servir 0,4–24 s (decisió 0014, docs/sessions/M07.md): fusionat a
 `main` el 30/10/2026 (PR #93, CI de Windows en verd); la prova manual de l'usuari encara no s'ha confirmat.
 M08 fitxes negres d'inici i final (`Project.slides`, `BlackSlide`, `.pmk` versió 2; docs/sessions/M08.md): fet a la
-branca `claude/vigilant-ramanujan-y6zzrs`, PR oberta; falta la prova manual de l'usuari.
+branca `claude/vigilant-ramanujan-y6zzrs`, PR #95 oberta; falta la prova manual de l'usuari.
 Per reobrir un bloc tancat: vegeu "Com reobrir" a docs/sessions/BNN.md.
