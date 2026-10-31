@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 from pytestqt.qtbot import QtBot
 
+from passimaker.model import OutputFormat
 from passimaker.ui.delegate import ThumbnailSize
 from passimaker.ui.main_window import MainWindow
 from tests.ui.conftest import build_window
@@ -58,10 +59,10 @@ def test_screenshots_of_the_main_states(qtbot: QtBot, questions: RecordedQuestio
     qtbot.wait(60)
     shoot(qtbot, window, "04_panell_avancat")
 
-    window.format_action.setChecked(True)
+    window.format_actions[OutputFormat.VERTICAL].trigger()
     settled(qtbot, window, service)
     shoot(qtbot, window, "05_format_vertical")
-    window.format_action.setChecked(False)
+    window.format_actions[OutputFormat.HORIZONTAL].trigger()
 
     window.set_thumbnail_size(ThumbnailSize.LARGE)
     settled(qtbot, window, service)

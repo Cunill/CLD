@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
 from pytestqt.qtbot import QtBot
 
 from passimaker.model import Music, Project, Song
-from passimaker.model.commands import AddSongs, SetDefaultDuration
+from passimaker.model.commands import AddSongs, SetDefaultDuration, SetMusicSettings, SetPhotoDuration
 from passimaker.ui.duration_status import Balance, FitProblem, durations_of, fit_problem
 from passimaker.ui.main_window import MainWindow
 from passimaker.ui.music_strip import FADE_IN_MARK, FADE_OUT_MARK, SongRole
@@ -162,7 +163,7 @@ def test_the_warning_button_fits_and_the_warning_goes_away(
     window = window_with_photos
     window.controller.execute(AddSongs((song(1, 30),)))
     window.duration_status.fit_button.click()
-    assert questions.fit_checks == []  # 2.5 s per photo: within 1-3 s, nothing to ask.
+    assert questions.fit_checks == []  # 2.5 s per photo: within 0.4-24 s, nothing to ask.
     assert durations_of(window.controller.project).show_s == pytest.approx(30.0)
     assert window.duration_status.balance is Balance.EQUAL
     assert not window.duration_status.warning_label.isVisible()
@@ -173,22 +174,126 @@ def test_fitting_too_many_photos_asks_first(
     window_with_photos: MainWindow, questions: RecordedQuestions
 ) -> None:
     window = window_with_photos
-    window.controller.execute(AddSongs((song(1, 7.2),)))  # 0.6 s per photo
+    window.controller.execute(AddSongs((song(1, 4.2),)))  # 0.35 s per photo, under 0.4 s
     questions.fit = False
     before = window.controller.project
     window.fit_to_music_action.trigger()
-    assert [(c.problem, round(c.seconds_per_photo, 1)) for c in questions.fit_checks] == [
-        (FitProblem.TOO_MANY_PHOTOS, 0.6)
+    assert [(c.problem, round(c.seconds_per_photo, 2)) for c in questions.fit_checks] == [
+        (FitProblem.TOO_MANY_PHOTOS, 0.35)
     ]
     assert window.controller.project is before  # [Cancel·lar]
     questions.fit = True
     window.fit_to_music_action.trigger()
-    assert durations_of(window.controller.project).show_s == pytest.approx(12.0)  # [Aplicar igualment]: 1 s
+    assert durations_of(window.controller.project).show_s == pytest.approx(4.8)  # [Aplicar igualment]: 0.4 s
+
+
+def test_fitting_does_not_ask_for_photos_between_1_and_3_s_or_beyond(
+    window_with_photos: MainWindow, questions: RecordedQuestions
+) -> None:
+    window = window_with_photos
+    window.controller.execute(AddSongs((song(1, 120.0),)))  # 10 s per photo: fine since M07
+    window.fit_to_music_action.trigger()
+    assert questions.fit_checks == []
+    assert durations_of(window.controller.project).show_s == pytest.approx(120.0)
 
 
 def test_fit_problem_tells_music_too_long() -> None:
-    project = Project(photos=make_photos(4), music=Music(songs=(song(1, 60),)))
+    project = Project(slides=make_photos(4), music=Music(songs=(song(1, 120.0),)))  # 30 s per photo > 24 s
     check = fit_problem(project)
     assert check is not None
     assert check.problem is FitProblem.MUSIC_TOO_LONG
-    assert fit_problem(Project(photos=make_photos(4))) is None
+    assert not check.problem.blocks
+    assert fit_problem(Project(slides=make_photos(4))) is None
+    assert fit_problem(Project(slides=make_photos(4), music=Music(songs=(song(1, 60),)))) is None  # 15 s each
+
+
+def test_fit_problem_counts_only_the_free_photos() -> None:
+    photos = tuple(replace(p, duration_s=5.0) if i < 2 else p for i, p in enumerate(make_photos(4)))
+    project = Project(slides=photos, music=Music(songs=(song(1, 10.3),)))  # 0.15 s left for 2 photos
+    check = fit_problem(project)
+    assert check is not None and check.problem is FitProblem.TOO_MANY_PHOTOS
+    assert check.seconds_per_photo == pytest.approx(0.15)
+
+
+def test_fit_problem_when_every_photo_has_a_hand_set_duration() -> None:
+    photos = tuple(replace(p, duration_s=3.0) for p in make_photos(3))
+    check = fit_problem(Project(slides=photos, music=Music(songs=(song(1, 60),))))
+    assert check is not None and check.problem is FitProblem.ALL_FIXED and check.problem.blocks
+
+
+def test_fit_problem_when_the_hand_set_photos_outlast_the_music() -> None:
+    photos = tuple(replace(p, duration_s=10.0) if i == 0 else p for i, p in enumerate(make_photos(3)))
+    check = fit_problem(Project(slides=photos, music=Music(songs=(song(1, 8),))))
+    assert check is not None and check.problem is FitProblem.FIXED_TOO_LONG and check.problem.blocks
+
+
+def test_fitting_with_every_duration_set_by_hand_only_warns(
+    window_with_photos: MainWindow, questions: RecordedQuestions
+) -> None:
+    window = window_with_photos
+    window.controller.execute(
+        SetPhotoDuration(frozenset(p.id for p in window.controller.project.photos), 3.0)
+    )
+    window.controller.execute(AddSongs((song(1, 100.0),)))
+    questions.fit = True  # even if the answer were "apply", a blocked fit changes nothing
+    before = window.controller.project
+    window.fit_to_music_action.trigger()
+    assert [c.problem for c in questions.fit_checks] == [FitProblem.ALL_FIXED]
+    assert window.controller.project is before
+
+
+def test_fitting_keeps_the_hand_set_photos_and_shares_the_rest(window_with_photos: MainWindow) -> None:
+    window = window_with_photos
+    first = window.controller.project.photos[0].id
+    window.controller.execute(SetPhotoDuration(frozenset({first}), 10.0))
+    window.controller.execute(AddSongs((song(1, 32.0),)))  # 22 s left for the other 11 photos
+    window.fit_to_music_action.trigger()
+    project = window.controller.project
+    assert project.photos[0].duration_s == 10.0
+    assert project.default_duration_s == pytest.approx(2.0)
+    assert durations_of(project).show_s == pytest.approx(32.0)
+
+
+def test_the_boxes_of_the_fit_never_talk_about_1_to_3_seconds(qtbot: QtBot) -> None:
+    from passimaker.ui.dialogs import DialogQuestions
+    from passimaker.ui.duration_status import FitCheck
+
+    real = DialogQuestions()
+    qtbot.addWidget(real)
+    for problem in FitProblem:
+        box = real.fit_box(FitCheck(problem, 0.3))
+        qtbot.addWidget(box)
+        assert "1–3" not in box.text() and "1-3" not in box.text()
+        assert len(box.buttons()) == (1 if problem.blocks else 2)
+
+
+# --- M13: silence before and after the music ------------------------------------------------------
+
+
+def test_the_status_bar_counts_the_silences_with_the_music(window_with_photos: MainWindow) -> None:
+    window = window_with_photos
+    window.controller.execute(AddSongs((song(1, 20),)))  # 0:20 of music for 0:24 of photos
+    window.controller.execute(SetMusicSettings(silence_start_s=2.0, silence_end_s=2.0))
+    status = window.duration_status
+    assert status.balance is Balance.EQUAL
+    assert status.music_label.text() == "· Música 0:20"
+    assert not status.warning_label.isVisible()
+    window.controller.execute(SetMusicSettings(silence_end_s=10.0))
+    assert status.warning_label.text() == "⚠ La música dura 0:08 més."
+
+
+def test_fitting_makes_the_show_last_the_silences_plus_the_music(window_with_photos: MainWindow) -> None:
+    window = window_with_photos
+    window.controller.execute(AddSongs((song(1, 30),)))
+    window.controller.execute(SetMusicSettings(silence_start_s=3.0, silence_end_s=3.0))
+    window.duration_status.fit_button.click()
+    assert durations_of(window.controller.project).show_s == pytest.approx(36.0)
+    assert window.duration_status.balance is Balance.EQUAL
+
+
+def test_fit_problem_counts_the_silences() -> None:
+    music = Music(silence_start_s=10.0, silence_end_s=10.0, songs=(song(1, 60),))
+    assert fit_problem(Project(slides=make_photos(4), music=music)) is None  # 20 s each
+    check = fit_problem(Project(slides=make_photos(4), music=replace(music, silence_end_s=60.0)))
+    assert check is not None and check.problem is FitProblem.MUSIC_TOO_LONG
+    assert check.seconds_per_photo == pytest.approx(32.5)

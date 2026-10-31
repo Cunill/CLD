@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 
 from passimaker.model import defaults
 
@@ -19,6 +20,7 @@ class PhotoSlot:
 
     slot_*: the photo's own span (its duration); slots are contiguous and sum to the total.
     visible_*: span where the photo is on screen (slot widened by half of each crossfade).
+    black: the slot of a black slide (M08; photo_id is BLACK_START_ID or BLACK_END_ID).
     """
 
     photo_id: str
@@ -29,6 +31,7 @@ class PhotoSlot:
     visible_end: float
     fade_in: Interval | None
     fade_out: Interval | None
+    black: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,6 +70,8 @@ class VisibleLayer:
     opacity: float
     motion_progress: float
     """0 at the start of the photo's visible span, 1 at its end."""
+    black: bool = False
+    """A black slide (M08): drawn black, without image, motion or fit."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -87,6 +92,15 @@ class DurationLimits:
 DEFAULT_DURATION_LIMITS = DurationLimits()
 
 
+class FitBlock(Enum):
+    """Why a fit left every duration as it was (decision 0014)."""
+
+    ALL_FIXED = "all_fixed"
+    """Every duration is fixed: there is nothing to rescale."""
+    FIXED_TOO_LONG = "fixed_too_long"
+    """The fixed durations alone already last as long as the music or longer."""
+
+
 @dataclass(frozen=True, slots=True)
 class FitResult:
     durations: tuple[float, ...]
@@ -95,3 +109,6 @@ class FitResult:
     cannot be reached within [minimum, maximum] (durations clamped; compare achieved_total_s
     with the target to tell "too many photos" from "music too long")."""
     achieved_total_s: float
+    blocked: FitBlock | None = None
+    """Set when the durations come back unchanged because the fixed ones leave nothing to fit
+    (``warning`` is then True too)."""

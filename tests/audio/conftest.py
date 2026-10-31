@@ -109,7 +109,7 @@ def project(
     count = max(1, round(show_s / photo_s))
     photos = tuple(Photo(f"p{i}", Path(f"{i}.jpg"), None, 4000, 3000) for i in range(count))
     music = Music(master_volume=master, normalize=normalize, songs=tuple(songs_))
-    return Project(photos=photos, default_duration_s=photo_s, music=music)
+    return Project(slides=photos, default_duration_s=photo_s, music=music)
 
 
 type Mixer = Callable[[Project], MixedAudioSource]

@@ -216,14 +216,15 @@ class StoryboardView(QListView):
         """Files dropped on the storyboard go in at the point where they are let go (§1.1)."""
         row = self.drop_row(event.position().toPoint())
         self._hide_insertion()
+        model = self.model()
         if event.mimeData().hasUrls():
             paths = [Path(url.toLocalFile()) for url in event.mimeData().urls() if url.isLocalFile()]
             if paths:
-                self.files_dropped.emit(paths, row)
+                index = model.photo_index(row) if isinstance(model, PhotoListModel) else row
+                self.files_dropped.emit(paths, index)
                 event.acceptProposedAction()
                 return
         if event.mimeData().hasFormat(PHOTO_MIME):
-            model = self.model()
             target = row if row >= 0 else model.rowCount()
             model.dropMimeData(event.mimeData(), Qt.DropAction.MoveAction, target, 0, QModelIndex())
             # Reported as a copy: after a move, Qt would try to remove the dragged rows itself,
@@ -287,8 +288,14 @@ class StoryboardView(QListView):
         """Row a drop at this point lands on; -1 means "at the end".
 
         Between two photos, or in the empty space after the last photo of a line of the grid, it is
-        the place after the nearest photo on the left (where the insertion line is drawn).
+        the place after the nearest photo on the left (where the insertion line is drawn). Never
+        before the black slide of the start or after the one of the end (M08).
         """
+        row = self._pointed_row(position)
+        model = self.model()
+        return model.drop_row(row) if isinstance(model, PhotoListModel) else row
+
+    def _pointed_row(self, position: QPoint) -> int:
         index = self.indexAt(position)
         if index.isValid():
             rect = self.visualRect(index)
@@ -309,6 +316,14 @@ class StoryboardView(QListView):
         return sorted(index.row() for index in self.selectionModel().selectedIndexes())
 
     def selected_ids(self) -> tuple[str, ...]:
+        model = self.model()
+        if not isinstance(model, PhotoListModel):
+            return ()
+        slides = [model.slide_at(row) for row in self.selected_rows()]
+        return tuple(slide.id for slide in slides if slide is not None)
+
+    def selected_photo_ids(self) -> tuple[str, ...]:
+        """selected_ids() without the black slides."""
         model = self.model()
         if not isinstance(model, PhotoListModel):
             return ()
@@ -339,7 +354,8 @@ class StoryboardView(QListView):
 
 
 class StoryboardPanel(QStackedWidget):
-    """The storyboard, or the empty state with the instructions of §1.0 when there is no photo."""
+    """The storyboard, or the empty state with the instructions of §1.0 when there is no photo (the
+    black slides alone do not count)."""
 
     choose_photos = Signal()
 
@@ -356,7 +372,8 @@ class StoryboardPanel(QStackedWidget):
         self.update_state()
 
     def update_state(self) -> None:
-        has_photos = self.view.model().rowCount() > 0
+        model = self.view.model()
+        has_photos = bool(model.photos()) if isinstance(model, PhotoListModel) else model.rowCount() > 0
         self.setCurrentWidget(self.view if has_photos else self.empty)
 
 

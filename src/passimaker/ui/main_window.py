@@ -12,7 +12,19 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 
 from PySide6.QtCore import QSize, Qt, Signal
-from PySide6.QtGui import QAction, QActionGroup, QCloseEvent, QDragEnterEvent, QDropEvent, QKeySequence
+from PySide6.QtGui import (
+    QAction,
+    QActionGroup,
+    QCloseEvent,
+    QColor,
+    QDragEnterEvent,
+    QDropEvent,
+    QKeySequence,
+    QMouseEvent,
+    QPainter,
+    QPaintEvent,
+    QShowEvent,
+)
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -21,6 +33,7 @@ from PySide6.QtWidgets import (
     QProgressBar,
     QPushButton,
     QSplitter,
+    QSplitterHandle,
     QToolBar,
     QToolButton,
     QVBoxLayout,
@@ -31,6 +44,7 @@ from passimaker.images import ImageSource
 from passimaker.logs import log_dir
 from passimaker.model import Change, OutputFormat, ProjectController
 from passimaker.model.commands import (
+    AddBlackSlide,
     DuplicatePhotos,
     FitToMusic,
     MovePhotos,
@@ -39,9 +53,10 @@ from passimaker.model.commands import (
     RotatePhotos,
     SetPhotoMotion,
     SetProjectSettings,
+    ShufflePhotos,
     SortPhotos,
 )
-from passimaker.model.types import MotionMode, Rotation
+from passimaker.model.types import BlackSlidePosition, MotionMode, Rotation
 from passimaker.recorder import CaptureBackend
 from passimaker.ui.delegate import ThumbnailSize
 from passimaker.ui.dialogs import DialogQuestions, WindowQuestions
@@ -55,8 +70,8 @@ from passimaker.ui.music_strip import MusicStrip, SongLoader
 from passimaker.ui.photo_panel import PhotoPanel
 from passimaker.ui.photos import PhotoListModel
 from passimaker.ui.player_panel import PlayerPanel
-from passimaker.ui.project_files import MissingFilesBar, ProjectFiles, RecentProjects
-from passimaker.ui.project_panel import ProjectPanel
+from passimaker.ui.project_files import MissingFilesBar, ProjectFiles, RecentProjects, user_settings
+from passimaker.ui.project_panel import ProjectPanel, format_label
 from passimaker.ui.properties import PropertiesPanel
 from passimaker.ui.record_dialog import RecordDialogs, RecordQuestions, RecordWindow
 from passimaker.ui.song_panel import SongPanel
@@ -70,6 +85,97 @@ CONFIRM_DELETE_FROM = 5
 
 WINDOW_SIZE = QSize(1280, 800)
 TOOLBAR_ICON = QSize(20, 20)
+
+PREVIEW_SPLIT_KEY = "layout/preview_split"
+HANDLE_THICKNESS = 10
+MIN_PREVIEW_HEIGHT = 90
+MIN_PROPERTIES_HEIGHT = 110
+DEFAULT_SPLIT = (3, 2)
+"""Preview : properties heights of the left column when nothing is saved (the 3:2 of §1.0)."""
+
+
+class _GripHandle(QSplitterHandle):
+    """The line between the preview and the properties: thick, with three dots, and a double click
+    sends it back to the default position."""
+
+    def __init__(self, splitter: PreviewSplitter) -> None:
+        super().__init__(Qt.Orientation.Vertical, splitter)
+        self._splitter = splitter
+        self.setCursor(Qt.CursorShape.SizeVerCursor)
+
+    def sizeHint(self) -> QSize:  # noqa: N802 (Qt)
+        return QSize(0, HANDLE_THICKNESS)
+
+    def paintEvent(self, event: QPaintEvent) -> None:  # noqa: N802 (Qt)
+        painter = QPainter(self)
+        colour = self.palette().mid().color()
+        painter.fillRect(self.rect(), self.palette().window().color().darker(108))
+        painter.setPen(colour)
+        painter.drawLine(0, 0, self.width(), 0)
+        painter.drawLine(0, self.height() - 1, self.width(), self.height() - 1)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor(self.palette().dark().color()))
+        centre = self.width() // 2
+        for dx in (-12, 0, 12):
+            painter.drawEllipse(centre + dx - 2, self.height() // 2 - 2, 4, 4)
+
+    def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:  # noqa: N802 (Qt)
+        self._splitter.reset_split()
+
+
+class PreviewSplitter(QSplitter):
+    """Vertical splitter of the left column: the preview above, the properties below. Its position is
+    kept between sessions."""
+
+    def __init__(self, top: QWidget, bottom: QWidget) -> None:
+        super().__init__(Qt.Orientation.Vertical)
+        self.setHandleWidth(HANDLE_THICKNESS)
+        self.setChildrenCollapsible(False)
+        top.setMinimumHeight(MIN_PREVIEW_HEIGHT)
+        bottom.setMinimumHeight(MIN_PROPERTIES_HEIGHT)
+        self.addWidget(top)
+        self.addWidget(bottom)
+        self.setStretchFactor(0, DEFAULT_SPLIT[0])
+        self.setStretchFactor(1, DEFAULT_SPLIT[1])
+        self.splitterMoved.connect(self._remember)
+        self._restored = False
+
+    def createHandle(self) -> QSplitterHandle:  # noqa: N802 (Qt)
+        return _GripHandle(self)
+
+    def _remember(self, *_: int) -> None:
+        sizes = self.sizes()
+        if sum(sizes) > 0:
+            settings = user_settings()
+            settings.setValue(PREVIEW_SPLIT_KEY, sizes[0] / sum(sizes))
+            settings.sync()
+
+    def saved_fraction(self) -> float | None:
+        value = user_settings().value(PREVIEW_SPLIT_KEY)
+        try:
+            fraction = float(value)  # type: ignore[arg-type]
+        except (TypeError, ValueError):
+            return None
+        return fraction if 0.0 < fraction < 1.0 else None
+
+    def apply_fraction(self, fraction: float) -> None:
+        total = sum(self.sizes()) or self.height()
+        top = round(total * fraction)
+        self.setSizes([top, total - top])
+
+    def restore_split(self) -> None:
+        fraction = self.saved_fraction()
+        self.apply_fraction(fraction if fraction is not None else DEFAULT_SPLIT[0] / sum(DEFAULT_SPLIT))
+
+    def reset_split(self) -> None:
+        self.apply_fraction(DEFAULT_SPLIT[0] / sum(DEFAULT_SPLIT))
+        self._remember()
+
+    def showEvent(self, event: QShowEvent) -> None:  # noqa: N802 (Qt)
+        super().showEvent(event)
+        if not self._restored:
+            self._restored = True
+            self.restore_split()
 
 
 class MainWindow(QMainWindow):
@@ -127,16 +233,14 @@ class MainWindow(QMainWindow):
         self._connect()
         self.refresh_status()
         self._refresh_actions()
+        self._show_format()
         self._refresh_title()
 
     # --- Layout ----------------------------------------------------------------------------------
 
     def _build_layout(self) -> None:
-        left = QSplitter(Qt.Orientation.Vertical)
-        left.addWidget(self.player_panel)
-        left.addWidget(self.properties)
-        left.setStretchFactor(0, 3)
-        left.setStretchFactor(1, 2)
+        left = PreviewSplitter(self.player_panel, self.properties)
+        self.preview_splitter = left
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
         self.splitter.addWidget(left)
         self.splitter.addWidget(self.storyboard)
@@ -270,11 +374,29 @@ class MainWindow(QMainWindow):
         self.sort_by_date_action.triggered.connect(lambda: self.controller.execute(SortPhotos(True)))
         self.sort_by_name_action = QAction(self.tr("Ordenar per nom"), self)
         self.sort_by_name_action.triggered.connect(lambda: self.controller.execute(SortPhotos(False)))
+        self.shuffle_action = QAction(self.tr("Barreja les fotos"), self)
+        self.shuffle_action.setToolTip(
+            self.tr("Canvia l'ordre de les fotos a l'atzar; es pot repetir i desfer")
+        )
+        self.shuffle_action.triggered.connect(lambda: self.controller.execute(ShufflePhotos()))
+        # M08: the black slides can be deleted like a photo and put back from here.
+        self.black_start_action = QAction(self.tr("Afegeix negre a l'inici"), self)
+        self.black_start_action.triggered.connect(
+            lambda: self.controller.execute(AddBlackSlide(BlackSlidePosition.START))
+        )
+        self.black_end_action = QAction(self.tr("Afegeix negre al final"), self)
+        self.black_end_action.triggered.connect(
+            lambda: self.controller.execute(AddBlackSlide(BlackSlidePosition.END))
+        )
 
-        self.format_action = QAction(self.tr("Format vertical"), self)
-        self.format_action.setCheckable(True)
-        self.format_action.toggled.connect(self._on_format_toggled)
-        self.format_action.setToolTip(self.tr("Vídeo vertical 9:16, per veure'l al mòbil"))
+        # M10: a menu of the six formats; the button shows the current proportion.
+        self.format_action = QAction(self)
+        self.format_action.setToolTip(
+            self.tr("Forma del vídeo: horitzontal per al televisor, vertical per al mòbil")
+        )
+        self.format_menu = QMenu(self.tr("Format"), self)
+        self.format_action.setMenu(self.format_menu)
+        self.format_actions = self._build_format_actions()
 
         self.guide_action = QAction(self.tr("Guia d'ús"), self)
         self.guide_action.setShortcut(QKeySequence.StandardKey.HelpContents)
@@ -292,6 +414,20 @@ class MainWindow(QMainWindow):
         action = self.music_menu.addAction(text)
         action.triggered.connect(slot)
         return action
+
+    def _build_format_actions(self) -> dict[OutputFormat, QAction]:
+        group = QActionGroup(self)
+        actions: dict[OutputFormat, QAction] = {}
+        for output_format in OutputFormat:
+            if output_format is OutputFormat.VERTICAL:
+                self.format_menu.addSeparator()
+            action = QAction(format_label(self, output_format), self)
+            action.setCheckable(True)
+            action.setActionGroup(group)
+            action.triggered.connect(lambda _=False, wanted=output_format: self._on_format_chosen(wanted))
+            self.format_menu.addAction(action)
+            actions[output_format] = action
+        return actions
 
     def _build_size_actions(self) -> dict[ThumbnailSize, QAction]:
         group = QActionGroup(self)
@@ -343,9 +479,13 @@ class MainWindow(QMainWindow):
         edit_menu.addAction(self.reroll_action)
         edit_menu.addAction(self.reroll_all_action)
         edit_menu.addAction(self.reset_motions_action)
+        edit_menu.addSeparator()
+        edit_menu.addAction(self.black_start_action)
+        edit_menu.addAction(self.black_end_action)
         view_menu = bar.addMenu(self.tr("Visualitza"))
         view_menu.addAction(self.sort_by_date_action)
         view_menu.addAction(self.sort_by_name_action)
+        view_menu.addAction(self.shuffle_action)
         size_menu = view_menu.addMenu(self.tr("Mida de les miniatures"))
         for action in self.size_actions.values():
             size_menu.addAction(action)
@@ -366,10 +506,15 @@ class MainWindow(QMainWindow):
             music_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         self.toolbar.addAction(self.fit_to_music_action)
         self.toolbar.addSeparator()
+        self.toolbar.addAction(self.shuffle_action)
+        self.toolbar.addSeparator()
         self.toolbar.addAction(self.undo_action)
         self.toolbar.addAction(self.redo_action)
         self.toolbar.addSeparator()
         self.toolbar.addAction(self.format_action)
+        format_button = self.toolbar.widgetForAction(self.format_action)
+        if isinstance(format_button, QToolButton):
+            format_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         self.toolbar.addSeparator()
         self.toolbar.addAction(self.export_action)
 
@@ -460,13 +605,15 @@ class MainWindow(QMainWindow):
         self.record_window.activateWindow()
 
     def fit_to_music(self) -> None:
-        """§1.7: asks first when the photos would end outside 1-3 s."""
+        """§1.7: asks first when the photos cannot reach the music; a notice if there is nothing to fit."""
         project = self.controller.project
         if not project.photos or not project.music.songs:
             return
         check = fit_problem(project)
-        if check is not None and not self.questions.confirm_fit(check):
-            return
+        if check is not None:
+            accepted = self.questions.confirm_fit(check)
+            if check.problem.blocks or not accepted:
+                return
         self.controller.execute(FitToMusic())
 
     def export_video(self) -> None:
@@ -501,13 +648,15 @@ class MainWindow(QMainWindow):
 
     def move_selected(self, direction: int) -> None:
         """Ctrl+Left and Ctrl+Right move the selected photos one place (§1.2)."""
-        rows = self.view.selected_rows()
-        if not rows:
+        ids = self.view.selected_photo_ids()
+        if not ids:
             return
-        target = rows[0] - 1 if direction < 0 else rows[-1] + 2
-        if target < 0 or target > len(self.model.photos()):
+        photos = self.model.photos()
+        chosen = set(ids)
+        indices = [i for i, photo in enumerate(photos) if photo.id in chosen]
+        target = indices[0] - 1 if direction < 0 else indices[-1] + 2
+        if target < 0 or target > len(photos):
             return
-        ids = self.view.selected_ids()
         self.controller.execute(MovePhotos(ids, target))
         self.view.select_ids(ids)
 
@@ -548,8 +697,7 @@ class MainWindow(QMainWindow):
 
     # --- Reactions -------------------------------------------------------------------------------
 
-    def _on_format_toggled(self, vertical: bool) -> None:
-        wanted = OutputFormat.VERTICAL if vertical else OutputFormat.HORIZONTAL
+    def _on_format_chosen(self, wanted: OutputFormat) -> None:
         if wanted is not self.controller.project.output_format:
             self.controller.execute(SetProjectSettings(output_format=wanted))
 
@@ -560,11 +708,12 @@ class MainWindow(QMainWindow):
             self.music_changed.emit()
         self.properties.refresh_tabs()
         self._refresh_actions()
-        vertical = self.controller.project.output_format is OutputFormat.VERTICAL
-        if self.format_action.isChecked() != vertical:
-            self.format_action.blockSignals(True)
-            self.format_action.setChecked(vertical)
-            self.format_action.blockSignals(False)
+        self._show_format()
+
+    def _show_format(self) -> None:
+        output_format = self.controller.project.output_format
+        self.format_action.setText(self.tr("Format: {format}").format(format=output_format.label))
+        self.format_actions[output_format].setChecked(True)
 
     def _on_model_reset(self) -> None:
         self.storyboard.update_state()
@@ -572,11 +721,12 @@ class MainWindow(QMainWindow):
         self._on_selection()
 
     def _on_selection(self) -> None:
-        photo = self.view.current_photo()
+        current = self.view.currentIndex()
         rows = self.view.selected_rows()
-        if photo is None and rows:
-            photo = self.model.photo_at(rows[0])
-        self.player_panel.show_photo(photo.id if photo is not None else None)
+        slide = self.model.slide_at(current.row()) if current.isValid() else None
+        if slide is None and rows:
+            slide = self.model.slide_at(rows[0])
+        self.player_panel.show_photo(slide.id if slide is not None else None)
         self.properties.show_photos(self.view.selected_ids())
         self._refresh_actions()
 
@@ -662,9 +812,9 @@ class MainWindow(QMainWindow):
             self.view.schedule_thumbnails()
 
     def _refresh_actions(self) -> None:
-        has_selection = bool(self.view.selected_rows())
+        self.delete_action.setEnabled(bool(self.view.selected_rows()))
+        has_selection = bool(self.view.selected_photo_ids())
         for action in (
-            self.delete_action,
             self.duplicate_action,
             self.move_left_action,
             self.move_right_action,
@@ -682,17 +832,20 @@ class MainWindow(QMainWindow):
         self.select_all_action.setEnabled(has_photos)
         self.sort_by_date_action.setEnabled(has_photos)
         self.sort_by_name_action.setEnabled(has_photos)
+        self.shuffle_action.setEnabled(len(photos) >= 2)
         self.undo_action.setEnabled(self.controller.can_undo)
         self.redo_action.setEnabled(self.controller.can_redo)
         has_songs = bool(self.controller.project.music.songs)
         self.fit_to_music_action.setEnabled(has_photos and has_songs)
         self.export_action.setEnabled(has_photos and not self.video_export.running)
         self.find_missing_action.setEnabled(bool(self.files.missing_ids()))
+        self.black_start_action.setEnabled(self.controller.project.black_start is None)
+        self.black_end_action.setEnabled(self.controller.project.black_end is None)
 
     def refresh_status(self) -> None:
-        """ "124 fotos · 4:30" (§1.3): the total is the sum of the photo durations."""
+        """ "124 fotos · 4:30" (§1.3): the total is the sum of the photo and black slide durations."""
         project = self.controller.project
-        total = sum(project.photo_duration(photo) for photo in project.photos)
+        total = sum(project.photo_duration(slide) for slide in project.slides)
         count = len(project.photos)
         text = self.tr("1 foto · {duration}") if count == 1 else self.tr("{photos} fotos · {duration}")
         self.status_label.setText(text.format(photos=count, duration=clock(total)))

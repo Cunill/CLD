@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from passimaker import timeline
-from passimaker.model import Change, ProjectController
+from passimaker.model import Change, ProjectController, new_project
 from passimaker.model.commands import (
     AddPhotos,
     AddSongs,
@@ -205,11 +205,11 @@ def test_motion_amount_change_rebuilds_windows_but_keeps_the_type() -> None:
 
 
 def test_visible_durations_follow_the_crossfade_rule() -> None:
-    project = Project(photos=(photo("a", duration=1.0), photo("b", duration=3.0), photo("c", duration=3.0)))
+    project = Project(slides=(photo("a", duration=1.0), photo("b", duration=3.0), photo("c", duration=3.0)))
     # a-b: min(1.0, 0.5, 1.5) = 0.5; b-c: min(1.0, 1.5, 1.5) = 1.0
     assert visible_durations(project) == pytest.approx([1.25, 3.0 + 0.25 + 0.5, 3.5])
     assert visible_durations(Project()) == []
-    assert visible_durations(Project(photos=(photo("solo"),))) == [2.0]
+    assert visible_durations(Project(slides=(photo("solo"),))) == [2.0]
 
 
 # --- Fit and motion -------------------------------------------------------------------------------
@@ -299,6 +299,22 @@ def test_output_format_change_keeps_the_motion_types() -> None:
             assert new.motion.type is old
 
 
+def test_the_4_3_format_fills_4_3_photos_and_keeps_the_black_slides() -> None:
+    """M10: the fit is resolved again for the new proportion; black slides have no size or fit."""
+    controller = ProjectController(new_project(seed=7))
+    controller.execute(AddPhotos(photos(4)))  # 4000x3000
+    black = (controller.project.black_start, controller.project.black_end)
+    controller.execute(SetProjectSettings(output_format=OutputFormat.VERTICAL_3_4))
+    assert all(p.motion.resolved_fit is ResolvedFit.BLUR for p in controller.project.photos)
+    controller.execute(SetProjectSettings(output_format=OutputFormat.HORIZONTAL_4_3))
+    project = controller.project
+    assert all(p.motion.resolved_fit is ResolvedFit.FILL for p in project.photos)
+    assert (project.black_start, project.black_end) == black
+    assert project.slides[0] is black[0] and project.slides[-1] is black[1]
+    controller.undo()
+    assert controller.project.output_format is OutputFormat.VERTICAL_3_4
+
+
 def test_project_settings_are_clamped() -> None:
     controller = ProjectController()
     controller.execute(
@@ -383,17 +399,49 @@ def test_music_duration_uses_the_trims() -> None:
 
 
 @pytest.mark.usefixtures("fake_fit")
-def test_fit_to_music_keeps_proportions_and_default_marks() -> None:
+def test_fit_to_music_keeps_the_photos_set_by_hand_and_the_default_marks() -> None:
     controller = controller_with(4, songs=[song("a", 12.0)])
     controller.execute(SetPhotoDuration(frozenset({"p000"}), 3.0))
-    # durations 3, 2, 2, 2 = 9 s; music 12 s → factor 4/3
+    # p000 is fixed at 3 s; the other three share the remaining 9 s
     changes = controller.execute(FitToMusic())
     assert Change.TIMING in changes
     project = controller.project
-    assert [p.duration_s for p in project.photos][1:] == [None, None, None]  # still default
-    assert project.default_duration_s == pytest.approx(8 / 3)
-    assert project.photos[0].duration_s == 3.0  # 4 s, limited to 3 s
-    assert sum(project.photo_duration(p) for p in project.photos) == pytest.approx(3 + 3 * 8 / 3)
+    assert [p.duration_s for p in project.photos] == [3.0, None, None, None]  # still default
+    assert project.default_duration_s == pytest.approx(3.0)
+    assert sum(project.photo_duration(p) for p in project.photos) == pytest.approx(12.0)
+
+
+@pytest.mark.usefixtures("fake_fit")
+def test_fit_to_music_does_not_touch_a_hand_set_duration_even_above_3_s() -> None:
+    controller = controller_with(4, songs=[song("a", 30.0)])
+    controller.execute(SetPhotoDuration(frozenset({"p000"}), 10.0))
+    controller.execute(FitToMusic())
+    project = controller.project
+    assert project.photos[0].duration_s == 10.0
+    assert project.default_duration_s == pytest.approx(20 / 3)
+
+
+@pytest.mark.usefixtures("fake_fit")
+def test_fit_to_music_with_every_duration_set_by_hand_does_nothing() -> None:
+    controller = controller_with(3, songs=[song("a", 30.0)])
+    controller.execute(SetPhotoDuration(frozenset({"p000", "p001", "p002"}), 4.0))
+    assert controller.execute(FitToMusic()) == frozenset()
+
+
+def test_fit_to_music_when_the_music_does_not_cover_the_fixed_photos_does_nothing() -> None:
+    controller = controller_with(3, songs=[song("a", 6.0)])
+    controller.execute(SetPhotoDuration(frozenset({"p000", "p001"}), 5.0))  # 10 s fixed > 6 s of music
+    assert controller.execute(FitToMusic()) == frozenset()
+
+
+def test_fit_to_music_in_the_real_timeline_respects_hand_set_durations() -> None:
+    controller = controller_with(6, songs=[song("a", 40.0)])
+    controller.execute(SetPhotoDuration(frozenset({"p001"}), 15.0))
+    controller.execute(FitToMusic())
+    project = controller.project
+    assert project.photos[1].duration_s == 15.0
+    assert abs(sum(project.photo_duration(p) for p in project.photos) - 40.0) <= 1 / 30 + 1e-9
+    assert project.default_duration_s == pytest.approx(5.0)
 
 
 @pytest.mark.usefixtures("fake_fit")
@@ -412,7 +460,18 @@ def test_keep_fitted_refits_when_photos_or_songs_change() -> None:
     controller.execute(AddSongs((song("b", 5.0),)))
     assert controller.project.default_duration_s == pytest.approx(3.0)
     controller.execute(RemovePhotos(frozenset({"n000"})))
-    assert controller.project.default_duration_s == pytest.approx(3.0)  # 15 s / 4 = 3.75, limited
+    assert controller.project.default_duration_s == pytest.approx(3.75)  # 15 s / 4 photos, no 3 s limit now
+
+
+@pytest.mark.usefixtures("fake_fit")
+def test_keep_fitted_keeps_the_hand_set_photos_when_photos_are_added() -> None:
+    controller = controller_with(4, songs=[song("a", 20.0)])
+    controller.execute(SetPhotoDuration(frozenset({"p000"}), 8.0))
+    controller.execute(SetMusicSettings(keep_fitted=True))
+    assert controller.project.default_duration_s == pytest.approx(4.0)  # 12 s among 3 photos
+    controller.execute(AddPhotos(photos(1, prefix="n")))
+    assert controller.project.photos[0].duration_s == 8.0
+    assert controller.project.default_duration_s == pytest.approx(3.0)  # 12 s among 4 photos
 
 
 def test_fit_to_music_with_the_real_timeline() -> None:
@@ -428,7 +487,7 @@ def test_fit_to_music_with_the_real_timeline() -> None:
 def test_visible_durations_match_the_timeline() -> None:
     """The motion draw uses the same visible spans as the timeline (block B2)."""
     durations = [1.0, 3.0, 1.4, 2.2, 2.0, 1.0]
-    project = Project(photos=tuple(photo(f"q{i}", duration=d) for i, d in enumerate(durations)))
+    project = Project(slides=tuple(photo(f"q{i}", duration=d) for i, d in enumerate(durations)))
     line = timeline.compute_timeline(project)
     spans = [s.visible_end - s.visible_start for s in line.slots]
     assert spans == pytest.approx(visible_durations(project))

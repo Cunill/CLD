@@ -2,7 +2,13 @@
 
 A .pmk file is indented UTF-8 JSON (§1.10: readable structured text):
 
-    {"format": "passimaker", "format_version": 1, "project": {...}}
+    {"format": "passimaker", "format_version": 2, "project": {...}}
+
+Version 2 (M08) adds "black_start" and "black_end" to the project: {"duration_s": ...} or null. A
+version 1 file has neither, so it opens without black slides; it is saved again as version 2.
+M10 writes "output_format" with its proportion ("horizontal_16_9", "vertical_2_3", ...); the
+values of older files ("horizontal", "vertical") still open as 16:9 and 9:16.
+"music" also has "silence_start_s" and "silence_end_s" (M13); files saved before them open with 0.
 
 Every photo and song stores two paths: `path` (absolute) and `relative_path` (relative to the
 folder of the .pmk file, with "/" separators, or null when there is none, e.g. another drive).
@@ -26,6 +32,8 @@ from passimaker.common import PassiMakerError
 from passimaker.model import defaults
 from passimaker.model.editing import clamp_song
 from passimaker.model.types import (
+    BlackSlide,
+    BlackSlidePosition,
     Fade,
     FitMode,
     MotionMode,
@@ -127,6 +135,10 @@ def _song_to_json(song: Song, base: Path) -> dict[str, Any]:
     }
 
 
+def _black_to_json(slide: BlackSlide | None) -> dict[str, Any] | None:
+    return None if slide is None else {"duration_s": slide.duration_s}
+
+
 def project_to_json(project: Project, base: Path) -> dict[str, Any]:
     """The JSON document of a project; relative paths are computed against `base`."""
     music = project.music
@@ -144,11 +156,15 @@ def project_to_json(project: Project, base: Path) -> dict[str, Any]:
             "motion_enabled": project.motion_enabled,
             "zoom_amount": project.zoom_amount,
             "pan_amount": project.pan_amount,
+            "black_start": _black_to_json(project.black_start),
+            "black_end": _black_to_json(project.black_end),
             "photos": [_photo_to_json(p, base) for p in project.photos],
             "music": {
                 "master_volume": music.master_volume,
                 "normalize": music.normalize,
                 "keep_fitted": music.keep_fitted,
+                "silence_start_s": music.silence_start_s,
+                "silence_end_s": music.silence_end_s,
                 "songs": [_song_to_json(s, base) for s in music.songs],
             },
         },
@@ -214,6 +230,12 @@ def _optional_number(data: Mapping[str, Any], key: str) -> float | None:
     return None if data.get(key) is None else _number(data, key)
 
 
+def _silence(music: Mapping[str, Any], key: str) -> float:
+    """A silence of the music (M13); files saved before it have none (0)."""
+    value = _optional_number(music, key)
+    return defaults.MUSIC_SILENCE_RANGE.clamp(value if value is not None else defaults.MUSIC_SILENCE_S)
+
+
 def _object(data: Mapping[str, Any], key: str) -> Mapping[str, Any]:
     return cast(Mapping[str, Any], _field(data, key, dict))
 
@@ -227,6 +249,17 @@ def _enum[E: Enum](data: Mapping[str, Any], key: str, enum: type[E]) -> E:
         return enum(data[key])
     except (KeyError, ValueError) as error:
         raise _CorruptError(f"valor no vàlid al camp {key!r}") from error
+
+
+LEGACY_FORMAT_VALUES = {"horizontal": OutputFormat.HORIZONTAL, "vertical": OutputFormat.VERTICAL}
+"""Values of output_format before M10 (versions 1 and 2 of 1.2.0 and the M08 development builds)."""
+
+
+def _output_format(data: Mapping[str, Any]) -> OutputFormat:
+    value = data.get("output_format")
+    if isinstance(value, str) and value in LEGACY_FORMAT_VALUES:
+        return LEGACY_FORMAT_VALUES[value]
+    return _enum(data, "output_format", OutputFormat)
 
 
 def _window(data: Mapping[str, Any]) -> Window:
@@ -357,14 +390,19 @@ def project_from_json(document: object, base: Path) -> OpenResult:
         missing: list[Path] = []
         photos = tuple(_photo(p, base, missing) for p in _objects(data, "photos"))
         songs = tuple(_song(s, base, missing) for s in _objects(music, "songs"))
-        if len({p.id for p in photos}) != len(photos) or len({s.id for s in songs}) != len(songs):
+        slides = (
+            *_black(data, "black_start", BlackSlidePosition.START),
+            *photos,
+            *_black(data, "black_end", BlackSlidePosition.END),
+        )
+        if len({p.id for p in slides}) != len(slides) or len({s.id for s in songs}) != len(songs):
             raise _CorruptError("identificadors repetits")
         if any(p.width <= 0 or p.height <= 0 for p in photos):
             raise _CorruptError("mida de foto no vàlida")
         project = Project(
             name=_field(data, "name", str),
             format_version=defaults.FORMAT_VERSION,
-            output_format=_enum(data, "output_format", OutputFormat),
+            output_format=_output_format(data),
             seed=_field(data, "seed", int),
             default_duration_s=defaults.PHOTO_DURATION_RANGE.clamp(_number(data, "default_duration_s")),
             crossfade_s=defaults.CROSSFADE_RANGE.clamp(_number(data, "crossfade_s")),
@@ -373,17 +411,27 @@ def project_from_json(document: object, base: Path) -> OpenResult:
             motion_enabled=_field(data, "motion_enabled", bool),
             zoom_amount=defaults.MOTION_AMOUNT_RANGE.clamp(_number(data, "zoom_amount")),
             pan_amount=defaults.MOTION_AMOUNT_RANGE.clamp(_number(data, "pan_amount")),
-            photos=photos,
+            slides=slides,
             music=Music(
                 master_volume=defaults.MASTER_VOLUME_RANGE.clamp(_number(music, "master_volume")),
                 normalize=_field(music, "normalize", bool),
                 keep_fitted=_field(music, "keep_fitted", bool),
+                silence_start_s=_silence(music, "silence_start_s"),
+                silence_end_s=_silence(music, "silence_end_s"),
                 songs=songs,
             ),
         )
     except _CorruptError as error:
         raise ProjectFileError(ERROR_CORRUPT, str(error)) from error
     return OpenResult(project, tuple(missing))
+
+
+def _black(data: Mapping[str, Any], key: str, position: BlackSlidePosition) -> tuple[BlackSlide, ...]:
+    """The black slide stored under `key` (version 2), or none (null, or a version 1 file)."""
+    if data.get(key) is None:
+        return ()
+    seconds = defaults.PHOTO_DURATION_RANGE.clamp(_number(_object(data, key), "duration_s"))
+    return (BlackSlide(position, seconds),)
 
 
 def _reject_constant(name: str) -> float:
@@ -443,11 +491,11 @@ def relink(project: Project, folder: Path) -> tuple[Project, int]:
         found = finder(item.path)
         return item if found is None else replace(item, path=found, relative_path=None)
 
-    photos = tuple(relinked(p, find) for p in project.photos)
+    slides = tuple(relinked(s, find) if isinstance(s, Photo) else s for s in project.slides)
     songs = tuple(relinked(s, find) for s in project.music.songs)
     if count == 0:
         return project, 0
-    return replace(project, photos=photos, music=replace(project.music, songs=songs)), count
+    return replace(project, slides=slides, music=replace(project.music, songs=songs)), count
 
 
 # --- Recovery copy --------------------------------------------------------------------------------

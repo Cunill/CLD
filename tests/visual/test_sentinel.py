@@ -13,6 +13,7 @@ from tests.visual.helpers import (
     ALL_MOTIONS,
     build_project,
     compositor_for,
+    frame_size,
     frame_times,
     magenta_count,
     photo,
@@ -23,8 +24,7 @@ PROJECTS = synthetic_projects()
 
 
 def _size(project: Project, long_side: int) -> tuple[int, int]:
-    short = long_side * 9 // 16
-    return (long_side, short) if project.output_format is OutputFormat.HORIZONTAL else (short, long_side)
+    return frame_size(project.output_format, long_side)
 
 
 def test_the_projects_cover_every_motion_fit_and_format() -> None:
@@ -67,7 +67,7 @@ def _too_wide_project() -> Project:
     project = build_project([photo("a", 4000, 3000)], motions={"a": MotionType.NONE})
     window = Window(0.5, 0.5, 0.8)
     motion = PhotoMotion(start=window, end=window, resolved_fit=ResolvedFit.FILL)
-    return replace(project, photos=(replace(project.photos[0], motion=motion),))
+    return replace(project, slides=(replace(project.photos[0], motion=motion),))
 
 
 def test_sentinel_paints_whatever_falls_outside_the_canvas(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -101,7 +101,7 @@ def test_a_motion_that_does_not_fit_the_canvas_is_shown_whole() -> None:
         end=Window(0.9, 0.5, 1.0),
         resolved_fit=ResolvedFit.FILL,
     )
-    project = replace(project, photos=(replace(project.photos[0], motion=motion),))
+    project = replace(project, slides=(replace(project.photos[0], motion=motion),))
     compositor, timeline = compositor_for(project)
     for t in frame_times(timeline, step=5):
         assert magenta_count(compositor.frame_at(t, 320, 180, sentinel=True)) == 0

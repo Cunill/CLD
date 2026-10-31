@@ -65,11 +65,20 @@ class PhotoDelegate(QStyledItemDelegate):
             painter.setBrush(palette.color(QPalette.ColorRole.Highlight))
             painter.drawRoundedRect(rect.adjusted(1, 1, -1, -1), 4, 4)
         box = QRect(rect.left() + PADDING, rect.top() + PADDING, self._size.value, self._size.value)
-        self._paint_image(painter, box, index, palette)
+        if bool(index.data(PhotoRole.BLACK)):
+            self._paint_black(painter, box)
+        else:
+            self._paint_image(painter, box, index, palette)
         self._paint_text(painter, rect, box, index, palette, selected)
         painter.restore()
 
     # --- Parts -----------------------------------------------------------------------------------
+
+    def _paint_black(self, painter: QPainter, box: QRect) -> None:
+        """A black slide (M08): a black card with a thin border, so it shows on a dark background."""
+        painter.setPen(QColor(110, 110, 110))
+        painter.setBrush(QColor(0, 0, 0))
+        painter.drawRect(box.adjusted(0, 0, -1, -1))
 
     def _paint_image(
         self, painter: QPainter, box: QRect, index: QModelIndex | QPersistentModelIndex, palette: QPalette

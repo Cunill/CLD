@@ -22,6 +22,7 @@ from tests.visual.helpers import (
     MemoryImageSource,
     build_project,
     compositor_for,
+    frame_size,
     frame_times,
     magenta_count,
     photo,
@@ -61,7 +62,7 @@ def test_real_photos_through_the_real_decoder(
     source = CachedImageSource(workers=1)
     try:
         compositor, timeline = compositor_for(project, source)
-        width, height = (640, 360) if output_format is OutputFormat.HORIZONTAL else (360, 640)
+        width, height = frame_size(output_format, 640)
         for t in frame_times(timeline, step=4):
             frame = compositor.frame_at(t, width, height, sentinel=True)
             assert magenta_count(frame) == 0, t
@@ -210,7 +211,7 @@ def test_photos_of_a_project_edited_by_hand_keep_working() -> None:
     """A stored motion drawn for another fit is replaced by the whole canvas (no borders)."""
     project = build_project([photo("v", 3000, 4000)], OutputFormat.HORIZONTAL)
     moved = replace(project.photos[0], width=4000, height=3000)  # now FILL, motion was for BLUR
-    project = replace(project, photos=(moved,))
+    project = replace(project, slides=(moved,))
     compositor, timeline = compositor_for(project, MemoryImageSource(synthetic_images(project).images))
     for t in frame_times(timeline, step=6):
         assert magenta_count(compositor.frame_at(t, 320, 180, sentinel=True)) == 0

@@ -2,11 +2,13 @@
 
 "124 fotos · 4:30 · Música 5:52 ⚠ La música dura 1:22 més [Ajustar]": the length of the music next
 to the length of the show, and a discreet warning when they differ. Before fitting, ``fit_problem``
-tells whether the photos would end outside 1-3 s, so the window can ask before applying it.
+tells whether the photos could not reach the music within their limits (or whether there is nothing to
+fit), so the window can ask or warn before applying it.
 """
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from enum import Enum
 
@@ -14,8 +16,9 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QWidget
 
 from passimaker.model import Project
-from passimaker.model.editing import music_duration
+from passimaker.model.editing import fixed_durations, music_duration, music_span
 from passimaker.timeline import fit_to_music
+from passimaker.timeline.types import FitBlock
 from passimaker.ui.formatting import clock
 
 WARNING_MARK = "⚠"
@@ -34,11 +37,13 @@ class Balance(Enum):
 class Durations:
     show_s: float
     music_s: float
+    silence_s: float = 0.0
+    """The silences before and after the music (M13): the show needs them too."""
 
     @property
     def difference_s(self) -> float:
-        """Music minus show; positive when the music lasts longer."""
-        return self.music_s - self.show_s
+        """Music (with its silences) minus show; positive when the music lasts longer."""
+        return self.music_s + self.silence_s - self.show_s
 
     @property
     def balance(self) -> Balance:
@@ -52,13 +57,23 @@ class Durations:
 
 def durations_of(project: Project) -> Durations:
     """The show is the sum of the photo durations, as in "124 fotos · 4:30" (§1.3)."""
-    show = sum(project.photo_duration(photo) for photo in project.photos)
-    return Durations(show, music_duration(project.music))
+    show = sum(project.photo_duration(slide) for slide in project.slides)  # black slides too (M08)
+    music = project.music
+    return Durations(show, music_duration(music), music.silence_start_s + music.silence_end_s)
 
 
 class FitProblem(Enum):
     TOO_MANY_PHOTOS = "too_many_photos"
     MUSIC_TOO_LONG = "music_too_long"
+    ALL_FIXED = "all_fixed"
+    """Every duration was set by hand: nothing to fit (decision 0014)."""
+    FIXED_TOO_LONG = "fixed_too_long"
+    """The durations set by hand already last as long as the music or longer."""
+
+    @property
+    def blocks(self) -> bool:
+        """True when the fit cannot be applied at all (no "apply anyway")."""
+        return self in (FitProblem.ALL_FIXED, FitProblem.FIXED_TOO_LONG)
 
 
 @dataclass(frozen=True, slots=True)
@@ -68,15 +83,24 @@ class FitCheck:
 
 
 def fit_problem(project: Project) -> FitCheck | None:
-    """§1.7: None when every photo can last 1-3 s after fitting; otherwise what the warning says."""
-    durations = [project.photo_duration(photo) for photo in project.photos]
-    target = music_duration(project.music)
-    if not durations or target <= 0:
+    """§1.7: None when the free photos can reach the music within 0.4-24 s; otherwise what the warning says.
+
+    ``seconds_per_photo`` is what each free photo would last (the music left after the fixed ones).
+    """
+    durations = [project.photo_duration(slide) for slide in project.slides]  # as fixed_durations (M08)
+    target = music_span(project.music)  # the silences too (M13)
+    if not project.photos or target <= 0:
         return None
-    result = fit_to_music(durations, target)
+    fixed = fixed_durations(project)
+    result = fit_to_music(durations, target, fixed=fixed)
+    if result.blocked is not None:
+        problem = FitProblem.ALL_FIXED if result.blocked is FitBlock.ALL_FIXED else FitProblem.FIXED_TOO_LONG
+        return FitCheck(problem, 0.0)
     if not result.warning:
         return None
-    per_photo = target / len(durations)
+    free = fixed.count(False)
+    fixed_total = math.fsum(d for d, f in zip(durations, fixed, strict=True) if f)
+    per_photo = (target - fixed_total) / free
     problem = FitProblem.MUSIC_TOO_LONG if result.achieved_total_s < target else FitProblem.TOO_MANY_PHOTOS
     return FitCheck(problem, per_photo)
 

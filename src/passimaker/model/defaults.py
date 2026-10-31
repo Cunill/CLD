@@ -19,14 +19,17 @@ class Range:
         return min(self.maximum, max(self.minimum, value))
 
 
-FORMAT_VERSION = 1
+FORMAT_VERSION = 2
+"""2 (M08): black slides at the start and the end; version 1 files open without them."""
 FPS = 30
 
 PHOTO_DURATION_S = 2.0
 PHOTO_DURATION_RANGE = Range(0.4, 24.0, 0.1)
 """What can be set by hand (M05, user request); the timeline shortens the crossfade of a short photo."""
-FIT_TO_MUSIC_DURATION_RANGE = Range(1.0, 3.0, 0.1)
-"""What "Ajustar a la música" may give each photo (decision 0005): shorter photos would be dizzying."""
+BLACK_SLIDE_DURATION_S = 2.0
+"""Black slides at the start and the end of a new project (M08); their duration uses PHOTO_DURATION_RANGE."""
+FIT_TO_MUSIC_DURATION_RANGE = PHOTO_DURATION_RANGE
+"""What "Ajustar a la música" may give each photo: the same range as by hand (decision 0014, M07)."""
 
 CROSSFADE_S = 1.0
 CROSSFADE_RANGE = Range(0.5, 1.5, 0.1)
@@ -45,6 +48,9 @@ SONG_FADE_IN_S = 1.0
 SONG_FADE_OUT_S = 3.0
 SONG_FADE_RANGE = Range(0.0, 10.0, 0.5)
 MUSIC_FINAL_FADE_S = 3.0
+MUSIC_SILENCE_S = 0.0
+MUSIC_SILENCE_RANGE = Range(0.0, 60.0, 0.5)
+"""Seconds of silence before the first song and after the music, up to the end of the show (M13)."""
 CUT_MICRO_FADE_S = 0.010
 SHORT_SONG_FADE_FRACTION = 0.4
 SONG_TRIM_STEP_S = 0.1
@@ -58,7 +64,7 @@ SONG_VOLUME_RANGE = Range(0.0, 1.5, 0.01)
 LOUDNESS_TARGET_LUFS = -16.0
 LIMITER_CEILING_DBFS = -1.0
 
-FIT_TO_MUSIC_MIN_DURATION_WARNING_S = 1.0
+FIT_TO_MUSIC_MIN_DURATION_WARNING_S = FIT_TO_MUSIC_DURATION_RANGE.minimum
 
 MAX_PHOTOS_WITHOUT_WARNING = 1000
 MIN_PHOTO_SIDE_PX = 64

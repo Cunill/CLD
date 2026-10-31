@@ -43,8 +43,9 @@ from passimaker.export import (
 from passimaker.ffmpeg import locate, probe
 from passimaker.i18n import message
 from passimaker.importer import FailedFile, ImportFailure, import_paths, photo_from_candidate, sort_candidates
-from passimaker.model import OutputFormat, Project, ProjectController
-from passimaker.model.commands import AddPhotos, AddSongs, FitToMusic
+from passimaker.model import BLACK_END_ID, BLACK_START_ID, OutputFormat, Project, ProjectController
+from passimaker.model import new_project as empty_project
+from passimaker.model.commands import AddPhotos, AddSongs, FitToMusic, SetPhotoDuration
 from passimaker.projectio import EXTENSION, open_project, save_project
 from passimaker.timeline import compute_timeline
 
@@ -98,7 +99,13 @@ def build_new_parser() -> argparse.ArgumentParser:
     parser.add_argument("photos_dir", type=Path, help="Carpeta amb les fotos")
     parser.add_argument("music", type=Path, nargs="*", help="Fitxers de música, en ordre")
     parser.add_argument("-o", "--output", type=Path, required=True, help="Fitxer .pmk de sortida")
-    parser.add_argument("--vertical", action="store_true", help="Format vertical 1080x1920")
+    parser.add_argument(
+        "--format",
+        choices=[f.label for f in OutputFormat],
+        default=None,
+        help="Proporció: 16:9, 3:2 o 4:3 horitzontals, o 9:16, 2:3 o 3:4 verticals (per defecte, 16:9)",
+    )
+    parser.add_argument("--vertical", action="store_true", help="Format vertical 9:16 (com --format 9:16)")
     parser.add_argument("--ajustar", action="store_true", help="Ajusta les durades a la música")
     parser.add_argument(
         "--llavor",
@@ -128,11 +135,13 @@ def new_project(
     output_format: OutputFormat = OutputFormat.HORIZONTAL,
     fit_to_music: bool = False,
     seed: int | None = None,
+    black_slide_s: float | None = None,
     err: TextIO | None = None,
 ) -> Project:
-    """The project that passimaker-nou saves: every photo of the folder (not its subfolders), in the
-    automatic order of §1.1, and the songs in the given order. seed=None draws a random seed (saved
-    in the project). Raises PassiMakerError."""
+    """The project that passimaker-nou saves: the two black slides (M08), every photo of the folder (not
+    its subfolders), in the automatic order of §1.1, and the songs in the given order. seed=None draws
+    a random seed (saved in the project); black_slide_s=None keeps the default black slide duration.
+    Raises PassiMakerError."""
     out = err if err is not None else sys.stderr
     result = import_paths([photos_dir.absolute()])
     for failure in result.failures:
@@ -146,8 +155,10 @@ def new_project(
     songs = tuple(song_from_file(path, f"s{i:02d}") for i, path in enumerate(music, start=1))
     if seed is None:
         seed = secrets.randbelow(NEW_SEED_LIMIT)
-    base = Project(name=name, output_format=output_format, seed=seed)
+    base = empty_project(name=name, output_format=output_format, seed=seed)
     controller = ProjectController(base)
+    if black_slide_s is not None:
+        controller.execute(SetPhotoDuration(frozenset({BLACK_START_ID, BLACK_END_ID}), black_slide_s))
     if photos:
         controller.execute(AddPhotos(photos))
     if songs:
@@ -161,6 +172,15 @@ def _failure_text(failure: FailedFile) -> str:
     return f"{failure.path.name}: {_IMPORT_FAILURES.get(failure.reason, failure.reason.value)}"
 
 
+def _output_format(label: str | None, vertical: bool) -> OutputFormat | None:
+    """The format of --format (M10), --vertical (9:16, as before) or 16:9; None if they disagree."""
+    by_label = {f.label: f for f in OutputFormat}
+    chosen = by_label[label] if label is not None else None
+    if vertical:
+        return OutputFormat.VERTICAL if chosen in (None, OutputFormat.VERTICAL) else None
+    return chosen if chosen is not None else OutputFormat.HORIZONTAL
+
+
 def main_new(argv: list[str] | None = None) -> int:
     args = build_new_parser().parse_args(argv)
     _configure_logging()
@@ -170,6 +190,10 @@ def main_new(argv: list[str] | None = None) -> int:
     if not args.photos_dir.is_dir():
         print(f"No es troba la carpeta {args.photos_dir}", file=sys.stderr)
         return EXIT_ERROR
+    output_format = _output_format(args.format, args.vertical)
+    if output_format is None:
+        print("--vertical i --format no coincideixen.", file=sys.stderr)
+        return EXIT_ERROR
     if args.ajustar and not args.music:
         print("--ajustar no fa res sense música.", file=sys.stderr)
     try:
@@ -177,7 +201,7 @@ def main_new(argv: list[str] | None = None) -> int:
             args.photos_dir,
             args.music,
             name=output.stem,
-            output_format=OutputFormat.VERTICAL if args.vertical else OutputFormat.HORIZONTAL,
+            output_format=output_format,
             fit_to_music=args.ajustar,
             seed=args.llavor,
         )
@@ -283,6 +307,8 @@ SELF_TEST_PHOTOS = ((1600, 1200), (1200, 1600), (1920, 1080), (1500, 1500))
 SELF_TEST_DURATION_S = 5.0
 """The length the plan asks for (B12): the photos are fitted to a song of exactly 5 s."""
 SELF_TEST_TOLERANCE_S = 0.1
+SELF_TEST_BLACK_SLIDE_S = 0.5
+"""The black slides of the self-test (M08) are short, so the 5 s still leave about 1 s per photo."""
 SELF_TEST_SEED = 12
 """Fixed: the self-test always makes the same video (rule 5)."""
 SELF_TEST_TONE_HZ = 440.0
@@ -352,7 +378,13 @@ def self_test(work_dir: Path, *, err: TextIO | None = None) -> int:
     try:
         photos, song = write_selftest_files(work_dir)
         project = new_project(
-            photos, [song], name=_SELF_TEST_NAME, fit_to_music=True, seed=SELF_TEST_SEED, err=out
+            photos,
+            [song],
+            name=_SELF_TEST_NAME,
+            fit_to_music=True,
+            seed=SELF_TEST_SEED,
+            black_slide_s=SELF_TEST_BLACK_SLIDE_S,
+            err=out,
         )
         project_path = work_dir / f"{_SELF_TEST_NAME}{EXTENSION}"
         save_project(project, project_path)

@@ -27,7 +27,7 @@ def make_project(
         crossfade_s=crossfade_s,
         fade_from_black_s=fade_from_black_s,
         fade_to_black_s=fade_to_black_s,
-        photos=photos,
+        slides=photos,
         music=Music(songs=tuple(songs)),
     )
 

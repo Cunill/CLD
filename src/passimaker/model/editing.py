@@ -12,6 +12,7 @@ photo motions are kept consistent with the rest of the project:
 
 from __future__ import annotations
 
+import random
 import re
 from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
 from dataclasses import replace
@@ -22,6 +23,7 @@ from typing import assert_never
 from passimaker import timeline
 from passimaker.model import defaults
 from passimaker.model.commands import (
+    AddBlackSlide,
     AddPhotos,
     AddSongs,
     Change,
@@ -40,10 +42,13 @@ from passimaker.model.commands import (
     SetPhotoFit,
     SetPhotoMotion,
     SetProjectSettings,
+    ShufflePhotos,
     SortPhotos,
     UpdateSong,
 )
 from passimaker.model.types import (
+    BlackSlide,
+    BlackSlidePosition,
     Fade,
     MotionMode,
     Music,
@@ -70,13 +75,15 @@ def visible_durations(project: Project) -> list[float]:
 
     A crossfade never lasts more than half of the shorter of its two photos (§1.4). This is the
     same rule passimaker.timeline applies (block B2); the motion draw only needs the durations.
+    The black slides are neighbours like any photo (M08) but get no value: one value per photo.
     """
-    durations = [project.photo_duration(p) for p in project.photos]
+    durations = [project.photo_duration(s) for s in project.slides]
     halves = [min(project.crossfade_s, a / 2, b / 2) / 2 for a, b in pairwise(durations)]
-    return [
+    visible = [
         d + (halves[i - 1] if i > 0 else 0.0) + (halves[i] if i < len(halves) else 0.0)
         for i, d in enumerate(durations)
     ]
+    return [v for v, s in zip(visible, project.slides, strict=True) if isinstance(s, Photo)]
 
 
 def song_duration(song: Song) -> float:
@@ -87,6 +94,12 @@ def song_duration(song: Song) -> float:
 
 def music_duration(music: Music) -> float:
     return sum(song_duration(s) for s in music.songs)
+
+
+def music_span(music: Music) -> float:
+    """How long the show must last for all the music: the silences plus the songs (M13); 0 without music."""
+    songs = music_duration(music)
+    return music.silence_start_s + songs + music.silence_end_s if songs > 0 else 0.0
 
 
 def changes_between(old: Project, new: Project) -> set[Change]:
@@ -105,8 +118,10 @@ def changes_between(old: Project, new: Project) -> set[Change]:
 
 def _photo_identity(project: Project) -> Hashable:
     return tuple(
-        (p.id, p.path, p.relative_path, p.exif_orientation, p.capture_time, p.low_resolution)
-        for p in project.photos
+        (s.id, s.path, s.relative_path, s.exif_orientation, s.capture_time, s.low_resolution)
+        if isinstance(s, Photo)
+        else (s.id,)
+        for s in project.slides
     )
 
 
@@ -116,7 +131,7 @@ def _timing_key(project: Project) -> Hashable:
         project.crossfade_s,
         project.fade_from_black_s,
         project.fade_to_black_s,
-        tuple(p.duration_s for p in project.photos),
+        tuple(s.duration_s for s in project.slides),
     )
 
 
@@ -223,11 +238,19 @@ def _requests(project: Project, current: Mapping[str, PhotoMotion | None]) -> li
     ]
 
 
+def _with_photos(project: Project, photos: Iterable[Photo]) -> Project:
+    """The project with these photos between its black slides, which never move (M08)."""
+    start = () if project.black_start is None else (project.black_start,)
+    end = () if project.black_end is None else (project.black_end,)
+    return replace(project, slides=(*start, *photos, *end))
+
+
 def _with_motions(project: Project, motions: Mapping[str, PhotoMotion]) -> Project:
     if not motions:
         return project
-    photos = tuple(replace(p, motion=motions[p.id]) if p.id in motions else p for p in project.photos)
-    return replace(project, photos=photos)
+    return _with_photos(
+        project, (replace(p, motion=motions[p.id]) if p.id in motions else p for p in project.photos)
+    )
 
 
 def _draw(project: Project, current: Mapping[str, PhotoMotion | None], reroll: bool) -> Project:
@@ -264,27 +287,42 @@ def _refresh_motions(old: Project, new: Project, skip: Iterable[str] = ()) -> Pr
 # --- Fit to music ---------------------------------------------------------------------------------
 
 
-def fit_to_music(project: Project) -> Project:
-    """Rescales the photo durations so the show lasts as long as the music (§1.7).
+def fixed_durations(project: Project) -> list[bool]:
+    """Which items keep their duration when fitting: those with a duration of their own (decision 0014).
 
-    The durations come from passimaker.timeline.fit_to_music (block B2), which keeps the proportions
-    and applies the 1-3 s limits. Photos that used the default duration keep doing so (with a new
-    default) when they all get the same fitted value, so the "custom duration" marks do not change.
+    Only ``duration_s`` matters, so anything on the board that carries its own duration (photos set by
+    hand, black slides of M08) counts as fixed without being told apart. One value per slide.
     """
-    target = music_duration(project.music)
+    return [item.duration_s is not None for item in project.slides]
+
+
+def fit_to_music(project: Project) -> Project:
+    """Rescales the free photo durations so the show lasts as long as the music (§1.7).
+
+    Photos with a duration set by hand and the black slides (M08) do not change; the music left after
+    them is shared among the others by passimaker.timeline.fit_to_music, within the 0.4-24 s limits
+    (decision 0014). The free photos use the project default, so they all get the same value and it
+    becomes the new default; the "custom duration" marks do not change. If nothing can be fitted, the
+    project is returned as is.
+    """
+    target = music_span(project.music)
     if not project.photos or target <= 0:
         return project
-    durations = [project.photo_duration(p) for p in project.photos]
-    result = timeline.fit_to_music(durations, target)
+    durations = [project.photo_duration(s) for s in project.slides]
+    result = timeline.fit_to_music(durations, target, fixed=fixed_durations(project))
+    if result.blocked is not None:
+        return project
     fitted = [defaults.FIT_TO_MUSIC_DURATION_RANGE.clamp(d) for d in result.durations]
-    default_values = {fitted[i] for i, p in enumerate(project.photos) if p.duration_s is None}
+    default_values = {fitted[i] for i, s in enumerate(project.slides) if s.duration_s is None}
     new_default = default_values.pop() if len(default_values) == 1 else None
-    photos = tuple(
-        replace(p, duration_s=None if (p.duration_s is None and new_default is not None) else fitted[i])
-        for i, p in enumerate(project.photos)
+    slides = tuple(
+        replace(s, duration_s=None if new_default is not None else fitted[i])
+        if isinstance(s, Photo) and s.duration_s is None
+        else s
+        for i, s in enumerate(project.slides)
     )
     default = new_default if new_default is not None else project.default_duration_s
-    return replace(project, photos=photos, default_duration_s=default)
+    return replace(project, slides=slides, default_duration_s=default)
 
 
 def _fitted(project: Project) -> Project:
@@ -303,32 +341,32 @@ def _keep_fitted(project: Project) -> Project:
 
 
 def _add_photos(project: Project, command: AddPhotos) -> Project:
-    taken = {p.id for p in project.photos}
+    taken = {s.id for s in project.slides}
     new: list[Photo] = []
     for photo in command.photos:
         pid = unique_id(photo.id, taken)
         taken.add(pid)
         new.append(replace(photo, id=pid, duration_s=_clamp_duration(photo.duration_s)))
-    edited = replace(project, photos=_insert(project.photos, new, command.index))
+    edited = _with_photos(project, _insert(project.photos, new, command.index))
     edited = _refresh_motions(project, edited, skip=(p.id for p in new))
     edited = _draw(edited, {p.id: None for p in new}, reroll=False)
     return _keep_fitted(edited)
 
 
 def _remove_photos(project: Project, command: RemovePhotos) -> Project:
-    photos = tuple(p for p in project.photos if p.id not in command.photo_ids)
-    edited = _refresh_motions(project, replace(project, photos=photos))
+    slides = tuple(s for s in project.slides if s.id not in command.photo_ids)
+    edited = _refresh_motions(project, replace(project, slides=slides))
     return _keep_fitted(edited)
 
 
 def _move_photos(project: Project, command: MovePhotos) -> Project:
     photos = _move_block(project.photos, lambda p: p.id, command.photo_ids, command.target_index)
-    return _refresh_motions(project, replace(project, photos=photos))
+    return _refresh_motions(project, _with_photos(project, photos))
 
 
 def _duplicate_photos(project: Project, command: DuplicatePhotos) -> Project:
     chosen = set(command.photo_ids)
-    taken = {p.id for p in project.photos}
+    taken = {s.id for s in project.slides}
     photos: list[Photo] = []
     originals: dict[str, PhotoMotion] = {}
     for photo in project.photos:
@@ -338,7 +376,7 @@ def _duplicate_photos(project: Project, command: DuplicatePhotos) -> Project:
             taken.add(copy_id)
             photos.append(replace(photo, id=copy_id, motion=replace(photo.motion, draw_count=0)))
             originals[copy_id] = photo.motion
-    edited = replace(project, photos=tuple(photos))
+    edited = _with_photos(project, photos)
     edited = _refresh_motions(project, edited, skip=originals)
     # The copy keeps duration and fit but gets a new motion, different from the original's.
     edited = _draw(edited, dict(originals), reroll=True)
@@ -350,7 +388,20 @@ def _sort_photos(project: Project, command: SortPhotos) -> Project:
         photos = sorted(project.photos, key=_date_key)
     else:
         photos = sorted(project.photos, key=lambda p: natural_key(p.path.name))
-    return _refresh_motions(project, replace(project, photos=tuple(photos)))
+    return _refresh_motions(project, _with_photos(project, photos))
+
+
+def _shuffle_photos(project: Project) -> Project:
+    """A new order from the seed and the current order; never the same order again (M09)."""
+    photos = list(project.photos)
+    if len(photos) < 2:
+        return project
+    key = f"{project.seed}:" + ",".join(p.id for p in photos)
+    shuffled = photos.copy()
+    random.Random(key).shuffle(shuffled)
+    if shuffled == photos:
+        shuffled = [*photos[1:], photos[0]]
+    return _refresh_motions(project, _with_photos(project, shuffled))
 
 
 def _set_default_duration(project: Project, command: SetDefaultDuration) -> Project:
@@ -360,13 +411,34 @@ def _set_default_duration(project: Project, command: SetDefaultDuration) -> Proj
 
 def _map_photos(project: Project, ids: Iterable[str], change: Callable[[Photo], Photo]) -> Project:
     chosen = set(ids)
-    return replace(project, photos=tuple(change(p) if p.id in chosen else p for p in project.photos))
+    return _with_photos(project, (change(p) if p.id in chosen else p for p in project.photos))
 
 
 def _set_photo_duration(project: Project, command: SetPhotoDuration) -> Project:
     seconds = _clamp_duration(command.seconds)
-    edited = _map_photos(project, command.photo_ids, lambda p: replace(p, duration_s=seconds))
-    return _refresh_motions(project, edited)
+    black = defaults.BLACK_SLIDE_DURATION_S if seconds is None else seconds
+    slides = tuple(
+        s
+        if s.id not in command.photo_ids
+        else replace(s, duration_s=black)
+        if isinstance(s, BlackSlide)
+        else replace(s, duration_s=seconds)
+        for s in project.slides
+    )
+    return _refresh_motions(project, replace(project, slides=slides))
+
+
+def _add_black_slide(project: Project, command: AddBlackSlide) -> Project:
+    slide = BlackSlide(command.position)
+    if command.position is BlackSlidePosition.START:
+        if project.black_start is not None:
+            return project
+        slides = (slide, *project.slides)
+    else:
+        if project.black_end is not None:
+            return project
+        slides = (*project.slides, slide)
+    return _keep_fitted(_refresh_motions(project, replace(project, slides=slides)))
 
 
 def _set_photo_fit(project: Project, command: SetPhotoFit) -> Project:
@@ -480,8 +552,14 @@ def _set_music_settings(project: Project, command: SetMusicSettings) -> Project:
         music = replace(music, normalize=command.normalize)
     if command.keep_fitted is not None:
         music = replace(music, keep_fitted=command.keep_fitted)
+    if command.silence_start_s is not None:
+        music = replace(music, silence_start_s=defaults.MUSIC_SILENCE_RANGE.clamp(command.silence_start_s))
+    if command.silence_end_s is not None:
+        music = replace(music, silence_end_s=defaults.MUSIC_SILENCE_RANGE.clamp(command.silence_end_s))
     edited = replace(project, music=music)
-    if command.keep_fitted and not project.music.keep_fitted:
+    silences = (music.silence_start_s, music.silence_end_s)
+    silence_changed = silences != (project.music.silence_start_s, project.music.silence_end_s)
+    if (command.keep_fitted and not project.music.keep_fitted) or silence_changed:
         edited = _keep_fitted(edited)
     return edited
 
@@ -499,6 +577,10 @@ def apply_command(project: Project, command: Command) -> Project:
             edited = _duplicate_photos(project, command)
         case SortPhotos():
             edited = _sort_photos(project, command)
+        case ShufflePhotos():
+            edited = _shuffle_photos(project)
+        case AddBlackSlide():
+            edited = _add_black_slide(project, command)
         case SetDefaultDuration():
             edited = _set_default_duration(project, command)
         case SetPhotoDuration():

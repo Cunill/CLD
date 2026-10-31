@@ -10,18 +10,50 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
+from typing import Any
 
 from passimaker.model import defaults
 
 
 class OutputFormat(Enum):
-    HORIZONTAL = "horizontal"  # 1920x1080
-    VERTICAL = "vertical"  # 1080x1920
+    """Video shape: three proportions, landscape or portrait, short side 1080 px (M10).
+
+    HORIZONTAL and VERTICAL keep their names from 1.2.0 (16:9 and 9:16). Projects saved before M10
+    store "horizontal" and "vertical" (projectio translates them, LEGACY_FORMAT_VALUES).
+    """
+
+    HORIZONTAL = "horizontal_16_9"
+    HORIZONTAL_3_2 = "horizontal_3_2"
+    HORIZONTAL_4_3 = "horizontal_4_3"
+    VERTICAL = "vertical_9_16"
+    VERTICAL_2_3 = "vertical_2_3"
+    VERTICAL_3_4 = "vertical_3_4"
 
     @property
     def size(self) -> tuple[int, int]:
-        """Output size in pixels as (width, height)."""
-        return (1920, 1080) if self is OutputFormat.HORIZONTAL else (1080, 1920)
+        """Output size in pixels as (width, height); both even (H.264 4:2:0)."""
+        return _OUTPUT_SIZES[self]
+
+    @property
+    def is_vertical(self) -> bool:
+        width, height = self.size
+        return height > width
+
+    @property
+    def label(self) -> str:
+        """Proportion as written on screen and on the command line, e.g. "3:2" or "9:16"."""
+        _, ratio_w, ratio_h = self.value.split("_")
+        return f"{ratio_w}:{ratio_h}"
+
+
+_OUTPUT_SIZES: dict[OutputFormat, tuple[int, int]] = {
+    OutputFormat.HORIZONTAL: (1920, 1080),
+    OutputFormat.HORIZONTAL_3_2: (1620, 1080),
+    OutputFormat.HORIZONTAL_4_3: (1440, 1080),
+    OutputFormat.VERTICAL: (1080, 1920),
+    OutputFormat.VERTICAL_2_3: (1080, 1620),
+    OutputFormat.VERTICAL_3_4: (1080, 1440),
+}
 
 
 class Intensity(Enum):
@@ -116,6 +148,31 @@ class Photo:
     low_resolution: bool = False
 
 
+class BlackSlidePosition(Enum):
+    START = "start"
+    END = "end"
+
+
+BLACK_START_ID = "black:start"
+BLACK_END_ID = "black:end"
+"""Fixed ids of the black slides; photo ids never contain ":" (M08)."""
+
+
+@dataclass(frozen=True, slots=True)
+class BlackSlide:
+    """A black card in the storyboard (M08): always the first (START) or the last (END) slide."""
+
+    position: BlackSlidePosition
+    duration_s: float = defaults.BLACK_SLIDE_DURATION_S
+
+    @property
+    def id(self) -> str:
+        return BLACK_START_ID if self.position is BlackSlidePosition.START else BLACK_END_ID
+
+
+type Slide = Photo | BlackSlide
+
+
 @dataclass(frozen=True, slots=True)
 class Fade:
     enabled: bool
@@ -143,6 +200,10 @@ class Music:
     master_volume: float = defaults.MASTER_VOLUME
     normalize: bool = True
     keep_fitted: bool = False
+    silence_start_s: float = defaults.MUSIC_SILENCE_S
+    """Silence before the first song (M13): the music starts this long after the show."""
+    silence_end_s: float = defaults.MUSIC_SILENCE_S
+    """Silence after the music (M13): the music ends at least this long before the show."""
     songs: tuple[Song, ...] = ()
 
 
@@ -159,9 +220,32 @@ class Project:
     motion_enabled: bool = True
     zoom_amount: float = defaults.ZOOM_AMOUNT
     pan_amount: float = defaults.PAN_AMOUNT
-    photos: tuple[Photo, ...] = ()
+    slides: tuple[Slide, ...] = ()
+    """Storyboard order: an optional START black slide, the photos, an optional END black slide (M08).
+    The editing commands keep the black slides at the ends."""
     music: Music = field(default_factory=Music)
+    photos: tuple[Photo, ...] = field(init=False, repr=False, compare=False)
+    """The photos of `slides`, in order (derived)."""
 
-    def photo_duration(self, photo: Photo) -> float:
-        """Effective duration of a photo (its own, or the project default)."""
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "photos", tuple(s for s in self.slides if isinstance(s, Photo)))
+
+    @property
+    def black_start(self) -> BlackSlide | None:
+        first = self.slides[0] if self.slides else None
+        return first if isinstance(first, BlackSlide) and first.position is BlackSlidePosition.START else None
+
+    @property
+    def black_end(self) -> BlackSlide | None:
+        last = self.slides[-1] if self.slides else None
+        return last if isinstance(last, BlackSlide) and last.position is BlackSlidePosition.END else None
+
+    def photo_duration(self, photo: Slide) -> float:
+        """Effective duration of a slide (its own, or the project default for a photo without one)."""
         return photo.duration_s if photo.duration_s is not None else self.default_duration_s
+
+
+def new_project(**settings: Any) -> Project:
+    """A new project: the given settings and the two black slides (M08). `Project()` has none."""
+    slides = (BlackSlide(BlackSlidePosition.START), BlackSlide(BlackSlidePosition.END))
+    return Project(slides=slides, **settings)

@@ -48,7 +48,10 @@ def test_every_default_is_inside_its_range() -> None:
         assert allowed.minimum <= value <= allowed.maximum
         assert allowed.clamp(value) == value
     assert defaults.PHOTO_DURATION_RANGE.clamp(99) == 24.0
-    assert defaults.FIT_TO_MUSIC_DURATION_RANGE.clamp(99) == 3.0  # decision 0005: fitting stays within 1-3 s
+    # Decision 0014: fitting uses the same range as the hand-set durations.
+    assert defaults.FIT_TO_MUSIC_DURATION_RANGE == defaults.PHOTO_DURATION_RANGE
+    assert defaults.FIT_TO_MUSIC_DURATION_RANGE.clamp(99) == 24.0
+    assert defaults.FIT_TO_MUSIC_DURATION_RANGE.clamp(0) == 0.4
 
 
 def test_output_sizes_are_full_hd() -> None:
@@ -56,9 +59,28 @@ def test_output_sizes_are_full_hd() -> None:
     assert OutputFormat.VERTICAL.size == (1080, 1920)
 
 
+def test_the_six_formats_of_m10() -> None:
+    """Three proportions, landscape and portrait; short side 1080 and even sides (H.264 4:2:0)."""
+    expected = {
+        OutputFormat.HORIZONTAL: ((1920, 1080), "16:9"),
+        OutputFormat.HORIZONTAL_3_2: ((1620, 1080), "3:2"),
+        OutputFormat.HORIZONTAL_4_3: ((1440, 1080), "4:3"),
+        OutputFormat.VERTICAL: ((1080, 1920), "9:16"),
+        OutputFormat.VERTICAL_2_3: ((1080, 1620), "2:3"),
+        OutputFormat.VERTICAL_3_4: ((1080, 1440), "3:4"),
+    }
+    assert {f: (f.size, f.label) for f in OutputFormat} == expected
+    for output_format in OutputFormat:
+        width, height = output_format.size
+        ratio_w, ratio_h = (int(n) for n in output_format.label.split(":"))
+        assert width * ratio_h == height * ratio_w
+        assert width % 2 == 0 and height % 2 == 0 and min(width, height) == 1080
+        assert output_format.is_vertical is (height > width)
+
+
 def test_photo_duration_falls_back_to_project_default() -> None:
     photo = Photo("p1", Path("a.jpg"), None, 4000, 3000)
-    project = Project(photos=(photo,))
+    project = Project(slides=(photo,))
     assert project.photo_duration(photo) == 2.0
     custom = Photo("p2", Path("b.jpg"), None, 4000, 3000, duration_s=2.5)
     assert project.photo_duration(custom) == 2.5

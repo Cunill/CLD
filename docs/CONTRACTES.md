@@ -25,20 +25,26 @@ controlador crea versions noves del projecte.
 
 | Pla | Codi | Camps (codi) |
 |---|---|---|
-| Projecte | `Project` | `name`, `format_version`, `output_format`, `seed`, `default_duration_s`, `crossfade_s`, `fade_from_black_s`, `fade_to_black_s`, `motion_enabled`, `zoom_amount`, `pan_amount`, `photos: tuple[Photo]`, `music: Music` · mètode `photo_duration(photo)` |
+| Projecte | `Project` | `name`, `format_version`, `output_format`, `seed`, `default_duration_s`, `crossfade_s`, `fade_from_black_s`, `fade_to_black_s`, `motion_enabled`, `zoom_amount`, `pan_amount`, `slides: tuple[Photo \| BlackSlide]` (M08: la fitxa negra d'inici opcional, les fotos i la de final opcional), `music: Music` · derivats (no es passen en crear-lo): `photos: tuple[Photo]` (les fotos de `slides`), `black_start`, `black_end` (`BlackSlide` o `None`) · mètode `photo_duration(slide)` (la pròpia o la general) |
+| Fitxa negra | `BlackSlide` (M08) | `position: BlackSlidePosition` (START, END), `duration_s` (per defecte `BLACK_SLIDE_DURATION_S`, rang `PHOTO_DURATION_RANGE`) · propietat `id`: `BLACK_START_ID` (`"black:start"`) o `BLACK_END_ID` (`"black:end"`) |
 | Foto | `Photo` | `id`, `path`, `relative_path`, `width`, `height` (ja orientades i girades), `exif_orientation`, `capture_time`, `duration_s` (`None` = durada general), `fit: FitMode`, `motion: PhotoMotion`, `rotation: Rotation` (P2), `low_resolution` |
 | MovimentFoto | `PhotoMotion` | `mode: MotionMode`, `type: MotionType`, `draw_count`, `start: Window`, `end: Window`, `resolved_fit: ResolvedFit` |
 | Finestra | `Window` | `centre_x`, `centre_y` (0–1 sobre el llenç), `scale` (1 = la finestra més gran de la proporció del vídeo que hi cap; >1 = més a prop) |
-| Música | `Music` | `master_volume` (0–1), `normalize`, `keep_fitted`, `songs: tuple[Song]` |
+| Música | `Music` | `master_volume` (0–1), `normalize`, `keep_fitted`, `silence_start_s` i `silence_end_s` (M13: segons de silenci abans de la primera cançó i després de la música fins al final del vídeo; per defecte `MUSIC_SILENCE_S` = 0, rang `MUSIC_SILENCE_RANGE` 0–60 s en passos de 0,5 s), `songs: tuple[Song]` |
 | Cançó | `Song` | `id`, `path`, `relative_path`, `original_duration_s`, `trim_start_s`, `trim_end_s` (`None` = fins al final), `fade_in: Fade`, `fade_out: Fade`, `volume` (0–1,5), `loudness_gain_db` (calculat) |
 | Fosa | `Fade` | `enabled`, `seconds` |
 
-Enumeracions: `OutputFormat` (HORIZONTAL 1920×1080, VERTICAL 1080×1920; propietat `size`),
+Enumeracions: `OutputFormat` (M10: tres proporcions, horitzontals i verticals, costat curt de 1080 px: HORIZONTAL
+16:9 1920×1080, HORIZONTAL_3_2 1620×1080, HORIZONTAL_4_3 1440×1080, VERTICAL 9:16 1080×1920, VERTICAL_2_3 1080×1620,
+VERTICAL_3_4 1080×1440; propietats `size` (amplada, alçada; parells), `is_vertical` i `label` ("16:9", "3:2"…)),
 `Intensity` (SOFT, MEDIUM, STRONG; preseleccions de `zoom_amount` i `pan_amount`, vegeu `passimaker.motion.INTENSITY_PRESETS`), `FitMode` (AUTO, FILL, BLUR, BLACK), `ResolvedFit` (FILL, BLUR,
 BLACK), `MotionMode` (AUTO, MANUAL), `MotionType` (ZOOM_IN, ZOOM_OUT, PAN_LEFT, PAN_RIGHT, PAN_UP,
 PAN_DOWN, COMBINED, NONE), `Rotation` (R0, R90, R180, R270).
 
 Valors per defecte i rangs: **només** a `passimaker.model.defaults` (per ajustar-los després de les fites).
+
+`new_project(**camps)` (M08): un projecte nou amb les dues fitxes negres; el fan servir el programa en obrir-se i
+`passimaker-nou`. `Project()` no en té (així són els `.pmk` antics). `Slide = Photo | BlackSlide`.
 
 ### Controlador (`ProjectController`)
 
@@ -54,12 +60,20 @@ Valors per defecte i rangs: **només** a `passimaker.model.defaults` (per ajusta
 `Change`: PHOTOS, TIMING, MOTION, MUSIC, SETTINGS, SAVED_STATE.
 
 Ordres (`passimaker.model.commands`): `AddPhotos`, `RemovePhotos`, `MovePhotos`, `DuplicatePhotos`,
-`SortPhotos`, `SetDefaultDuration`, `SetPhotoDuration`, `SetPhotoFit`, `SetPhotoMotion`,
+`SortPhotos`, `ShufflePhotos` (M09), `SetDefaultDuration`, `SetPhotoDuration`, `SetPhotoFit`, `SetPhotoMotion`,
 `RerollMotions`, `RotatePhotos`, `SetProjectSettings`, `AddSongs`, `RemoveSongs`, `MoveSongs`,
-`UpdateSong`, `SetMusicSettings`, `FitToMusic`. Són dades; la lògica és al controlador (B1). Les
+`UpdateSong`, `SetMusicSettings` (M13: també `silence_start_s` i `silence_end_s`; el controlador els limita al rang i, amb
+"Mantenir ajustat", torna a ajustar), `FitToMusic`, `AddBlackSlide(position)` (M08). Són dades; la lògica és al controlador (B1). Les
 ordres que afecten el moviment (afegir, duplicar, girar, canviar format o encaix, tornar a sortejar)
 fan servir `passimaker.motion` per resoldre l'encaix i sortejar. `RerollMotions(ids)` torna a sortejar aquestes fotos
 i, si tenien el moviment fixat a mà, les torna a automàtic (M05); `RerollMotions(None)`, només les automàtiques.
+`ShufflePhotos()` (M09, sense camps) barreja les fotos amb `random.Random` de clau `"<seed>:<ids en l'ordre actual>"`: determinista
+(mateix projecte, mateix resultat), un ordre diferent de l'actual a cada pas, sense camps nous al `.pmk`; amb menys de dues
+fotos no fa res. Fitxes negres (M08): els índexs d'`AddPhotos` i `MovePhotos` compten només les fotos, i cap ordre de fotos no mou les
+fitxes negres de l'inici i del final. `RemovePhotos` també treu les fitxes negres que hi hagi als identificadors i
+`SetPhotoDuration` també els canvia la durada (`None`: `BLACK_SLIDE_DURATION_S`); la resta d'ordres de fotos les
+ignoren. `AddBlackSlide` la torna a posar amb la durada per defecte (si ja hi és, no fa res). "Ajustar a la música"
+no les toca i en resta la durada de la música.
 
 ## 2. Importació (`passimaker.importer`) · B4
 
@@ -98,16 +112,20 @@ Mides: `THUMBNAIL_SIZE = 256`, `INTERMEDIATE_SIZE = 1600`.
 | `compute_timeline(projecte, fps=30)` | projecte | `Timeline` |
 | `query(línia, t)` | instant | `Visibles` |
 | `fit_to_music(durades, objectiu_s, límits)` | — | `FitResult(durations, warning, achieved_total_s)` |
+| `build_audio_plan(cançons, total_s, fps, silence_start_s=0, silence_end_s=0)` (M13) | — | `AudioPlan`: la música comença a `silence_start_s` i acaba com a molt a `total_s − silence_end_s` (la fosa final, si cal, acaba just allà); amb tots dos a 0, el pla d'abans |
 | `time_to_frame(t, fps)` / `frame_to_time(n, fps)` | — | conversió |
 
 `Timeline`: `fps`, `total_duration_s`, `total_frames`, `slots: tuple[PhotoSlot]`, `fade_from_black`,
-`fade_to_black` (`Interval` o `None`), `audio_plan: AudioPlan`, `music_duration_s`.
+`fade_to_black` (`Interval` o `None`), `audio_plan: AudioPlan`, `music_duration_s` (només les cançons, sense els silencis).
+"Ajustar a la música" del model fa servir l'objectiu `model.editing.music_span(music)` = silenci abans + cançons +
+silenci després (0 sense cançons) (M13); la barra d'estat compara el passi amb el mateix valor.
 `PhotoSlot`: `photo_id`, `index`, `slot_start`, `slot_end` (espai propi, contigus), `visible_start`,
-`visible_end`, `fade_in`, `fade_out`.
+`visible_end`, `fade_in`, `fade_out`, `black` (M08: la franja d'una fitxa negra; `photo_id` és el seu `id`). Les fitxes
+negres ocupen la seva franja com una foto, amb les foses encadenades i la regla de seguretat de sempre.
 `AudioPlan`: `segments: tuple[AudioSegment]`, `final_fade`. `AudioSegment`: `song_id`,
 `video_start`, `video_end`, `source_start`, `fade_in_s`, `fade_out_s`.
 `Visibles`: `layers` (com a màxim 2, de baix a dalt) de `VisibleLayer(photo_id, opacity,
-motion_progress)` i `black_level` (0–1).
+motion_progress, black)` i `black_level` (0–1).
 
 ## 6. Moviments i encaix (`passimaker.motion`) · B3
 
@@ -146,6 +164,8 @@ Paràmetres (un sol lloc, `passimaker.motion.params`): `FILL_RATIO_RANGE`, `BASE
 `SENTINEL_COLOR = (255, 0, 255)`: en mode sentinella, tot el que queda fora de la imatge es pinta
 d'aquest color. Les dades de prova no contenen mai píxels semblants al magenta
 (`tests/fixtures/generate.py`, `MAX_MAGENTA_EXCESS`).
+Una capa `black` (fitxa negra, M08) es pinta negra, sense imatge, moviment ni encaix, i sense demanar res a
+`image_source`; en una fosa encadenada, la foto es barreja amb negre. En mode sentinella no és "fora de la imatge".
 
 ## 8. Pont FFmpeg (`passimaker.ffmpeg`) · B7
 
@@ -199,8 +219,9 @@ Claus d'error (`reason_key`): `export.no_photos`, `export.missing_files`, `expor
 a Windows; la variable `PASSIMAKER_CACHE` la substitueix); l'àudio va a `cache_root() / "audio"` i les miniatures
 (B5) han d'anar a `cache_root() / "thumbs"`.
 
-Ordres de línia (`passimaker.cli`): `passimaker-nou <carpeta> [música…] -o <projecte.pmk> [--vertical]
-[--ajustar] [--llavor N]` (sense `--llavor`, una llavor a l'atzar que es desa al projecte; decisió 0008) i
+Ordres de línia (`passimaker.cli`): `passimaker-nou <carpeta> [música…] -o <projecte.pmk>
+[--format 16:9|3:2|4:3|9:16|2:3|3:4] [--vertical] [--ajustar] [--llavor N]` (`--vertical` = `--format 9:16`; si no
+coincideixen, error) (sense `--llavor`, una llavor a l'atzar que es desa al projecte; decisió 0008) i
 `passimaker-render <projecte.pmk> <sortida.mp4> [--sentinella]`.
 Codis de sortida: 0 correcte, 1 error, 2 no implementat.
 
@@ -209,6 +230,13 @@ Codis de sortida: 0 correcte, 1 error, 2 no implementat.
 `save_project(projecte, ruta)` (escriptura segura), `open_project(ruta) -> OpenResult(project,
 missing_files)`, `relink(projecte, carpeta) -> (projecte, nombre)`, `save_recovery`, `find_recovery`,
 `clear_recovery`. Errors: `ProjectFileError`. Extensió: `.pmk`.
+`format_version` 2 (M08): `project` porta `black_start` i `black_end`, cadascun `{"duration_s": s}` o `null`. Un
+fitxer de la versió 1 (sense aquests camps) s'obre sense fitxes negres i es desa en versió 2.
+`output_format` (M10, també versió 2): `"horizontal_16_9"`, `"horizontal_3_2"`, `"horizontal_4_3"`, `"vertical_9_16"`,
+`"vertical_2_3"` o `"vertical_3_4"`. Els valors dels fitxers anteriors, `"horizontal"` i `"vertical"`, s'obren com a
+16:9 i 9:16 i es desen amb el nom nou.
+M13 (sense canviar de versió, perquè el format 2 encara no s'havia publicat): `music` porta `silence_start_s` i
+`silence_end_s` (segons); si no hi són (fitxers d'abans), valen 0, i si són fora del rang, es limiten.
 
 ## 13. Interfície (`passimaker.ui`) · B10, B11, B14, B16
 
