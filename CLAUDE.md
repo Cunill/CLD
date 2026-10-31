@@ -2,7 +2,7 @@
 
 ## Què és
 Programa d'escriptori per a Windows per fer passis de fotos (moviment Ken Burns, fosa encadenada, música)
-i exportar-los a MP4 Full HD (1920×1080 o 1080×1920, 30 fps). Ús intern; fora de línia excepte la música
+i exportar-los a MP4 Full HD (16:9, 3:2 o 4:3, en horitzontal o en vertical, amb el costat curt de 1080 píxels; 30 fps). Ús intern; fora de línia excepte la música
 de YouTube (decisió 0012).
 Pla: docs/PLA.md · Contractes: docs/CONTRACTES.md · Comportament i valors per defecte: docs/ESPECIFICACIO.md ·
 Decisions: docs/decisions/ · Estat de cada bloc: docs/sessions/

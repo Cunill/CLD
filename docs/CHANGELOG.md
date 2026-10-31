@@ -3,6 +3,34 @@
 Versions de PassiMaker. La CI genera el ZIP portable `PassiMaker-<versió>-win64` quan es posa l'etiqueta a `main`
 (vegeu `docs/sessions/B12.md`).
 
+## 1.3.0 · millores de l'usuari (blocs M07–M13)
+
+> **Compatibilitat:** un `.pmk` desat amb la 1.3.0 **no s'obre amb la 1.2.0** (el format del fitxer és ara la
+> versió 2). Els `.pmk` de la 1.2.0 (i anteriors) s'obren bé amb la 1.3.0, amb el mateix aspecte de sempre.
+
+### Nou
+- **Quadres negres a l'inici i al final** (M08): el storyboard té dues fitxes negres (2 s per defecte), fixes al
+  principi i al final, amb durada pròpia. Es poden esborrar i tornar a posar des d'Edita (*Afegeix negre a l'inici* /
+  *al final*). Els projectes antics s'obren sense negres.
+- **Barreja les fotos** (M09): un botó (i Visualitza ▸ Barreja les fotos) que canvia l'ordre a l'atzar cada vegada;
+  els negres no es mouen i es pot desfer.
+- **Sis formats de vídeo** (M10): botó *Format* a la barra d'eines i llista al panell del projecte. Horitzontals
+  16:9 (1920×1080), 3:2 (1620×1080) i 4:3 (1440×1080); verticals 9:16 (1080×1920), 2:3 (1080×1620) i 3:4
+  (1080×1440). `passimaker-nou --format`.
+- **Silenci abans i després de la música** (M13): a *Tota la música* del panell de la cançó, de 0 a 60 s cada un.
+- **Marge de la previsualització ajustable** (M11): la línia de sota de la previsualització es veu i s'arrossega;
+  el programa recorda la posició i el doble clic hi torna per defecte.
+- Guia: apartats nous per a tot això.
+
+### Canviat
+- **Ajustar a la música** (M07, decisió 0014): les fotos amb la durada posada a mà no es toquen; la resta es reparteix
+  el temps en **0,4–24 s** (abans 1–3 s). Si totes tenen durada a mà, avisa i no fa res. També compta el silenci
+  d'abans i de després.
+- Format del `.pmk`: versió 2 (negres, proporció i silencis).
+
+### Intern
+- yt-dlp 2026.10.26 (PR #89).
+
 ## 1.2.0 · música de YouTube i gravació del so (blocs C01–C10, C06)
 
 Publicada com a `v1.2` el 29/10/2026 (https://github.com/Cunill/CLD/releases/tag/v1.2).

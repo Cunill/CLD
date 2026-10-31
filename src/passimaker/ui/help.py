@@ -83,12 +83,39 @@ def guide_html() -> str:
             "storyboard; per treure'n una, selecciona-la i prem <b>Supr</b>. Admet JPG, PNG, HEIC i altres "
             "formats habituals; els fitxers RAW de càmera no.</p>",
         ),
+        QCoreApplication.translate("Help", "<h4>Quadres negres a l'inici i al final</h4>"),
+        QCoreApplication.translate(
+            "Help",
+            "<p>El storyboard comença i acaba amb un quadre negre (2 segons cadascun). Són fixos: es queden "
+            "al principi i al final i no es poden arrossegar, però en pots canviar la durada a la pestanya "
+            "<i>Foto</i>. Si no els vols, selecciona'ls i prem <b>Supr</b>; per tornar-los a posar, "
+            "<b>Edita ▸ Afegeix negre a l'inici</b> o <b>Afegeix negre al final</b>.</p>",
+        ),
+        QCoreApplication.translate("Help", "<h4>Barrejar les fotos</h4>"),
+        QCoreApplication.translate(
+            "Help",
+            "<p>El botó <b>Barreja les fotos</b> (també a <b>Visualitza</b>) canvia l'ordre de les fotos a "
+            "l'atzar. Cada vegada que el prems, surt un ordre nou; els quadres negres no es mouen. Si no "
+            "t'agrada, <b>Ctrl+Z</b> torna l'ordre anterior.</p>",
+        ),
         QCoreApplication.translate("Help", "<h3>2. Música</h3>"),
         QCoreApplication.translate(
             "Help",
             "<p>Fes clic a <b>[+ Música]</b> o arrossega les cançons a la franja de música. La barra "
             "d'estat avisa si la música i les fotos no duren el mateix: <b>[Ajustar a la música]</b> "
-            "canvia la durada de les fotos perquè el passi acabi alhora que la música.</p>",
+            "canvia la durada de les fotos perquè el passi acabi alhora que la música. Les fotos a les quals "
+            "has posat la durada a mà no es toquen: es reparteix el temps que queda entre les altres, "
+            "amb entre 0,4 i 24 segons per foto. Si totes tenen la durada posada a mà, el programa t'ho "
+            "avisa i no canvia res.</p>",
+        ),
+        QCoreApplication.translate("Help", "<h3>Silenci abans i després de la música</h3>"),
+        QCoreApplication.translate(
+            "Help",
+            "<p>Selecciona una cançó a la franja de música: al panell <i>Cançó</i>, a l'apartat "
+            "<b>Tota la música</b>, hi ha <b>Silenci abans</b> i <b>Silenci després</b> (de 0 a 60 segons). "
+            "Serveixen per deixar uns segons sense so abans que comenci la primera cançó i després que "
+            "acabi l'última. Valen per a totes les cançons, no per a una de sola, i <b>[Ajustar a la "
+            "música]</b> els té en compte.</p>",
         ),
         QCoreApplication.translate("Help", "<h3>Música de YouTube</h3>"),
         QCoreApplication.translate(
@@ -114,8 +141,24 @@ def guide_html() -> str:
         QCoreApplication.translate(
             "Help",
             "<p>Mira el resultat amb <b>▶</b> (o la barra espaiadora) i fes clic a <b>[Exportar vídeo]</b>. "
-            "El vídeo és un MP4 Full HD que es veu a qualsevol televisor, mòbil o ordinador. Tria "
-            "<b>Format vertical</b> a la barra d'eines si el vídeo és per veure'l al mòbil.</p>",
+            "El vídeo és un MP4 Full HD que es veu a qualsevol televisor, mòbil o ordinador.</p>",
+        ),
+        QCoreApplication.translate("Help", "<h4>Format del vídeo</h4>"),
+        QCoreApplication.translate(
+            "Help",
+            "<p>El botó de format de la barra d'eines (<b>Format: 16:9 ▾</b>; a la pestanya <i>Projecte</i> "
+            "també hi ha la llista <i>Format</i>) té sis formats. "
+            "Horitzontals, per al televisor: <b>16:9</b>, "
+            "<b>3:2</b> i <b>4:3</b>. Verticals, per al mòbil: <b>9:16</b>, <b>2:3</b> i <b>3:4</b>. El "
+            "costat curt fa sempre 1080 píxels. La previsualització canvia de forma a l'instant i les "
+            "fotos s'encaren a la nova forma.</p>",
+        ),
+        QCoreApplication.translate("Help", "<h4>El marge de la previsualització</h4>"),
+        QCoreApplication.translate(
+            "Help",
+            "<p>La línia amb tres punts que hi ha sota de la previsualització es pot arrossegar amunt i "
+            "avall per fer-la més gran o més petita; el programa se'n recorda. Amb un <b>doble clic</b> hi "
+            "torna a la posició per defecte.</p>",
         ),
         QCoreApplication.translate("Help", "<h3>Si vols ajustar alguna cosa</h3>"),
         QCoreApplication.translate(
