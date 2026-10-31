@@ -34,8 +34,10 @@ def test_every_change_goes_through_a_command(window_with_photos: MainWindow) -> 
     assert window.controller.project.crossfade_s == pytest.approx(1.4)
     panel.motion_enabled.setChecked(False)
     assert window.controller.project.motion_enabled is False
-    panel.output_format.setCurrentIndex(1)
+    panel.output_format.setCurrentIndex(3)
     assert window.controller.project.output_format is OutputFormat.VERTICAL
+    panel.output_format.setCurrentIndex(2)
+    assert window.controller.project.output_format is OutputFormat.HORIZONTAL_4_3
 
 
 def test_the_commands_are_the_ones_of_the_contract(qtbot, thumbnails, questions) -> None:
@@ -101,3 +103,24 @@ def test_turning_off_the_motion_disables_the_intensity(window_with_photos: MainW
     assert not window.panel.intensity.isEnabled()
     window.panel.motion_enabled.setChecked(True)
     assert window.panel.intensity.isEnabled()
+
+
+def test_the_format_box_lists_the_six_formats_and_follows_the_project(window: MainWindow) -> None:
+    """M10: three landscape proportions, then three portrait ones; undo shows the previous one."""
+    box = window.panel.output_format
+    labels = [box.itemText(i) for i in range(box.count())]
+    assert labels == [
+        "Horitzontal 16:9",
+        "Horitzontal 3:2",
+        "Horitzontal 4:3",
+        "Vertical 9:16",
+        "Vertical 2:3",
+        "Vertical 3:4",
+    ]
+    for index, output_format in enumerate(OutputFormat):
+        box.setCurrentIndex(index)
+        assert window.controller.project.output_format is output_format
+    window.controller.undo()
+    assert box.currentIndex() == 4
+    window.format_actions[OutputFormat.HORIZONTAL_3_2].trigger()
+    assert box.currentIndex() == 1

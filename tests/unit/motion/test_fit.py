@@ -8,6 +8,12 @@ from passimaker.model.types import FitMode, OutputFormat, ResolvedFit
 from passimaker.motion import FILL_RATIO_RANGE, base_window, output_aspect, resolve_fit
 
 H, V = OutputFormat.HORIZONTAL, OutputFormat.VERTICAL
+H32, H43, V23, V34 = (
+    OutputFormat.HORIZONTAL_3_2,
+    OutputFormat.HORIZONTAL_4_3,
+    OutputFormat.VERTICAL_2_3,
+    OutputFormat.VERTICAL_3_4,
+)
 
 
 @pytest.mark.parametrize(
@@ -28,6 +34,19 @@ H, V = OutputFormat.HORIZONTAL, OutputFormat.VERTICAL
         (3000, 3000, V, ResolvedFit.BLUR),  # 1:1
         (4000, 3000, V, ResolvedFit.BLUR),  # 4:3 in vertical video
         (1920, 1080, V, ResolvedFit.BLUR),  # 16:9 in vertical video
+        # M10: the same rule with the other proportions.
+        (4000, 3000, H43, ResolvedFit.FILL),  # 4:3 in 4:3, exact
+        (3000, 3000, H43, ResolvedFit.FILL),  # 1:1 in 4:3 (ratio 0.75)
+        (1920, 1080, H43, ResolvedFit.FILL),  # 16:9 in 4:3 (ratio 1.33)
+        (3000, 4000, H43, ResolvedFit.BLUR),  # vertical 3:4
+        (6000, 2000, H43, ResolvedFit.BLUR),  # panorama 3:1
+        (3000, 2000, H32, ResolvedFit.FILL),  # 3:2 in 3:2, exact
+        (3000, 3000, H32, ResolvedFit.BLUR),  # 1:1 in 3:2 (ratio 0.67)
+        (2000, 3000, V23, ResolvedFit.FILL),  # 2:3 in 2:3, exact
+        (3000, 3000, V23, ResolvedFit.BLUR),  # 1:1 in 2:3 (ratio 1.5)
+        (3000, 4000, V34, ResolvedFit.FILL),  # 3:4 in 3:4, exact
+        (3000, 3000, V34, ResolvedFit.FILL),  # 1:1 in 3:4 (ratio 1.33)
+        (4000, 3000, V34, ResolvedFit.BLUR),  # 4:3 in 3:4
     ],
 )
 def test_automatic_fit(width: int, height: int, output_format: OutputFormat, expected: ResolvedFit) -> None:
@@ -56,7 +75,7 @@ def test_user_preference_overrides(preference: FitMode, expected: ResolvedFit) -
     assert resolve_fit(4000, 3000, H, preference).fit is expected
 
 
-@pytest.mark.parametrize("output_format", [H, V])
+@pytest.mark.parametrize("output_format", list(OutputFormat))
 @pytest.mark.parametrize(("width", "height"), [(3000, 4000), (6000, 2000), (3000, 3000), (4000, 3000)])
 def test_composed_canvas_has_video_aspect_and_contains_photo(
     output_format: OutputFormat, width: int, height: int

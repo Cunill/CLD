@@ -30,11 +30,13 @@ controlador crea versions noves del projecte.
 | Foto | `Photo` | `id`, `path`, `relative_path`, `width`, `height` (ja orientades i girades), `exif_orientation`, `capture_time`, `duration_s` (`None` = durada general), `fit: FitMode`, `motion: PhotoMotion`, `rotation: Rotation` (P2), `low_resolution` |
 | MovimentFoto | `PhotoMotion` | `mode: MotionMode`, `type: MotionType`, `draw_count`, `start: Window`, `end: Window`, `resolved_fit: ResolvedFit` |
 | Finestra | `Window` | `centre_x`, `centre_y` (0–1 sobre el llenç), `scale` (1 = la finestra més gran de la proporció del vídeo que hi cap; >1 = més a prop) |
-| Música | `Music` | `master_volume` (0–1), `normalize`, `keep_fitted`, `songs: tuple[Song]` |
+| Música | `Music` | `master_volume` (0–1), `normalize`, `keep_fitted`, `silence_start_s` i `silence_end_s` (M13: segons de silenci abans de la primera cançó i després de la música fins al final del vídeo; per defecte `MUSIC_SILENCE_S` = 0, rang `MUSIC_SILENCE_RANGE` 0–60 s en passos de 0,5 s), `songs: tuple[Song]` |
 | Cançó | `Song` | `id`, `path`, `relative_path`, `original_duration_s`, `trim_start_s`, `trim_end_s` (`None` = fins al final), `fade_in: Fade`, `fade_out: Fade`, `volume` (0–1,5), `loudness_gain_db` (calculat) |
 | Fosa | `Fade` | `enabled`, `seconds` |
 
-Enumeracions: `OutputFormat` (HORIZONTAL 1920×1080, VERTICAL 1080×1920; propietat `size`),
+Enumeracions: `OutputFormat` (M10: tres proporcions, horitzontals i verticals, costat curt de 1080 px: HORIZONTAL
+16:9 1920×1080, HORIZONTAL_3_2 1620×1080, HORIZONTAL_4_3 1440×1080, VERTICAL 9:16 1080×1920, VERTICAL_2_3 1080×1620,
+VERTICAL_3_4 1080×1440; propietats `size` (amplada, alçada; parells), `is_vertical` i `label` ("16:9", "3:2"…)),
 `Intensity` (SOFT, MEDIUM, STRONG; preseleccions de `zoom_amount` i `pan_amount`, vegeu `passimaker.motion.INTENSITY_PRESETS`), `FitMode` (AUTO, FILL, BLUR, BLACK), `ResolvedFit` (FILL, BLUR,
 BLACK), `MotionMode` (AUTO, MANUAL), `MotionType` (ZOOM_IN, ZOOM_OUT, PAN_LEFT, PAN_RIGHT, PAN_UP,
 PAN_DOWN, COMBINED, NONE), `Rotation` (R0, R90, R180, R270).
@@ -60,7 +62,8 @@ Valors per defecte i rangs: **només** a `passimaker.model.defaults` (per ajusta
 Ordres (`passimaker.model.commands`): `AddPhotos`, `RemovePhotos`, `MovePhotos`, `DuplicatePhotos`,
 `SortPhotos`, `ShufflePhotos` (M09), `SetDefaultDuration`, `SetPhotoDuration`, `SetPhotoFit`, `SetPhotoMotion`,
 `RerollMotions`, `RotatePhotos`, `SetProjectSettings`, `AddSongs`, `RemoveSongs`, `MoveSongs`,
-`UpdateSong`, `SetMusicSettings`, `FitToMusic`, `AddBlackSlide(position)` (M08). Són dades; la lògica és al controlador (B1). Les
+`UpdateSong`, `SetMusicSettings` (M13: també `silence_start_s` i `silence_end_s`; el controlador els limita al rang i, amb
+"Mantenir ajustat", torna a ajustar), `FitToMusic`, `AddBlackSlide(position)` (M08). Són dades; la lògica és al controlador (B1). Les
 ordres que afecten el moviment (afegir, duplicar, girar, canviar format o encaix, tornar a sortejar)
 fan servir `passimaker.motion` per resoldre l'encaix i sortejar. `RerollMotions(ids)` torna a sortejar aquestes fotos
 i, si tenien el moviment fixat a mà, les torna a automàtic (M05); `RerollMotions(None)`, només les automàtiques.
@@ -109,10 +112,13 @@ Mides: `THUMBNAIL_SIZE = 256`, `INTERMEDIATE_SIZE = 1600`.
 | `compute_timeline(projecte, fps=30)` | projecte | `Timeline` |
 | `query(línia, t)` | instant | `Visibles` |
 | `fit_to_music(durades, objectiu_s, límits)` | — | `FitResult(durations, warning, achieved_total_s)` |
+| `build_audio_plan(cançons, total_s, fps, silence_start_s=0, silence_end_s=0)` (M13) | — | `AudioPlan`: la música comença a `silence_start_s` i acaba com a molt a `total_s − silence_end_s` (la fosa final, si cal, acaba just allà); amb tots dos a 0, el pla d'abans |
 | `time_to_frame(t, fps)` / `frame_to_time(n, fps)` | — | conversió |
 
 `Timeline`: `fps`, `total_duration_s`, `total_frames`, `slots: tuple[PhotoSlot]`, `fade_from_black`,
-`fade_to_black` (`Interval` o `None`), `audio_plan: AudioPlan`, `music_duration_s`.
+`fade_to_black` (`Interval` o `None`), `audio_plan: AudioPlan`, `music_duration_s` (només les cançons, sense els silencis).
+"Ajustar a la música" del model fa servir l'objectiu `model.editing.music_span(music)` = silenci abans + cançons +
+silenci després (0 sense cançons) (M13); la barra d'estat compara el passi amb el mateix valor.
 `PhotoSlot`: `photo_id`, `index`, `slot_start`, `slot_end` (espai propi, contigus), `visible_start`,
 `visible_end`, `fade_in`, `fade_out`, `black` (M08: la franja d'una fitxa negra; `photo_id` és el seu `id`). Les fitxes
 negres ocupen la seva franja com una foto, amb les foses encadenades i la regla de seguretat de sempre.
@@ -213,8 +219,9 @@ Claus d'error (`reason_key`): `export.no_photos`, `export.missing_files`, `expor
 a Windows; la variable `PASSIMAKER_CACHE` la substitueix); l'àudio va a `cache_root() / "audio"` i les miniatures
 (B5) han d'anar a `cache_root() / "thumbs"`.
 
-Ordres de línia (`passimaker.cli`): `passimaker-nou <carpeta> [música…] -o <projecte.pmk> [--vertical]
-[--ajustar] [--llavor N]` (sense `--llavor`, una llavor a l'atzar que es desa al projecte; decisió 0008) i
+Ordres de línia (`passimaker.cli`): `passimaker-nou <carpeta> [música…] -o <projecte.pmk>
+[--format 16:9|3:2|4:3|9:16|2:3|3:4] [--vertical] [--ajustar] [--llavor N]` (`--vertical` = `--format 9:16`; si no
+coincideixen, error) (sense `--llavor`, una llavor a l'atzar que es desa al projecte; decisió 0008) i
 `passimaker-render <projecte.pmk> <sortida.mp4> [--sentinella]`.
 Codis de sortida: 0 correcte, 1 error, 2 no implementat.
 
@@ -225,6 +232,11 @@ missing_files)`, `relink(projecte, carpeta) -> (projecte, nombre)`, `save_recove
 `clear_recovery`. Errors: `ProjectFileError`. Extensió: `.pmk`.
 `format_version` 2 (M08): `project` porta `black_start` i `black_end`, cadascun `{"duration_s": s}` o `null`. Un
 fitxer de la versió 1 (sense aquests camps) s'obre sense fitxes negres i es desa en versió 2.
+`output_format` (M10, també versió 2): `"horizontal_16_9"`, `"horizontal_3_2"`, `"horizontal_4_3"`, `"vertical_9_16"`,
+`"vertical_2_3"` o `"vertical_3_4"`. Els valors dels fitxers anteriors, `"horizontal"` i `"vertical"`, s'obren com a
+16:9 i 9:16 i es desen amb el nom nou.
+M13 (sense canviar de versió, perquè el format 2 encara no s'havia publicat): `music` porta `silence_start_s` i
+`silence_end_s` (segons); si no hi són (fitxers d'abans), valen 0, i si són fora del rang, es limiten.
 
 ## 13. Interfície (`passimaker.ui`) · B10, B11, B14, B16
 

@@ -3,6 +3,8 @@
 Fade in and fade out (a check box and the seconds), the trim ("Comença a" and "Acaba a", with the
 waveform bar and its two handles), [Escoltar el tros] and the volume. Every control sends an
 UpdateSong to the controller (rule 2); the controls follow the project, so undo moves them too.
+Below, "Tota la música": the silences before and after the music (M13), the same for every song,
+sent as SetMusicSettings.
 
 Listening plays only the chosen part of the song, mixed exactly as in the show (volume,
 levelling, fades and master volume), with the mixer of passimaker.audio: ``SongListening``
@@ -23,6 +25,7 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QDoubleSpinBox,
     QFormLayout,
+    QGroupBox,
     QLabel,
     QPushButton,
     QVBoxLayout,
@@ -34,7 +37,7 @@ from passimaker.common import PassiMakerError
 from passimaker.export import cache_root
 from passimaker.i18n import message
 from passimaker.model import Change, Fade, Project, ProjectController, Song, defaults
-from passimaker.model.commands import UpdateSong
+from passimaker.model.commands import SetMusicSettings, UpdateSong
 from passimaker.model.editing import song_duration
 from passimaker.preview import AudioOutput, Clock, SoundDeviceOutput
 from passimaker.timeline import build_audio_plan
@@ -236,6 +239,8 @@ class SongPanel(QWidget):
         self.trim_end = self._trim_box(in_seconds)
         self.listen = QPushButton()
         self.volume = percent_box(defaults.SONG_VOLUME_RANGE, self.tr(" %"))
+        self.silence_start = seconds_box(defaults.MUSIC_SILENCE_RANGE, in_seconds)
+        self.silence_end = seconds_box(defaults.MUSIC_SILENCE_RANGE, in_seconds)
 
         self.fade_in_enabled.setToolTip(self.tr("La cançó comença baixet i puja fins al volum normal"))
         self.fade_out_enabled.setToolTip(self.tr("La cançó s'apaga a poc a poc en lloc de tallar-se"))
@@ -243,6 +248,12 @@ class SongPanel(QWidget):
         self.trim_end.setToolTip(self.tr("On deixa de sonar la cançó"))
         self.listen.setToolTip(self.tr("Escolta el tros triat tal com sonarà al vídeo"))
         self.volume.setToolTip(self.tr("Volum d'aquesta cançó respecte de les altres"))
+        self.silence_start.setToolTip(
+            self.tr("Segons de silenci des del principi del vídeo fins a la primera cançó")
+        )
+        self.silence_end.setToolTip(
+            self.tr("Segons de silenci des del final de la música fins al final del vídeo")
+        )
 
         fades = QFormLayout()
         fades.addRow(self.fade_in_enabled, self.fade_in)
@@ -252,6 +263,10 @@ class SongPanel(QWidget):
         trim.addRow(self.tr("Acaba a"), self.trim_end)
         trim.addRow("", self.listen)
         trim.addRow(self.tr("Volum"), self.volume)
+        self.whole_music = QGroupBox(self.tr("Tota la música"))
+        silences = QFormLayout(self.whole_music)
+        silences.addRow(self.tr("Silenci abans"), self.silence_start)
+        silences.addRow(self.tr("Silenci després"), self.silence_end)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.title)
@@ -261,6 +276,7 @@ class SongPanel(QWidget):
         layout.addWidget(QLabel(self.tr("Retall")))
         layout.addWidget(self.trim_bar)
         layout.addLayout(trim)
+        layout.addWidget(self.whole_music)
         layout.addStretch(1)
 
         self.fade_in_enabled.toggled.connect(self._on_fades)
@@ -272,6 +288,8 @@ class SongPanel(QWidget):
         self.trim_bar.trim_moving.connect(self._show_trim)
         self.trim_bar.trim_changed.connect(self._send_trim)
         self.volume.valueChanged.connect(self._on_volume)
+        self.silence_start.valueChanged.connect(self._on_silence_start)
+        self.silence_end.valueChanged.connect(self._on_silence_end)
         self.listen.clicked.connect(self._on_listen)
         self.waveforms.ready.connect(self._on_waveform)
         self.listening.started.connect(self._refresh_listen)
@@ -337,6 +355,9 @@ class SongPanel(QWidget):
             self._song_id = None
         self.setEnabled(song is not None)
         with self._quiet():
+            music = self._controller.project.music
+            self.silence_start.setValue(music.silence_start_s)
+            self.silence_end.setValue(music.silence_end_s)
             if song is None:
                 self.title.setText(self.tr("Cap cançó seleccionada"))
                 self.length.clear()
@@ -442,6 +463,14 @@ class SongPanel(QWidget):
         song = self.song()
         if song is not None:
             self._send(replace(song, volume=percent / PERCENT))
+
+    def _on_silence_start(self, seconds: float) -> None:
+        if not self._updating and seconds != self._controller.project.music.silence_start_s:
+            self._controller.execute(SetMusicSettings(silence_start_s=seconds))
+
+    def _on_silence_end(self, seconds: float) -> None:
+        if not self._updating and seconds != self._controller.project.music.silence_end_s:
+            self._controller.execute(SetMusicSettings(silence_end_s=seconds))
 
     def _send(self, song: Song) -> None:
         if not self._updating and song != self.song():

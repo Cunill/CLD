@@ -28,7 +28,8 @@ from passimaker.model.commands import RerollMotions, SetDefaultDuration, SetMusi
 from passimaker.motion import INTENSITY_PRESETS
 
 _INTENSITIES = (Intensity.SOFT, Intensity.MEDIUM, Intensity.STRONG)
-_FORMATS = (OutputFormat.HORIZONTAL, OutputFormat.VERTICAL)
+_FORMATS = tuple(OutputFormat)
+"""The six formats of M10: the three landscape proportions, then the three portrait ones."""
 PERCENT = 100.0
 """The motion amounts are a fraction in the model and a percentage on screen (§1.0)."""
 CUSTOM_INTENSITY = len(_INTENSITIES)
@@ -39,6 +40,12 @@ NUMBER_LOCALE = QLocale(QLocale.Language.Catalan, QLocale.Country.Spain)
 """The number boxes write and read "2,5" with a comma, whatever the language of the system (§1.2)."""
 
 type PanelCommand = SetDefaultDuration | SetProjectSettings | SetMusicSettings | RerollMotions
+
+
+def format_label(widget: QWidget, output_format: OutputFormat) -> str:
+    """ "Horitzontal 3:2", "Vertical 9:16"... (M10), for the format box and the toolbar menu."""
+    orientation = widget.tr("Vertical") if output_format.is_vertical else widget.tr("Horitzontal")
+    return f"{orientation} {output_format.label}"
 
 
 def number_box() -> QDoubleSpinBox:
@@ -93,8 +100,8 @@ class ProjectPanel(QWidget):
         self.reroll_all = QPushButton(self.tr("Tornar a sortejar tots"))
         self.reroll_all.setToolTip(self.tr("Sorteja un moviment nou per a totes les fotos en mode automàtic"))
         self.output_format = QComboBox()
-        for label in (self.tr("Horitzontal 16:9"), self.tr("Vertical 9:16")):
-            self.output_format.addItem(label)
+        for output_format in _FORMATS:
+            self.output_format.addItem(format_label(self, output_format))
         self.fade_from_black = seconds_box(defaults.BLACK_FADE_RANGE, in_seconds)
         self.fade_to_black = seconds_box(defaults.BLACK_FADE_RANGE, in_seconds)
         self.zoom_amount = percent_box(defaults.MOTION_AMOUNT_RANGE, in_percent)
@@ -109,7 +116,9 @@ class ProjectPanel(QWidget):
         self.crossfade.setToolTip(self.tr("Quant dura la fosa entre una foto i la següent"))
         self.motion_enabled.setToolTip(self.tr("Apropa, allunya o desplaça suaument cada foto mentre es veu"))
         self.intensity.setToolTip(self.tr("Com de marcat és el moviment de les fotos"))
-        self.output_format.setToolTip(self.tr("Horitzontal per al televisor; vertical per al mòbil"))
+        self.output_format.setToolTip(
+            self.tr("Forma del vídeo: 16:9 per al televisor, 3:2 i 4:3 més quadrats; vertical per al mòbil")
+        )
         self.fade_from_black.setToolTip(self.tr("Fosa des de negre al principi del vídeo"))
         self.fade_to_black.setToolTip(self.tr("Fosa cap a negre al final del vídeo"))
         self.zoom_amount.setToolTip(self.tr("Quant s'apropa o s'allunya cada foto"))

@@ -6,6 +6,9 @@ A .pmk file is indented UTF-8 JSON (§1.10: readable structured text):
 
 Version 2 (M08) adds "black_start" and "black_end" to the project: {"duration_s": ...} or null. A
 version 1 file has neither, so it opens without black slides; it is saved again as version 2.
+M10 writes "output_format" with its proportion ("horizontal_16_9", "vertical_2_3", ...); the
+values of older files ("horizontal", "vertical") still open as 16:9 and 9:16.
+"music" also has "silence_start_s" and "silence_end_s" (M13); files saved before them open with 0.
 
 Every photo and song stores two paths: `path` (absolute) and `relative_path` (relative to the
 folder of the .pmk file, with "/" separators, or null when there is none, e.g. another drive).
@@ -160,6 +163,8 @@ def project_to_json(project: Project, base: Path) -> dict[str, Any]:
                 "master_volume": music.master_volume,
                 "normalize": music.normalize,
                 "keep_fitted": music.keep_fitted,
+                "silence_start_s": music.silence_start_s,
+                "silence_end_s": music.silence_end_s,
                 "songs": [_song_to_json(s, base) for s in music.songs],
             },
         },
@@ -225,6 +230,12 @@ def _optional_number(data: Mapping[str, Any], key: str) -> float | None:
     return None if data.get(key) is None else _number(data, key)
 
 
+def _silence(music: Mapping[str, Any], key: str) -> float:
+    """A silence of the music (M13); files saved before it have none (0)."""
+    value = _optional_number(music, key)
+    return defaults.MUSIC_SILENCE_RANGE.clamp(value if value is not None else defaults.MUSIC_SILENCE_S)
+
+
 def _object(data: Mapping[str, Any], key: str) -> Mapping[str, Any]:
     return cast(Mapping[str, Any], _field(data, key, dict))
 
@@ -238,6 +249,17 @@ def _enum[E: Enum](data: Mapping[str, Any], key: str, enum: type[E]) -> E:
         return enum(data[key])
     except (KeyError, ValueError) as error:
         raise _CorruptError(f"valor no vàlid al camp {key!r}") from error
+
+
+LEGACY_FORMAT_VALUES = {"horizontal": OutputFormat.HORIZONTAL, "vertical": OutputFormat.VERTICAL}
+"""Values of output_format before M10 (versions 1 and 2 of 1.2.0 and the M08 development builds)."""
+
+
+def _output_format(data: Mapping[str, Any]) -> OutputFormat:
+    value = data.get("output_format")
+    if isinstance(value, str) and value in LEGACY_FORMAT_VALUES:
+        return LEGACY_FORMAT_VALUES[value]
+    return _enum(data, "output_format", OutputFormat)
 
 
 def _window(data: Mapping[str, Any]) -> Window:
@@ -380,7 +402,7 @@ def project_from_json(document: object, base: Path) -> OpenResult:
         project = Project(
             name=_field(data, "name", str),
             format_version=defaults.FORMAT_VERSION,
-            output_format=_enum(data, "output_format", OutputFormat),
+            output_format=_output_format(data),
             seed=_field(data, "seed", int),
             default_duration_s=defaults.PHOTO_DURATION_RANGE.clamp(_number(data, "default_duration_s")),
             crossfade_s=defaults.CROSSFADE_RANGE.clamp(_number(data, "crossfade_s")),
@@ -394,6 +416,8 @@ def project_from_json(document: object, base: Path) -> OpenResult:
                 master_volume=defaults.MASTER_VOLUME_RANGE.clamp(_number(music, "master_volume")),
                 normalize=_field(music, "normalize", bool),
                 keep_fitted=_field(music, "keep_fitted", bool),
+                silence_start_s=_silence(music, "silence_start_s"),
+                silence_end_s=_silence(music, "silence_end_s"),
                 songs=songs,
             ),
         )

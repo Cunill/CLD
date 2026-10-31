@@ -48,6 +48,9 @@ SONG_FADE_IN_S = 1.0
 SONG_FADE_OUT_S = 3.0
 SONG_FADE_RANGE = Range(0.0, 10.0, 0.5)
 MUSIC_FINAL_FADE_S = 3.0
+MUSIC_SILENCE_S = 0.0
+MUSIC_SILENCE_RANGE = Range(0.0, 60.0, 0.5)
+"""Seconds of silence before the first song and after the music, up to the end of the show (M13)."""
 CUT_MICRO_FADE_S = 0.010
 SHORT_SONG_FADE_FRACTION = 0.4
 SONG_TRIM_STEP_S = 0.1

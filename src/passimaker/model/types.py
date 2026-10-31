@@ -16,13 +16,44 @@ from passimaker.model import defaults
 
 
 class OutputFormat(Enum):
-    HORIZONTAL = "horizontal"  # 1920x1080
-    VERTICAL = "vertical"  # 1080x1920
+    """Video shape: three proportions, landscape or portrait, short side 1080 px (M10).
+
+    HORIZONTAL and VERTICAL keep their names from 1.2.0 (16:9 and 9:16). Projects saved before M10
+    store "horizontal" and "vertical" (projectio translates them, LEGACY_FORMAT_VALUES).
+    """
+
+    HORIZONTAL = "horizontal_16_9"
+    HORIZONTAL_3_2 = "horizontal_3_2"
+    HORIZONTAL_4_3 = "horizontal_4_3"
+    VERTICAL = "vertical_9_16"
+    VERTICAL_2_3 = "vertical_2_3"
+    VERTICAL_3_4 = "vertical_3_4"
 
     @property
     def size(self) -> tuple[int, int]:
-        """Output size in pixels as (width, height)."""
-        return (1920, 1080) if self is OutputFormat.HORIZONTAL else (1080, 1920)
+        """Output size in pixels as (width, height); both even (H.264 4:2:0)."""
+        return _OUTPUT_SIZES[self]
+
+    @property
+    def is_vertical(self) -> bool:
+        width, height = self.size
+        return height > width
+
+    @property
+    def label(self) -> str:
+        """Proportion as written on screen and on the command line, e.g. "3:2" or "9:16"."""
+        _, ratio_w, ratio_h = self.value.split("_")
+        return f"{ratio_w}:{ratio_h}"
+
+
+_OUTPUT_SIZES: dict[OutputFormat, tuple[int, int]] = {
+    OutputFormat.HORIZONTAL: (1920, 1080),
+    OutputFormat.HORIZONTAL_3_2: (1620, 1080),
+    OutputFormat.HORIZONTAL_4_3: (1440, 1080),
+    OutputFormat.VERTICAL: (1080, 1920),
+    OutputFormat.VERTICAL_2_3: (1080, 1620),
+    OutputFormat.VERTICAL_3_4: (1080, 1440),
+}
 
 
 class Intensity(Enum):
@@ -169,6 +200,10 @@ class Music:
     master_volume: float = defaults.MASTER_VOLUME
     normalize: bool = True
     keep_fitted: bool = False
+    silence_start_s: float = defaults.MUSIC_SILENCE_S
+    """Silence before the first song (M13): the music starts this long after the show."""
+    silence_end_s: float = defaults.MUSIC_SILENCE_S
+    """Silence after the music (M13): the music ends at least this long before the show."""
     songs: tuple[Song, ...] = ()
 
 

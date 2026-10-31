@@ -99,7 +99,13 @@ def build_new_parser() -> argparse.ArgumentParser:
     parser.add_argument("photos_dir", type=Path, help="Carpeta amb les fotos")
     parser.add_argument("music", type=Path, nargs="*", help="Fitxers de música, en ordre")
     parser.add_argument("-o", "--output", type=Path, required=True, help="Fitxer .pmk de sortida")
-    parser.add_argument("--vertical", action="store_true", help="Format vertical 1080x1920")
+    parser.add_argument(
+        "--format",
+        choices=[f.label for f in OutputFormat],
+        default=None,
+        help="Proporció: 16:9, 3:2 o 4:3 horitzontals, o 9:16, 2:3 o 3:4 verticals (per defecte, 16:9)",
+    )
+    parser.add_argument("--vertical", action="store_true", help="Format vertical 9:16 (com --format 9:16)")
     parser.add_argument("--ajustar", action="store_true", help="Ajusta les durades a la música")
     parser.add_argument(
         "--llavor",
@@ -166,6 +172,15 @@ def _failure_text(failure: FailedFile) -> str:
     return f"{failure.path.name}: {_IMPORT_FAILURES.get(failure.reason, failure.reason.value)}"
 
 
+def _output_format(label: str | None, vertical: bool) -> OutputFormat | None:
+    """The format of --format (M10), --vertical (9:16, as before) or 16:9; None if they disagree."""
+    by_label = {f.label: f for f in OutputFormat}
+    chosen = by_label[label] if label is not None else None
+    if vertical:
+        return OutputFormat.VERTICAL if chosen in (None, OutputFormat.VERTICAL) else None
+    return chosen if chosen is not None else OutputFormat.HORIZONTAL
+
+
 def main_new(argv: list[str] | None = None) -> int:
     args = build_new_parser().parse_args(argv)
     _configure_logging()
@@ -175,6 +190,10 @@ def main_new(argv: list[str] | None = None) -> int:
     if not args.photos_dir.is_dir():
         print(f"No es troba la carpeta {args.photos_dir}", file=sys.stderr)
         return EXIT_ERROR
+    output_format = _output_format(args.format, args.vertical)
+    if output_format is None:
+        print("--vertical i --format no coincideixen.", file=sys.stderr)
+        return EXIT_ERROR
     if args.ajustar and not args.music:
         print("--ajustar no fa res sense música.", file=sys.stderr)
     try:
@@ -182,7 +201,7 @@ def main_new(argv: list[str] | None = None) -> int:
             args.photos_dir,
             args.music,
             name=output.stem,
-            output_format=OutputFormat.VERTICAL if args.vertical else OutputFormat.HORIZONTAL,
+            output_format=output_format,
             fit_to_music=args.ajustar,
             seed=args.llavor,
         )

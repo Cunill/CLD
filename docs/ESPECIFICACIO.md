@@ -62,7 +62,7 @@
 | Volum general | 100 % | 0–100 % |
 | Volum de cada cançó | 100 % | 0–150 % |
 | Anivellament entre cançons | Activat (−16 LUFS) | Sí / no (Avançat) |
-| Format | Horitzontal 1920×1080, 30 fps | Horitzontal / Vertical 1080×1920 |
+| Format | Horitzontal 16:9 (1920×1080), 30 fps | 16:9, 3:2 (1620×1080) o 4:3 (1440×1080), horitzontals; 9:16 (1080×1920), 2:3 (1080×1620) o 3:4 (1080×1440), verticals (M10) |
 | Codificació | H.264 High, CRF 18 · AAC 192 kbps, 48 kHz | Fixa |
 
 ### 1.1 Importar fotos
@@ -211,7 +211,9 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
   - Les franges negres semblen justament les zones buides que volem evitar.
   - El fons difuminat és el que es fa servir avui a mòbils i televisió.
 - Per a cada foto es pot forçar una opció: Automàtic, Omplir, Encaixar amb fons difuminat o Encaixar amb fons negre.
-- En format vertical (9:16) s'apliquen les mateixes regles, a l'inrevés.
+- En format vertical (9:16) s'apliquen les mateixes regles, a l'inrevés. Amb els formats 3:2, 4:3, 2:3 i 3:4 (M10), la
+  mateixa regla, comparant amb la proporció del vídeo: en 4:3 omplen les fotos 4:3, 3:2, 16:9 i quadrades; les
+  verticals hi van amb fons difuminat.
 - Casos límit:
   - Panoràmica 4:1 en mode "Omplir": es veu la franja central, amb un desplaçament lateral limitat per la velocitat màxima.
   - Foto quadrada en un vídeo horitzontal: fons difuminat.
@@ -223,6 +225,11 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 - Sota el storyboard hi ha la franja "Música", amb les cançons en ordre: nom, durada real (després del retall) i indicadors de fosa. Les cançons s'afegeixen amb [+ Música] o arrossegant fitxers d'àudio a la finestra. Es poden eliminar i reordenar arrossegant-les.
 - Formats: MP3, WAV, M4A/AAC, FLAC, OGG, WMA i OPUS. També es poden descarregar de YouTube (§1.7 bis) o gravar-les del so de l'ordinador (§1.7 ter).
 - Les cançons sonen una darrere l'altra des del principi del vídeo, sense trepitjar-se.
+- **Silenci abans i després de la música** (M13, millora 6): al panell de la cançó, apartat "Tota la música", "Silenci
+  abans" i "Silenci després" (per defecte 0 s; de 0 a 60 s, en passos de 0,5 s). Són de tota la música, no de cada
+  cançó, i es poden desfer. La primera cançó comença X segons després del principi del vídeo, i la música s'acaba com a
+  molt Y segons abans del final (si no hi cap, la fosa final de 3 s acaba just allà). Són independents de les fitxes
+  negres: amb una fitxa negra de 2 s i X = 5 s, la música comença al segon 5.
 - Ajustos de cada cançó (panell de propietats):
   - Fosa d'entrada: ☑ activada, 1,0 s (de 0 a 10 s, en passos de 0,5 s).
   - Fosa de sortida: ☑ activada, 3,0 s (de 0 a 10 s).
@@ -234,18 +241,18 @@ foto i fosa d'1 s) són **3 s** (la primera i l'última foto, 2,5 s).
 - Les foses segueixen una corba logarítmica, que a l'oïda sona més natural que una de lineal.
 
 **Ajustar a la música**
-- El botó [Ajustar a la música] torna a calcular les durades perquè el passi duri exactament el mateix que la música (la suma de les cançons, ja retallades) (decisió 0014).
+- El botó [Ajustar a la música] torna a calcular les durades perquè el passi duri exactament el mateix que la música (la suma de les cançons, ja retallades) (decisió 0014), més el silenci d'abans i el de després (M13).
 - **Les fotos amb la durada posada a mà no es toquen**: se'n resta el total de la durada de la música i la resta es reparteix entre les altres fotos (les que fan servir la durada per defecte, que passa a valer el que toqui). Qualsevol element amb una durada pròpia, com les fitxes negres, també es manté.
 - Cada foto lliure pot durar entre 0,4 i 24 s (el mateix rang que a mà). Si caldria menys de 0,4 s per foto, surt l'avís "Hi ha massa fotos per a aquesta música: cada foto duraria 0,3 s. Afegeix música o treu fotos."; si en caldria més de 24 s, "La música és massa llarga per a aquestes fotos: afegeix-ne o retalla la música." En tots dos casos, [Aplicar igualment] (amb el límit de 0,4 o 24 s) i [Cancel·lar]. El temps per foto que surt a l'avís és el que queda de música després de les fotos fixes.
 - Si **totes** les fotos tenen la durada posada a mà, o les fixes ja duren tant com la música o més, no es canvia res: surt un avís ("Totes les fotos tenen la durada posada a mà, així que no hi ha res a ajustar…" o "Les fotos amb la durada posada a mà ja duren tant com la música o més…") amb un sol botó [D'acord].
-- Casella "Mantenir ajustat" (desactivada per defecte): si s'activa, el passi es torna a ajustar sol cada vegada que s'afegeixen fotos o cançons (amb les mateixes regles; si no hi ha res a ajustar, no fa res i no avisa).
+- Casella "Mantenir ajustat" (desactivada per defecte): si s'activa, el passi es torna a ajustar sol cada vegada que s'afegeixen fotos o cançons, o es canvien els silencis (M13) (amb les mateixes regles; si no hi ha res a ajustar, no fa res i no avisa).
 
 **Quan la música i les fotos no duren el mateix**
 
 | Situació | Comportament per defecte | Com ho veu l'usuari |
 |---|---|---|
-| La música dura més que el passi | La música es talla amb una fosa de volum de 3 s que acaba just amb la fosa a negre del vídeo | Avís discret a la barra d'estat: "La música dura 1:22 més. [Ajustar a la música]" |
-| La música dura menys que el passi | Després de l'última cançó (amb la seva fosa de sortida) hi ha silenci | "La música s'acaba 0:45 abans. [Ajustar a la música]" |
+| La música dura més que el passi | La música es talla amb una fosa de volum de 3 s que acaba just amb la fosa a negre del vídeo (o, amb silenci després, Y segons abans del final) | Avís discret a la barra d'estat: "La música dura 1:22 més. [Ajustar a la música]" |
+| La música dura menys que el passi | Després de l'última cançó (amb la seva fosa de sortida) hi ha silenci (la barra d'estat compta els silencis d'abans i de després amb la música) | "La música s'acaba 0:45 abans. [Ajustar a la música]" |
 | No hi ha música | Vídeo amb una pista d'àudio en silenci, perquè sigui més compatible amb els televisors | — |
 
 **Casos límit:**
@@ -398,7 +405,7 @@ cançons d'una llista i gravar vídeo.
 ### 1.8 Previsualització
 
 - Panell amb la imatge del passi i aquests controls: ▶/❚❚ (barra espaiadora), foto anterior i següent (← →), barra de temps clicable i temps actual / total.
-- Es reprodueix en temps real i amb so, a resolució reduïda (fins a 960×540, o 540×960 en vertical). La imatge és exactament la mateixa que s'exportarà, perquè la fa el mateix motor.
+- Es reprodueix en temps real i amb so, a resolució reduïda (fins a 960×540, o 540×960 en vertical; amb la proporció del vídeo: per exemple, 720×540 en 4:3). La imatge és exactament la mateixa que s'exportarà, perquè la fa el mateix motor.
 - En fer clic sobre una miniatura, la previsualització salta a l'inici d'aquella foto (i, si s'estava reproduint, continua des d'allà).
 - Qualsevol canvi (durada, moviment, encaix, música) es veu a l'instant. En pausa, la imatge es torna a dibuixar.
 - Casos límit:
@@ -408,8 +415,9 @@ cançons d'una llista i gravar vídeo.
 
 ### 1.9 Exportar
 
-- [Exportar vídeo] obre el diàleg de desar, amb el nom del projecte i la carpeta Vídeos ja proposats. No hi ha cap altra opció: el format (horitzontal o vertical) és el del projecte.
-- Vídeo: MP4, H.264 perfil High, 1920×1080 o 1080×1920, 30 fps, qualitat alta constant (CRF 18), espai de color BT.709.
+- [Exportar vídeo] obre el diàleg de desar, amb el nom del projecte i la carpeta Vídeos ja proposats. No hi ha cap altra opció: el format (proporció i orientació) és el del projecte.
+- Vídeo: MP4, H.264 perfil High, a la mida del format (1920×1080, 1620×1080, 1440×1080, 1080×1920, 1080×1620 o
+  1080×1440), 30 fps, qualitat alta constant (CRF 18), espai de color BT.709.
 - Àudio: AAC a 192 kbps, 48 kHz, estèreo.
 - El fitxer es pot començar a reproduir abans d'haver-se descarregat del tot (opció faststart).
 - Diàleg de progrés: barra, percentatge, temps restant estimat i [Cancel·lar]. Si es cancel·la, l'exportació s'atura en menys de 2 s i el fitxer a mig fer s'esborra.
@@ -440,7 +448,9 @@ cançons d'una llista i gravar vídeo.
 
 ### 1.11 Format del vídeo
 
-- Ajust del projecte "Format: Horitzontal 16:9 / Vertical 9:16" (per defecte, horitzontal), a la barra d'eines.
+- Ajust del projecte "Format" (M10): Horitzontal 16:9, 3:2 o 4:3, o Vertical 9:16, 2:3 o 3:4 (per defecte,
+  horitzontal 16:9). A la barra d'eines, el botó "Format: 16:9 ▾" obre un menú dels sis formats (primer els
+  horitzontals); al panell del projecte, la llista "Format" és la mateixa.
 - Si es canvia, el programa torna a calcular l'encaix automàtic i el moviment de totes les fotos, mantenint el tipus de moviment triat. La previsualització canvia de forma.
 
 ### 1.12 Propostes separades (fora del pla)

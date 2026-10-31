@@ -16,7 +16,7 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QWidget
 
 from passimaker.model import Project
-from passimaker.model.editing import fixed_durations, music_duration
+from passimaker.model.editing import fixed_durations, music_duration, music_span
 from passimaker.timeline import fit_to_music
 from passimaker.timeline.types import FitBlock
 from passimaker.ui.formatting import clock
@@ -37,11 +37,13 @@ class Balance(Enum):
 class Durations:
     show_s: float
     music_s: float
+    silence_s: float = 0.0
+    """The silences before and after the music (M13): the show needs them too."""
 
     @property
     def difference_s(self) -> float:
-        """Music minus show; positive when the music lasts longer."""
-        return self.music_s - self.show_s
+        """Music (with its silences) minus show; positive when the music lasts longer."""
+        return self.music_s + self.silence_s - self.show_s
 
     @property
     def balance(self) -> Balance:
@@ -56,7 +58,8 @@ class Durations:
 def durations_of(project: Project) -> Durations:
     """The show is the sum of the photo durations, as in "124 fotos · 4:30" (§1.3)."""
     show = sum(project.photo_duration(slide) for slide in project.slides)  # black slides too (M08)
-    return Durations(show, music_duration(project.music))
+    music = project.music
+    return Durations(show, music_duration(music), music.silence_start_s + music.silence_end_s)
 
 
 class FitProblem(Enum):
@@ -85,7 +88,7 @@ def fit_problem(project: Project) -> FitCheck | None:
     ``seconds_per_photo`` is what each free photo would last (the music left after the fixed ones).
     """
     durations = [project.photo_duration(slide) for slide in project.slides]  # as fixed_durations (M08)
-    target = music_duration(project.music)
+    target = music_span(project.music)  # the silences too (M13)
     if not project.photos or target <= 0:
         return None
     fixed = fixed_durations(project)

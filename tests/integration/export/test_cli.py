@@ -63,6 +63,30 @@ def test_new_project_options(folder: Path, fixture_files: dict[str, Path], tmp_p
     assert compute_timeline(project).total_duration_s == pytest.approx(10.0, abs=0.05)
 
 
+@pytest.mark.parametrize("output_format", list(OutputFormat))
+def test_new_project_with_each_format(folder: Path, tmp_path: Path, output_format: OutputFormat) -> None:
+    """M10: --format chooses any of the six proportions."""
+    output = tmp_path / "format.pmk"
+    args = [str(folder), "-o", str(output), "--format", output_format.label, "--llavor", "1"]
+    assert cli.main_new(args) == cli.EXIT_OK
+    assert open_project(output).project.output_format is output_format
+
+
+def test_vertical_and_format_must_agree(
+    folder: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    output = tmp_path / "p.pmk"
+    agreeing = [str(folder), "-o", str(output), "--vertical", "--format", "9:16"]
+    assert cli.main_new(agreeing) == cli.EXIT_OK
+    assert open_project(output).project.output_format is OutputFormat.VERTICAL
+    output.unlink()
+    assert cli.main_new([str(folder), "-o", str(output), "--vertical", "--format", "4:3"]) == cli.EXIT_ERROR
+    assert "no coincideixen" in capsys.readouterr().err
+    assert not output.exists()
+    with pytest.raises(SystemExit):
+        cli.main_new([str(folder), "-o", str(output), "--format", "1:1"])
+
+
 def test_the_same_folder_and_seed_give_the_same_project(folder: Path, tmp_path: Path) -> None:
     first, second = tmp_path / "a.pmk", tmp_path / "b.pmk"
     assert cli.main_new([str(folder), "-o", str(first), "--llavor", "5"]) == cli.EXIT_OK

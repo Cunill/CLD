@@ -1,14 +1,16 @@
-"""B2 · Audio plan: songs back to back, trims, fades, final fade and silence (§1.7)."""
+"""B2 · Audio plan: songs back to back, trims, fades, final fade and silence (§1.7); M13 silences."""
 
 from __future__ import annotations
+
+from dataclasses import replace
 
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
 from passimaker.model import defaults
-from passimaker.model.types import Fade, Song
-from passimaker.timeline import Timeline, compute_timeline
+from passimaker.model.types import BlackSlide, BlackSlidePosition, Fade, Song
+from passimaker.timeline import Timeline, build_audio_plan, compute_timeline
 from tests.unit.timeline.helpers import make_project, make_song
 
 MICRO = defaults.CUT_MICRO_FADE_S
@@ -137,3 +139,97 @@ def test_segments_are_consecutive_inside_the_video_and_fades_fit(
     if plan.final_fade is not None:
         assert plan.final_fade.end == total
         assert timeline.music_duration_s > total
+
+
+# --- M13: silence before and after the music ---------------------------------------------------
+
+
+def plan_with_silence(
+    photo_durations: list[float], songs: list[Song], before: float, after: float
+) -> Timeline:
+    project = make_project(photo_durations, songs=songs)
+    music = replace(project.music, silence_start_s=before, silence_end_s=after)
+    return compute_timeline(replace(project, music=music))
+
+
+def test_the_music_starts_after_the_silence_before_even_with_a_black_slide() -> None:
+    project = make_project([3.0] * 4, songs=[make_song(0, 4.0), make_song(1, 3.0)])
+    black = BlackSlide(BlackSlidePosition.START, 2.0)
+    project = replace(
+        project, slides=(black, *project.slides), music=replace(project.music, silence_start_s=5.0)
+    )
+    first, second = compute_timeline(project).audio_plan.segments
+    assert (first.video_start, first.video_end) == (5.0, 9.0)
+    assert (second.video_start, second.video_end) == (9.0, 12.0)
+
+
+def test_short_music_ends_with_its_own_fade_and_silence_follows() -> None:
+    plan = plan_with_silence([3.0] * 4, [make_song(0, 6.0)], 2.0, 3.0).audio_plan
+    (segment,) = plan.segments
+    assert (segment.video_start, segment.video_end, segment.fade_out_s) == (2.0, 8.0, 3.0)
+    assert plan.final_fade is None
+
+
+def test_long_music_is_cut_with_the_final_fade_ending_before_the_silence_after() -> None:
+    timeline = plan_with_silence([2.0] * 10, [make_song(0, 60.0)], 1.5, 4.0)
+    plan = timeline.audio_plan
+    (segment,) = plan.segments
+    assert (segment.video_start, segment.video_end, segment.fade_out_s) == (1.5, 16.0, 0.0)
+    assert plan.final_fade is not None
+    assert (plan.final_fade.start, plan.final_fade.end) == (16.0 - defaults.MUSIC_FINAL_FADE_S, 16.0)
+
+
+def test_music_that_fills_the_gap_exactly_needs_no_final_fade() -> None:
+    plan = plan_with_silence([2.0] * 5, [make_song(0, 5.0)], 2.0, 3.0).audio_plan
+    (segment,) = plan.segments
+    assert (segment.video_start, segment.video_end, segment.fade_out_s) == (2.0, 7.0, 3.0)
+    assert plan.final_fade is None
+
+
+def test_the_final_fade_never_starts_before_the_music() -> None:
+    plan = plan_with_silence([2.0, 2.0], [make_song(0, 60.0)], 1.0, 1.0).audio_plan
+    assert plan.final_fade is not None and (plan.final_fade.start, plan.final_fade.end) == (1.0, 3.0)
+
+
+def test_silences_longer_than_the_show_leave_no_music() -> None:
+    plan = plan_with_silence([2.0, 2.0], [make_song(0, 60.0)], 3.0, 1.0).audio_plan
+    assert plan.segments == () and plan.final_fade is None
+
+
+def test_zero_silences_give_the_same_plan_as_before() -> None:
+    songs = [make_song(0, 6.0), make_song(1, 30.0)]
+    plain = plan_for([2.0] * 5, songs)
+    silent = plan_with_silence([2.0] * 5, songs, 0.0, 0.0)
+    assert silent.audio_plan == plain.audio_plan
+    assert build_audio_plan(songs, 10.0, 30) == build_audio_plan(songs, 10.0, 30, 0.0, 0.0)
+
+
+@given(
+    st.lists(st.floats(1.0, 30.0), max_size=20),
+    song_lists,
+    st.floats(0.0, 60.0),
+    st.floats(0.0, 60.0),
+)
+def test_with_silences_the_music_stays_between_x_and_the_end_minus_y(
+    photos: list[float],
+    raw: list[tuple[float, float, float | None, tuple[bool, float], tuple[bool, float]]],
+    before: float,
+    after: float,
+) -> None:
+    songs = [
+        make_song(i, length, trim_start_s=start, trim_end_s=end, fade_in=Fade(*fi), fade_out=Fade(*fo))
+        for i, (length, start, end, fi, fo) in enumerate(raw)
+    ]
+    timeline = plan_with_silence(photos, songs, before, after)
+    end = timeline.total_duration_s - after
+    plan = timeline.audio_plan
+    position = before
+    for segment in plan.segments:
+        assert segment.video_start == pytest.approx(position, abs=1e-9)
+        assert before <= segment.video_start < segment.video_end <= end
+        assert segment.fade_in_s + segment.fade_out_s <= segment.video_end - segment.video_start + 1e-9
+        position = segment.video_end
+    played = sum(s.video_end - s.video_start for s in plan.segments)
+    assert played == pytest.approx(max(0.0, min(end - before, timeline.music_duration_s)), abs=1e-6)
+    if plan.final_fade is not None:
+        assert plan.final_fade.end == end and plan.final_fade.start >= before
