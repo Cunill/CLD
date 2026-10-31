@@ -11,7 +11,7 @@
 | # | Tema | Decisió |
 |---|---|---|
 | 1 | Imatges negres (millora 5 de `docs/proves_usuari.md`) | **Dues fitxes negres al tauler de fotos**, la primera i l'última, cadascuna amb la seva durada (per defecte 2 s). Es queden fixes en aquesta posició; es poden esborrar i tornar a afegir |
-| 2 | Proporcions | Forma del **vídeo exportat**: 16:9 (1920×1080), 3:2 (1620×1080) i 4:3 (1440×1080), horitzontals; el vertical 9:16 (1080×1920) continua |
+| 2 | Proporcions | Forma del **vídeo exportat**: 16:9 (1920×1080), 3:2 (1620×1080) i 4:3 (1440×1080), horitzontals; el vertical 9:16 (1080×1920) continua. **Ampliat el 30/10/2026 (M10): sis formats**, també 3:2 i 4:3 en vertical (1080×1620 i 1080×1440) |
 | 3 | Marge de la previsualització | El de **sota de la previsualització** (entre la previsualització i el panell de propietats): que es vegi i es pugui arrossegar amunt i avall amb un recorregut ample |
 | 4 | Ordre aleatori | Un **botó que barreja les fotos un cop**; cada vegada que es prem, torna a barrejar. Les fitxes negres no es mouen. Es pot desfer |
 | 5 | Ajustar a la música (millora 7) | Les fotos amb la **durada posada a mà no es toquen**; la resta de la música es reparteix entre les altres, en **0,4–24 s**. Si totes tenen durada a mà, no fa res i avisa |
@@ -316,5 +316,41 @@ Condició d'aturada: la del CLAUDE.md (i la del punt 1). A docs/sessions/M13.md,
 
 ### M12 · Versió 1.3.0
 
-Prompt: s'escriu quan M07–M11 i el M13 siguin a `main`. ZIP, guia (fitxes negres, barrejar, proporcions), CHANGELOG 1.3.0,
-silenci de la música, versió, prova de l'usuari amb el ZIP i publicar la `v1.3`.
+```text
+Bloc M12: guia, CHANGELOG, versió 1.3.0, prova de l'usuari amb el ZIP i publicar la v1.3. Model: Sonnet.
+ATENCIÓ: és l'últim bloc de la versió 1.3.0 i no n'hi ha cap altre en paral·lel. No facis res fora d'aquest bloc: modifica
+només els fitxers permesos de sota (anota la resta a docs/sessions/M12.md).
+Context: M07, M08, M09, M10, M11 i M13 són a main (la versió 1.3.0 ja és completa en codi), i yt-dlp és a la 2026.10.26
+(PR #89). Les proves manuals de tots sis blocs es van ajornar a aquest bloc (docs/PLA_1_3.md §1.2). Llegeix
+docs/PLA_1_3.md (§0 i §1.2), les notes docs/sessions/M07.md, M08.md, M09.md, M10.md, M11.md i M13.md (sobretot "Per al
+M12", "Observacions" i "Prova manual"), docs/sessions/C06.md (com es va fer la 1.2.0), docs/CHANGELOG.md,
+docs/PUBLICAR.md, src/passimaker/ui/help.py i tests/ui/test_help.py, pyproject.toml i src/passimaker/__init__.py.
+Branca: bloc/M12-versio-1-3 des de main actualitzat (o la que imposi la sessió al núvol; anota-ho).
+Fes:
+1. Guia d'ús (ui/help.py), en català i amb tr: fitxes negres a l'inici i al final (esborrar-les i tornar-les a afegir
+   des d'Edita), "Barreja les fotos", el botó "Format ▾" amb els sis formats, el silenci abans i després de la música
+   (panell de la cançó), "Ajustar a la música" amb les durades fetes a mà fixes (0,4–24 s) i el marge arrossegable de
+   sota de la previsualització (doble clic: posició per defecte). Proves a tests/ui/test_help.py.
+2. docs/CHANGELOG.md: apartat 1.3.0 amb tot el de sobre i l'avís de compatibilitat: un .pmk desat amb la 1.3.0 no
+   s'obre amb la 1.2.0; els de la 1.2.0 s'obren bé amb la 1.3.0. Esmenta yt-dlp 2026.10.26.
+3. Versió 1.3.0 a pyproject.toml, src/passimaker/__init__.py i uv.lock (amb `uv lock`, no a mà).
+4. CLAUDE.md, "Què és": "MP4 Full HD (1920×1080 o 1080×1920, 30 fps)" → els sis formats (proposta a
+   docs/sessions/M10.md, "Per al M12").
+5. Proves en verd (suite ràpida i `-m "not perf"`, ruff, pyright), PR, i quan la CI de Windows sigui verda (inclòs el
+   ZIP `PassiMaker-1.3.0-win64`), fusiona-la a main.
+6. Prova de l'usuari amb el ZIP de la CI de main: a docs/sessions/M12.md, una sola llista ordenada que reculli les
+   proves manuals dels sis blocs (sense repetir passos: un sol passi amb fotos horitzontals i verticals, una cançó i
+   una exportació en un format nou), més la guia i el "Quant a". Guia l'usuari **un pas cada vegada** i anota el
+   resultat de cada pas en una taula.
+7. Si tot va bé i l'usuari ho aprova: publica la v1.3 amb el flux publicar.yml (docs/PUBLICAR.md; etiqueta v1.3, el
+   commit de main provat) i comprova que la versió publicada té el ZIP adjunt. Si alguna cosa falla: anota-ho a
+   docs/sessions/M12.md i atura't (les correccions són una sessió a part, fila "Correccions" del §1.1).
+8. Documentació final: docs/sessions/M12.md, la fila del M12 (i les de proves del §1.2) a docs/PLA_1_3.md, una línia a
+   l'Estat del CLAUDE.md, i les proves de docs/proves_usuari.md que toquin.
+Criteris d'acceptació: guia i CHANGELOG al dia; versió 1.3.0; CI de Windows en verd; prova de l'usuari correcta i
+anotada; v1.3 publicada amb el ZIP adjunt; cap dependència nova.
+Fitxers permesos: ui/help.py, tests/ui/test_help.py, docs/CHANGELOG.md, pyproject.toml, src/passimaker/__init__.py,
+uv.lock, packaging/LLEGEIX-ME.txt (si cal), CLAUDE.md ("Què és" i l'Estat), docs/PLA_1_3.md (fila del M12 i §1.2),
+docs/proves_usuari.md, docs/sessions/M12.md. Si cal tocar-ne cap altre, atura't i proposa-ho.
+Condició d'aturada: la del CLAUDE.md; també si la prova de l'usuari troba un error (no el corregeixis en aquest bloc).
+```
