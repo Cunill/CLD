@@ -74,6 +74,34 @@ def test_the_guide_explains_youtube_recording_and_their_mishaps(window: MainWind
     assert "avís legal" not in text.lower()  # G2: recording has no legal notice
 
 
+def test_the_guide_explains_the_version_1_3_features(window: MainWindow) -> None:
+    window.guide_action.trigger()
+    guide = window.help.guide
+    assert guide is not None
+    text = guide.browser.toPlainText()
+    for words in (
+        "Quadres negres a l'inici i al final",
+        "Afegeix negre a l'inici",
+        "Barreja les fotos",
+        "Format: 16:9 ▾",
+        "9:16",
+        "2:3",
+        "3:4",
+        "Silenci abans",
+        "Silenci després",
+        "Tota la música",
+        "entre 0,4 i 24 segons",
+        "doble clic",
+    ):
+        assert words in text
+
+
+def test_the_guide_names_match_the_window_texts(window: MainWindow) -> None:
+    assert window.shuffle_action.text() == "Barreja les fotos"
+    assert window.black_start_action.text() == "Afegeix negre a l'inici"
+    assert window.black_end_action.text() == "Afegeix negre al final"
+
+
 def test_the_about_window_names_the_new_components(window: MainWindow) -> None:
     html = about_html(None)
     for name in ("yt-dlp", "Deno", "soundcard"):
